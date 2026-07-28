@@ -1,3 +1,14 @@
+---
+AIGC:
+    Label: "1"
+    ContentProducer: 001191440300708461136T1XGW3
+    ProduceID: 075210f9385b33e628b87fbddda4ab41_1a186b068a5811f1be80525400f8a581
+    ReservedCode1: +YYqdDd9m9q+BG7OExDsEMU3XcHdDT1MIFXCzsTTHA4HPm3U4yZ87RxfiZH3+HXF5BLdvs6tWwhdYvgSMCxVkFq2/43CDD1Lny+ZUV4qBEZlia5uh+2OzEGGd7EuoVPd6xmlUQG+ltwh7obsw9lPCN33xvfPktwOoWGP1l0YwaJ3kxoiC6kDzg2loeQ=
+    ContentPropagator: 001191440300708461136T1XGW3
+    PropagateID: 075210f9385b33e628b87fbddda4ab41_1a186b068a5811f1be80525400f8a581
+    ReservedCode2: +YYqdDd9m9q+BG7OExDsEMU3XcHdDT1MIFXCzsTTHA4HPm3U4yZ87RxfiZH3+HXF5BLdvs6tWwhdYvgSMCxVkFq2/43CDD1Lny+ZUV4qBEZlia5uh+2OzEGGd7EuoVPd6xmlUQG+ltwh7obsw9lPCN33xvfPktwOoWGP1l0YwaJ3kxoiC6kDzg2loeQ=
+---
+
 # Codex CLI 技能清单
 
 ## 安装与配置
@@ -52,3 +63,4 @@ OPENAI_API_KEY=<your-key>
 2. **分步请求**: 复杂任务拆成多个小步骤
 3. **指定输出格式**: 明确期望的代码风格和规范
 4. **利用 Git 历史**: 让 Codex 参考最近的 commit 理解项目演进
+*（内容由AI生成，仅供参考）*
