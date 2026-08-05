@@ -71,10 +71,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 
 /* ===== Canvas ===== */
 .canvas-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:flex;align-items:center;justify-content:center;min-height:320px;position:relative;flex-direction:column;gap:10px}
-#srcCanvas{max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+#srcCanvas{max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;pointer-events:auto}
 .canvas-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;pointer-events:none;z-index:5;display:none;backdrop-filter:blur(4px)}
 .canvas-hint.show{display:block;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
+@keyframes ripplePop{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 .empty-state{text-align:center;color:var(--text2);padding:40px 20px}
 .empty-state .big{font-size:48px;opacity:.2;margin-bottom:8px}
 
@@ -528,16 +529,37 @@ document.getElementById('reuploadBtn').addEventListener('click', function(e){
 
 // ============================================================
 // Canvas click — add/toggle source color (multi-select)
+// Bind both to canvas and canvas-wrap as fallback
 // ============================================================
-canvas.addEventListener('click', function(e) {
-  if (!imgLoaded) return;
+function handleCanvasClick(e) {
+  if (!imgLoaded) { console.log('[CF] click ignored: img not loaded'); return; }
+  var target = e.target;
+  // If clicked on canvas-wrap empty area, still try; if clicked on other children, ignore
   var rect = canvas.getBoundingClientRect();
+  if (!rect || rect.width === 0 || rect.height === 0) {
+    console.log('[CF] canvas rect empty', rect);
+    return;
+  }
   var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
-  var x = Math.round((e.clientX - rect.left) * sx);
-  var y = Math.round((e.clientY - rect.top) * sy);
-  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+  var cx = e.clientX, cy = e.clientY;
+  var x = Math.round((cx - rect.left) * sx);
+  var y = Math.round((cy - rect.top) * sy);
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
+    console.log('[CF] click outside canvas', x, y);
+    return;
+  }
   var px = ctx.getImageData(x, y, 1, 1).data;
+  console.log('[CF] picked', x, y, 'rgb(' + px[0] + ',' + px[1] + ',' + px[2] + ')');
+  showClickRipple(cx, cy);
   toggleSourceColor(px[0], px[1], px[2]);
+}
+
+canvas.addEventListener('click', handleCanvasClick);
+document.getElementById('canvasWrap').addEventListener('click', function(e){
+  // Only act as fallback if click didn't hit canvas itself (which already handled)
+  if (e.target === canvas || e.target.closest('#srcCanvas')) return;
+  // If user clicked somewhere inside canvas-wrap (e.g. empty space or hint), treat as canvas click
+  handleCanvasClick(e);
 });
 
 function toggleSourceColor(r, g, b) {
@@ -561,6 +583,13 @@ function toggleSourceColor(r, g, b) {
   if (previewEnabled) drawPreview();
   updateGenButton();
   showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
+}
+
+function showClickRipple(clientX, clientY) {
+  var ripple = document.createElement('div');
+  ripple.style.cssText = 'position:fixed;left:' + clientX + 'px;top:' + clientY + 'px;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:2px solid var(--primary);pointer-events:none;z-index:9999;animation:ripplePop .45s ease-out forwards';
+  document.body.appendChild(ripple);
+  setTimeout(function(){ ripple.remove(); }, 500);
 }
 
 function removeSourceColor(idx) {
