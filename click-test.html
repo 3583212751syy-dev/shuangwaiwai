@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Canvas Click Test</title>
+<style>
+body{margin:20px;font-family:sans-serif}
+#log{background:#111;color:#0f0;padding:10px;font:12px monospace;max-height:200px;overflow-y:auto;margin-top:10px}
+canvas{cursor:crosshair;max-width:100%;border:2px solid red}
+.wrap{border:2px dashed blue;display:inline-block;padding:10px}
+</style>
+</head>
+<body>
+<h2>Canvas 点击测试</h2>
+<p>上传图片后点图片，看下面日志是否出现</p>
+<input type="file" id="file" accept="image/*">
+<div class="wrap" id="wrap">
+  <canvas id="c" width="400" height="300"></canvas>
+</div>
+<div id="log"></div>
+
+<script>
+var logEl = document.getElementById('log');
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+var wrap = document.getElementById('wrap');
+
+function log(msg) {
+  var t = new Date().toLocaleTimeString();
+  logEl.innerHTML += '<div>[' + t + '] ' + msg + '</div>';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// 画个默认图
+ctx.fillStyle='#f0f0f0';
+ctx.fillRect(0,0,400,300);
+ctx.fillStyle='red';
+ctx.fillRect(50,50,100,100);
+ctx.fillStyle='blue';
+ctx.fillRect(200,100,100,100);
+ctx.fillStyle='green';
+ctx.fillRect(120,180,100,80);
+log('初始化完成，canvas=' + canvas.width + 'x' + canvas.height);
+
+// 方式1: canvas onclick
+canvas.onclick = function(e) {
+  log('✅ canvas.onclick 触发! target=' + e.target.tagName);
+  pickColor(e);
+};
+
+// 方式2: canvas addEventListener
+canvas.addEventListener('click', function(e) {
+  log('✅ canvas.addEventListener 触发! phase=bubble');
+});
+
+// 方式3: document capture
+document.addEventListener('click', function(e) {
+  log('📌 document click capture target=' + e.target.tagName + '#' + (e.target.id||''));
+}, true);
+
+// 方式4: wrap click (兜底)
+wrap.addEventListener('click', function(e) {
+  log('📦 wrap click target=' + e.target.tagName + '#' + (e.target.id||''));
+});
+
+function pickColor(e) {
+  var rect = canvas.getBoundingClientRect();
+  log('  rect=' + JSON.stringify({w:rect.width,h:rect.height,l:rect.left,t:rect.top}));
+  var sx = canvas.width / rect.width;
+  var sy = canvas.height / rect.height;
+  var x = Math.round((e.clientX - rect.left) * sx);
+  var y = Math.round((e.clientY - rect.top) * sy);
+  if (x<0||y<0||x>=canvas.width||y>=canvas.height) { log('  ❌ 坐标越界 x='+x+' y='+y); return; }
+  try {
+    var px = ctx.getImageData(x,y,1,1).data;
+    log('  🎨 取色成功: rgb('+px[0]+','+px[1]+','+px[2]+') alpha='+px[3]);
+  } catch(err) {
+    log('  ❌ getImageData 异常: ' + err.message);
+  }
+}
+
+// File upload
+document.getElementById('file').addEventListener('change', function(e) {
+  var f = e.target.files[0];
+  if (!f) return;
+  log('📁 加载图片: ' + f.name + ' (' + f.type + ')');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var img = new Image();
+    img.onload = function() {
+      var w = Math.min(img.width, 800);
+      var h = Math.round(img.height * w / img.width);
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      log('✅ 图片绘制完成 ' + w + 'x' + h + ', canvas变成 ' + canvas.width + 'x' + canvas.height);
+    };
+    img.onerror = function() { log('❌ 图片加载失败'); };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(f);
+});
+</script>
+</body>
+</html>

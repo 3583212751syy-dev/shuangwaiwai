@@ -242,7 +242,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 <div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">处理中...</span></div>
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>var JSZIP_LOADED=false;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" onload="JSZIP_LOADED=true"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js" onload="JSZIP_LOADED=true"></script>
 <script>
 // ===== 状态 =====
 var canvas = document.getElementById('srcCanvas');
