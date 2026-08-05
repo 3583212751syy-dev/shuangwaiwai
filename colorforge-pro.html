@@ -601,7 +601,7 @@ function toggleSourceColor(r, g, b) {
         sourceColors.splice(i, 1);
         updateSourceChips();
         updateDomSelection();
-        if (previewEnabled) drawPreview();
+        drawPreview();
         updateGenButton();
         cfLog('removed source color ' + hex);
         return;
@@ -611,7 +611,7 @@ function toggleSourceColor(r, g, b) {
     sourceColors.push({ r: r, g: g, b: b, hex: hex });
     updateSourceChips();
     updateDomSelection();
-    if (previewEnabled) drawPreview();
+    drawPreview(); // 始终绘制预览，不管 toggle 状态
     updateGenButton();
     cfLog('added source color ' + hex + ', total=' + sourceColors.length);
     showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
@@ -631,7 +631,7 @@ function removeSourceColor(idx) {
   sourceColors.splice(idx, 1);
   updateSourceChips();
   updateDomSelection();
-  if (previewEnabled) drawPreview(); else ctx.putImageData(originalImageData, 0, 0);
+  drawPreview();
   updateGenButton();
 }
 
@@ -639,7 +639,7 @@ function clearAllSources() {
   sourceColors = [];
   updateSourceChips();
   updateDomSelection();
-  if (imgLoaded) ctx.putImageData(originalImageData, 0, 0);
+  if (imgLoaded && originalImageData) ctx.putImageData(originalImageData, 0, 0);
   updateGenButton();
 }
 
@@ -778,7 +778,7 @@ document.getElementById('tolerance').addEventListener('input', function() {
   var tv = document.getElementById('tolVal'); if (tv) tv.textContent = this.value;
   if (sourceColors.length > 0) {
     updateSourceStats();
-    if (previewEnabled) drawPreview();
+    drawPreview();
   }
 });
 
@@ -787,33 +787,41 @@ document.getElementById('tolerance').addEventListener('input', function() {
 // ============================================================
 function togglePreview() {
   previewEnabled = !previewEnabled;
-  document.getElementById('togglePreview').classList.toggle('on', previewEnabled);
+  var tp = document.getElementById('togglePreview'); if (tp) tp.classList.toggle('on', previewEnabled);
   if (!imgLoaded) return;
-  if (previewEnabled && sourceColors.length > 0) drawPreview();
-  else ctx.putImageData(originalImageData, 0, 0);
+  drawPreview();
 }
 
 function drawPreview() {
-  if (sourceColors.length === 0 || !originalImageData) {
-    if (imgLoaded) ctx.putImageData(originalImageData, 0, 0);
-    return;
-  }
-  var tol = parseInt(document.getElementById('tolerance').value);
-  var tolSq = tol * tol * 3;
-  var data = new Uint8ClampedArray(originalImageData.data);
-  for (var i = 0; i < data.length; i += 4) {
-    if (data[i + 3] < 128) continue;
-    for (var s = 0; s < sourceColors.length; s++) {
-      var dr = data[i] - sourceColors[s].r;
-      var dg = data[i + 1] - sourceColors[s].g;
-      var db = data[i + 2] - sourceColors[s].b;
-      if (dr * dr + dg * dg + db * db <= tolSq) {
-        data[i] = 255; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = 180;
-        break;
+  try {
+    cfLog('drawPreview called, sourceColors=' + sourceColors.length + ', oID=' + (!!originalImageData));
+    if (sourceColors.length === 0 || !originalImageData) {
+      if (imgLoaded && originalImageData) ctx.putImageData(originalImageData, 0, 0);
+      cfLog('drawPreview: early return (no source colors or no image)');
+      return;
+    }
+    var tol = parseInt(document.getElementById('tolerance').value);
+    var tolSq = tol * tol * 3;
+    var data = new Uint8ClampedArray(originalImageData.data);
+    var matched = 0;
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] < 128) continue;
+      for (var s = 0; s < sourceColors.length; s++) {
+        var dr = data[i] - sourceColors[s].r;
+        var dg = data[i + 1] - sourceColors[s].g;
+        var db = data[i + 2] - sourceColors[s].b;
+        if (dr * dr + dg * dg + db * db <= tolSq) {
+          data[i] = 255; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = 180;
+          matched++;
+          break;
+        }
       }
     }
+    ctx.putImageData(new ImageData(data, originalImageData.width, originalImageData.height), 0, 0);
+    cfLog('drawPreview done, matched ' + matched + ' pixels');
+  } catch(err) {
+    cfLog('CRASH in drawPreview: ' + err.message);
   }
-  ctx.putImageData(new ImageData(data, originalImageData.width, originalImageData.height), 0, 0);
 }
 
 // ============================================================
@@ -1143,7 +1151,7 @@ function generateBatch() {
       showToast('✅ 成功生成 ' + generatedBlobs.length + ' 张图片', 'success');
       document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
       previewEnabled = prevPreview;
-      if (previewEnabled) drawPreview(); else ctx.putImageData(originalImageData, 0, 0);
+      drawPreview();
       return;
     }
     var t = targetColors[processed];
