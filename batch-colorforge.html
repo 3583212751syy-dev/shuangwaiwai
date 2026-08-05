@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量改色生成器 — BatchColorForge v2</title>
+<style>
+:root{
+  --bg:#f0f2f5;--surface:#fff;--border:#e0e3e8;--text:#1a1a2e;--text2:#6b7280;
+  --primary:#4f46e5;--primary-h:#4338ca;--accent:#06b6d4;
+  --danger:#ef4444;--success:#10b981;--warn:#f59e0b;--radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.logo{width:30px;height:30px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.main{display:flex;gap:16px;padding:16px;max-width:1500px;margin:0 auto;align-items:flex-start}
+.sidebar{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;position:sticky;top:80px}
+.content{flex:1;min-width:0}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.control-group{margin-bottom:14px}
+.control-group:last-child{margin-bottom:0}
+.control-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.control-label .value{color:var(--primary);font-weight:600}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:#e0e3e8;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.15)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;border:none}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:36px 16px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:rgba(79,70,229,.04)}
+.upload-zone .icon{font-size:32px;margin-bottom:6px}
+.upload-zone .text{font-size:13px;color:var(--text2)}
+.upload-zone .text strong{color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-block{width:100%}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-h)}
+.btn-primary:disabled{background:#c7d2fe;cursor:not-allowed}
+.btn-secondary{background:#f3f4f6;color:var(--text)}
+.btn-secondary:hover{background:#e5e7eb}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:disabled{background:#6ee7b7;cursor:not-allowed}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-warn:hover{background:#d97706}
+.btn-danger{background:var(--danger);color:#fff;font-size:11px;padding:4px 8px}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:6px 10px;font-size:12px}
+.canvas-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;display:flex;align-items:center;justify-content:center;min-height:300px;position:relative;flex-direction:column;gap:12px}
+#srcCanvas{max-width:100%;max-height:55vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.08);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.canvas-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;pointer-events:none;z-index:5;display:none;backdrop-filter:blur(4px)}
+.canvas-hint.show{display:block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
+.empty-state{text-align:center;color:var(--text2)}
+.empty-state .big{font-size:56px;opacity:.2;margin-bottom:12px}
+
+/* 主色板 */
+.dominant-panel{display:flex;flex-wrap:wrap;gap:6px;padding:12px;background:#f9fafb;border-radius:10px;min-height:60px;align-items:center}
+.dominant-panel .label{font-size:11px;color:var(--text2);width:100%;margin-bottom:4px}
+.dominant-swatch{position:relative;width:54px;height:54px;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:all .15s;display:flex;align-items:flex-end;justify-content:center;padding-bottom:3px;overflow:hidden}
+.dominant-swatch:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.dominant-swatch.selected{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary),0 4px 10px rgba(79,70,229,.3)}
+.dominant-swatch .pct{font-size:9px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);font-weight:600}
+.dominant-empty{color:var(--text2);font-size:12px;padding:10px;width:100%;text-align:center}
+
+/* 源颜色显示 */
+.source-display{display:flex;align-items:center;gap:10px;padding:10px;background:#f9fafb;border-radius:10px;margin-top:8px}
+.source-swatch{width:48px;height:48px;border-radius:10px;border:2px solid var(--border);flex-shrink:0;position:relative;overflow:hidden}
+.source-info{flex:1;min-width:0}
+.source-hex{font-family:monospace;font-size:14px;font-weight:700;color:var(--text)}
+.source-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.source-stats{display:flex;gap:4px;font-size:11px;color:var(--text2);margin-top:2px}
+.source-stats b{color:var(--success)}
+
+/* 目标色管理 */
+.target-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;padding-right:4px}
+.target-list::-webkit-scrollbar{width:4px}
+.target-list::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+.target-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;transition:border-color .15s;background:#fff}
+.target-item:hover{border-color:var(--primary)}
+.target-swatch{width:32px;height:32px;border-radius:7px;flex-shrink:0;border:1px solid var(--border)}
+.target-info{flex:1;min-width:0}
+.target-hex{font-family:monospace;font-size:12px;font-weight:600}
+.target-name input{width:100%;border:none;outline:none;font-size:11px;color:var(--text2);background:transparent;margin-top:1px}
+.target-name input:focus{color:var(--text)}
+.preset-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:6px}
+.preset-swatch{aspect-ratio:1;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:all .12s}
+.preset-swatch:hover{border-color:var(--text2);transform:scale(1.15)}
+
+/* 生成结果 */
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.result-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .15s,box-shadow .15s}
+.result-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.result-card img{width:100%;height:160px;object-fit:contain;background-image:linear-gradient(45deg,#f8f8f8 25%,transparent 25%),linear-gradient(-45deg,#f8f8f8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f8f8f8 75%),linear-gradient(-45deg,transparent 75%,#f8f8f8 75%);background-size:16px 16px}
+.result-info{padding:8px 10px}
+.result-name{font-size:12px;font-weight:600;margin-bottom:2px;display:flex;align-items:center;gap:5px}
+.result-swatch{width:14px;height:14px;border-radius:4px;flex-shrink:0;border:1px solid var(--border)}
+.result-actions{display:flex;gap:4px;margin-top:6px}
+.result-actions .btn{flex:1;font-size:11px;padding:5px 8px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#eef2ff;color:var(--primary)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;box-shadow:var(--shadow-lg);z-index:9999;opacity:0;transition:all .3s;max-width:80%}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+.toast.warn{background:var(--warn)}
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.8);display:none;align-items:center;justify-content:center;z-index:9998}
+.loading.show{display:flex}
+.spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.toggle{position:relative;width:38px;height:22px;background:#d1d5db;border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+.toggle-label{font-size:13px}
+.info-text{font-size:11px;color:var(--text2);line-height:1.5;margin-top:4px}
+.section-divider{height:1px;background:var(--border);margin:12px 0}
+.color-input-wrap{position:relative;width:40px;height:34px;border-radius:8px;overflow:hidden;border:2px solid var(--border);cursor:pointer;flex-shrink:0}
+.color-input-wrap:hover{border-color:var(--primary)}
+.color-input-wrap input[type=color]{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);border:none;cursor:pointer}
+.color-hex{flex:1;font-family:"SF Mono",Monaco,Consolas,monospace;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;outline:none}
+@media(max-width:900px){.main{flex-direction:column}.sidebar{width:100%;position:static}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="logo">🎨</span>批量改色生成器 <span style="font-size:11px;color:var(--text2);font-weight:400;margin-left:8px">v2 · 一键智能识别主色</span></h1>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="badge" id="countBadge" style="display:none">0 张</span>
+    <button class="btn btn-success btn-sm" onclick="downloadAllZip()" id="btnZip" disabled>📦 打包下载ZIP</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 左侧 -->
+  <div class="sidebar">
+    <div class="card" id="uploadCard">
+      <div class="card-title">📁 上传图片</div>
+      <div class="upload-zone" id="uploadZone">
+        <div class="icon">🖼️</div>
+        <div class="text">点击或拖拽图片到此处<br><strong>PNG / JPG / WEBP</strong></div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+    </div>
+
+    <!-- 改色设置 -->
+    <div class="card" id="settingsCard" style="display:none">
+      <!-- 步骤1: 选源颜色 -->
+      <div class="card-title">1️⃣ 选择要替换的颜色</div>
+      <div class="info-text">👇 点图片任意位置取色，或点下方色板一键选择</div>
+      <div class="dominant-panel" id="dominantPanel">
+        <div class="label">🎯 图片主色板（点击选中）</div>
+        <div class="dominant-empty">识别中...</div>
+      </div>
+
+      <div id="sourceDisplay" style="display:none">
+        <div class="source-display">
+          <div class="source-swatch" id="sourceSwatch"></div>
+          <div class="source-info">
+            <div class="source-hex" id="sourceHex">#FFFFFF</div>
+            <div class="source-meta">RGB(<span id="sourceRgb">255, 255, 255</span>)</div>
+            <div class="source-stats">匹配 <b id="sourceCount">0</b> 像素</div>
+          </div>
+          <button class="btn btn-danger" onclick="clearSource()" title="重新选">✕</button>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- 步骤2: 容差与选项 -->
+      <div class="card-title">2️⃣ 调整范围与选项</div>
+      <div class="control-group">
+        <div class="control-label">色彩容差 <span class="value" id="tolVal">80</span> <span style="font-size:10px;color:var(--text2)">(0-500)</span></div>
+        <input type="range" id="tolerance" min="0" max="500" value="80">
+        <div class="info-text">容差越大，匹配的颜色范围越广。建议先点"预览"看效果</div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle on" id="togglePreview" onclick="togglePreview()"></div>
+        <span class="toggle-label">预览替换区域（叠加红色高亮）</span>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle" id="toggleSoften" onclick="this.classList.toggle('on')"></div>
+        <span class="toggle-label">边缘柔化（推荐关闭，保持纯色）</span>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle on" id="toggleKeepAlpha" onclick="this.classList.toggle('on')"></div>
+        <span class="toggle-label">保留透明区域</span>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- 步骤3: 目标颜色 -->
+      <div class="card-title">3️⃣ 添加替换目标色</div>
+      <div class="control-group">
+        <div class="color-row" style="gap:6px">
+          <div class="color-input-wrap"><input type="color" id="newColor" value="#ff0000"></div>
+          <input type="text" class="color-hex" id="newColorName" placeholder="名称(可选)" style="font-size:12px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;outline:none">
+          <button class="btn btn-primary btn-sm" onclick="addTargetColor()">＋</button>
+        </div>
+        <div class="preset-grid" id="quickPresets"></div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn btn-warn btn-sm" style="flex:1" onclick="addRainbow()">🌈 彩虹7</button>
+          <button class="btn btn-warn btn-sm" style="flex:1" onclick="addGradient()">📊 渐变10</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearTargets()">清空</button>
+        </div>
+      </div>
+
+      <div class="target-list" id="targetList"></div>
+
+      <div class="section-divider"></div>
+
+      <button class="btn btn-primary btn-block" onclick="generateBatch()" id="btnGenerate" disabled>
+        🚀 批量生成 (<span id="genCount">0</span> 张)
+      </button>
+    </div>
+  </div>
+
+  <!-- 右侧 -->
+  <div class="content">
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="empty-state" id="emptyState">
+        <div class="big">🖼️</div>
+        <p>上传图片后开始批量改色</p>
+      </div>
+      <canvas id="srcCanvas" style="display:none"></canvas>
+      <div class="canvas-hint" id="canvasHint">👆 在这里点击要替换的颜色</div>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none">
+      <div class="card-title">
+        ✅ 生成结果
+        <span class="badge" id="resultBadge">0 张</span>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">处理中...</span></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// ===== 状态 =====
+var canvas = document.getElementById('srcCanvas');
+var ctx = canvas.getContext('2d', { willReadFrequently: true });
+var overlayCanvas = document.createElement('canvas'); // 用于预览高亮
+var overlayCtx = overlayCanvas.getContext('2d');
+var originalImageData = null;
+var imgLoaded = false;
+var sourceColor = null;        // {r, g, b, hex}
+var sourceCount = 0;           // 匹配像素数
+var targetColors = [];
+var generatedBlobs = [];
+var nextId = 0;
+var previewEnabled = true;
+
+// 预设色
+var presetColors = [
+  '#ff0000','#ff4500','#ff6600','#ff9900','#ffcc00','#ffff00','#ccff00','#99ff00',
+  '#00ff00','#00ff99','#00ffcc','#00ffff','#00ccff','#0099ff','#0066ff','#0000ff',
+  '#6600ff','#9900ff','#cc00ff','#ff00cc','#ff0099','#ff0066','#ffffff','#000000',
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#34495e'
+];
+
+// ===== 上传 =====
+var uploadZone = document.getElementById('uploadZone');
+var fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', function(){ fileInput.click(); });
+uploadZone.addEventListener('dragover', function(e){ e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', function(){ uploadZone.classList.remove('dragover'); });
+uploadZone.addEventListener('drop', function(e){
+  e.preventDefault(); uploadZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', function(e){ if (e.target.files[0]) loadImage(e.target.files[0]); });
+
+function loadImage(file) {
+  if (!file.type.startsWith('image/')) { showToast('请选择图片文件', 'error'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW = 1200, maxH = 800;
+      var w = img.width, h = img.height;
+      if (w > maxW || h > maxH) { var s = Math.min(maxW/w, maxH/h); w = Math.round(w*s); h = Math.round(h*s); }
+      canvas.width = w; canvas.height = h;
+      overlayCanvas.width = w; overlayCanvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      originalImageData = ctx.getImageData(0, 0, w, h);
+      imgLoaded = true;
+
+      document.getElementById('emptyState').style.display = 'none';
+      canvas.style.display = 'block';
+      document.getElementById('canvasHint').classList.add('show');
+      document.getElementById('uploadCard').style.display = 'none';
+      document.getElementById('settingsCard').style.display = 'block';
+
+      extractDominant();
+      buildQuickPresets();
+      showToast('图片已加载 — 点图片或下方色板选源色', 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== 点击画布取色 =====
+canvas.addEventListener('click', function(e) {
+  if (!imgLoaded) return;
+  var rect = canvas.getBoundingClientRect();
+  var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+  var x = Math.round((e.clientX - rect.left) * sx);
+  var y = Math.round((e.clientY - rect.top) * sy);
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+  var px = ctx.getImageData(x, y, 1, 1).data;
+  setSourceColor(px[0], px[1], px[2]);
+  showToast('已选源色: ' + sourceColor.hex, 'success');
+});
+
+document.getElementById('tolerance').addEventListener('input', function() {
+  document.getElementById('tolVal').textContent = this.value;
+  if (sourceColor) updateSourceStats();
+  if (previewEnabled && sourceColor) drawPreview();
+});
+
+// ===== 主色提取 + 显示 =====
+function extractDominant() {
+  var data = originalImageData.data;
+  var map = {};
+  var step = Math.max(1, Math.floor(data.length / 4 / 8000));
+
+  // 第一次：粗略量化
+  for (var i = 0; i < data.length; i += 4 * step) {
+    if (data[i+3] < 128) continue;
+    var r = Math.round(data[i]/24)*24, g = Math.round(data[i+1]/24)*24, b = Math.round(data[i+2]/24)*24;
+    var key = r+','+g+','+b;
+    if (!map[key]) map[key] = { c:0, r:r, g:g, b:b };
+    map[key].c++;
+  }
+
+  var total = Object.values(map).reduce(function(s,c){return s+c.c;}, 0);
+  var sorted = Object.values(map).sort(function(a,b){return b.c-a.c}).slice(0, 12);
+
+  var panel = document.getElementById('dominantPanel');
+  panel.innerHTML = '<div class="label">🎯 图片主色板（点击选中作为源色）</div>';
+  sorted.forEach(function(cl) {
+    var hex = '#' + [cl.r,cl.g,cl.b].map(function(v){return v.toString(16).padStart(2,'0')}).join('');
+    var pct = Math.round(cl.c / total * 100);
+    var el = document.createElement('div');
+    el.className = 'dominant-swatch';
+    el.style.background = hex;
+    el.title = hex + ' · ' + pct + '% — 点击选择';
+    el.innerHTML = '<span class="pct">' + pct + '%</span>';
+    el.onclick = function() {
+      // 找到该色板最近的实际像素作为精确源色
+      var nearest = findNearestPixel(cl.r, cl.g, cl.b);
+      setSourceColor(nearest[0], nearest[1], nearest[2]);
+      panel.querySelectorAll('.dominant-swatch').forEach(function(s){s.classList.remove('selected')});
+      el.classList.add('selected');
+      showToast('已选: ' + sourceColor.hex + ' (' + sourceCount + ' 像素)', 'success');
+    };
+    panel.appendChild(el);
+  });
+}
+
+// 找到最接近目标颜色的真实像素
+function findNearestPixel(targetR, targetG, targetB) {
+  var data = originalImageData.data;
+  var bestDist = Infinity, bestR = targetR, bestG = targetG, bestB = targetB;
+  var step = Math.max(1, Math.floor(data.length / 4 / 30000));
+  for (var i = 0; i < data.length; i += 4 * step) {
+    if (data[i+3] < 128) continue;
+    var dr = data[i] - targetR, dg = data[i+1] - targetG, db = data[i+2] - targetB;
+    var dist = dr*dr + dg*dg + db*db;
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestR = data[i]; bestG = data[i+1]; bestB = data[i+2];
+      if (dist === 0) break;
+    }
+  }
+  return [bestR, bestG, bestB];
+}
+
+// ===== 设置源颜色 =====
+function setSourceColor(r, g, b) {
+  sourceColor = { r: r, g: g, b: b, hex: rgbToHex(r, g, b) };
+  document.getElementById('sourceDisplay').style.display = 'block';
+  document.getElementById('sourceSwatch').style.background = sourceColor.hex;
+  document.getElementById('sourceHex').textContent = sourceColor.hex;
+  document.getElementById('sourceRgb').textContent = r + ', ' + g + ', ' + b;
+  document.getElementById('canvasHint').classList.remove('show');
+  updateSourceStats();
+  if (previewEnabled) drawPreview();
+}
+
+function clearSource() {
+  sourceColor = null;
+  sourceCount = 0;
+  document.getElementById('sourceDisplay').style.display = 'none';
+  document.getElementById('canvasHint').classList.add('show');
+  document.querySelectorAll('.dominant-swatch').forEach(function(s){s.classList.remove('selected')});
+  // 清掉预览
+  if (imgLoaded) ctx.putImageData(originalImageData, 0, 0);
+}
+
+function updateSourceStats() {
+  if (!sourceColor || !originalImageData) return;
+  var tol = parseInt(document.getElementById('tolerance').value);
+  sourceCount = countMatchingPixels(originalImageData, sourceColor.r, sourceColor.g, sourceColor.b, tol);
+  document.getElementById('sourceCount').textContent = sourceCount.toLocaleString();
+}
+
+function countMatchingPixels(imgData, r, g, b, tol) {
+  var data = imgData.data;
+  var tolSq = tol * tol * 3;
+  var count = 0;
+  for (var i = 0; i < data.length; i += 4) {
+    if (data[i+3] < 128) continue;
+    var dr = data[i]-r, dg = data[i+1]-g, db = data[i+2]-b;
+    if (dr*dr + dg*dg + db*db <= tolSq) count++;
+  }
+  return count;
+}
+
+// ===== 预览 =====
+function togglePreview() {
+  previewEnabled = !previewEnabled;
+  document.getElementById('togglePreview').classList.toggle('on', previewEnabled);
+  if (!imgLoaded) return;
+  if (previewEnabled && sourceColor) drawPreview();
+  else ctx.putImageData(originalImageData, 0, 0);
+}
+
+function drawPreview() {
+  if (!sourceColor || !originalImageData) return;
+  var tol = parseInt(document.getElementById('tolerance').value);
+  var tolSq = tol * tol * 3;
+  var data = new Uint8ClampedArray(originalImageData.data);
+  for (var i = 0; i < data.length; i += 4) {
+    if (data[i+3] < 128) continue;
+    var dr = data[i]-sourceColor.r, dg = data[i+1]-sourceColor.g, db = data[i+2]-sourceColor.b;
+    if (dr*dr + dg*dg + db*db <= tolSq) {
+      data[i]   = 255;
+      data[i+1] = 0;
+      data[i+2] = 0;
+      data[i+3] = 180;
+    }
+  }
+  ctx.putImageData(new ImageData(data, originalImageData.width, originalImageData.height), 0, 0);
+}
+
+// ===== 目标颜色管理 =====
+function buildQuickPresets() {
+  var c = document.getElementById('quickPresets');
+  c.innerHTML = '';
+  presetColors.forEach(function(color) {
+    var d = document.createElement('div');
+    d.className = 'preset-swatch';
+    d.style.background = color;
+    d.title = color;
+    d.onclick = function() {
+      document.getElementById('newColor').value = color;
+      addTargetColor(color, '');
+    };
+    c.appendChild(d);
+  });
+}
+
+function addTargetColor(hex, name) {
+  hex = hex || document.getElementById('newColor').value;
+  name = name || document.getElementById('newColorName').value || '';
+  for (var i = 0; i < targetColors.length; i++) {
+    if (targetColors[i].hex.toLowerCase() === hex.toLowerCase()) { showToast('该颜色已存在', 'warn'); return; }
+  }
+  var id = nextId++;
+  var displayName = name || ('颜色' + (targetColors.length + 1));
+  targetColors.push({ id: id, hex: hex, name: displayName });
+  document.getElementById('newColorName').value = '';
+  renderTargetList();
+  updateGenButton();
+}
+
+function removeTargetColor(id) {
+  targetColors = targetColors.filter(function(t){ return t.id !== id; });
+  renderTargetList();
+  updateGenButton();
+}
+
+function renameTargetColor(id, name) {
+  for (var i = 0; i < targetColors.length; i++) {
+    if (targetColors[i].id === id) { targetColors[i].name = name || ('颜色'+(i+1)); break; }
+  }
+}
+
+function renderTargetList() {
+  var c = document.getElementById('targetList');
+  c.innerHTML = '';
+  targetColors.forEach(function(t, idx) {
+    var item = document.createElement('div');
+    item.className = 'target-item';
+    item.innerHTML =
+      '<div class="target-swatch" style="background:'+t.hex+'"></div>' +
+      '<div class="target-info">' +
+        '<div class="target-hex">'+t.hex.toUpperCase()+'</div>' +
+        '<div class="target-name"><input type="text" value="'+t.name+'" onchange="renameTargetColor('+t.id+', this.value)"></div>' +
+      '</div>' +
+      '<button class="btn btn-danger" onclick="removeTargetColor('+t.id+')">✕</button>';
+    c.appendChild(item);
+  });
+  document.getElementById('targetCount') && (document.getElementById('targetCount').textContent = targetColors.length);
+}
+
+function clearTargets() { targetColors = []; renderTargetList(); updateGenButton(); }
+
+function addRainbow() {
+  [{hex:'#ff0000',name:'红'},{hex:'#ff7f00',name:'橙'},{hex:'#ffcc00',name:'黄'},{hex:'#00ff00',name:'绿'},{hex:'#00ffff',name:'青'},{hex:'#0000ff',name:'蓝'},{hex:'#8b00ff',name:'紫'}].forEach(function(c){
+    if (!targetColors.some(function(t){return t.hex.toLowerCase()===c.hex})) targetColors.push({id:nextId++,hex:c.hex,name:c.name});
+  });
+  renderTargetList(); updateGenButton(); showToast('已加彩虹7色','success');
+}
+
+function addGradient() {
+  [{hex:'#ff4757',name:'珊瑚红'},{hex:'#ff6b6b',name:'粉红'},{hex:'#ffa502',name:'橙黄'},{hex:'#ffd32a',name:'明黄'},{hex:'#2ecc71',name:'翠绿'},{hex:'#1abc9c',name:'青绿'},{hex:'#3498db',name:'天蓝'},{hex:'#5f27cd',name:'深紫'},{hex:'#ff00ff',name:'品红'},{hex:'#000000',name:'纯黑'}].forEach(function(c){
+    if (!targetColors.some(function(t){return t.hex.toLowerCase()===c.hex})) targetColors.push({id:nextId++,hex:c.hex,name:c.name});
+  });
+  renderTargetList(); updateGenButton(); showToast('已加渐变10色','success');
+}
+
+function updateGenButton() {
+  var n = targetColors.length;
+  document.getElementById('genCount').textContent = n;
+  var canGen = n > 0 && imgLoaded && sourceColor;
+  document.getElementById('btnGenerate').disabled = !canGen;
+  if (!sourceColor && imgLoaded) {
+    document.getElementById('btnGenerate').textContent = '请先选择源颜色';
+  } else {
+    document.getElementById('btnGenerate').innerHTML = '🚀 批量生成 (<span id="genCount">'+n+'</span> 张)';
+  }
+}
+
+// ===== 核心替换 =====
+function replaceColorInData(srcData, srcRgb, dstRgb, tolerance, soften, keepAlpha) {
+  var data = new Uint8ClampedArray(srcData.data);
+  var tolSq = tolerance * tolerance * 3;
+  for (var i = 0; i < data.length; i += 4) {
+    if (keepAlpha && data[i+3] < 128) continue;
+    var dr = data[i]-srcRgb[0], dg = data[i+1]-srcRgb[1], db = data[i+2]-srcRgb[2];
+    var distSq = dr*dr + dg*dg + db*db;
+    if (distSq <= tolSq) {
+      // 默认硬替换：直接覆盖为目标色（保证结果色一致）
+      data[i]   = dstRgb[0];
+      data[i+1] = dstRgb[1];
+      data[i+2] = dstRgb[2];
+      // alpha 保留
+    }
+  }
+  return new ImageData(data, srcData.width, srcData.height);
+}
+
+// ===== 批量生成 =====
+function generateBatch() {
+  if (!imgLoaded) return;
+  if (!sourceColor) { showToast('请先选择要替换的源颜色', 'warn'); return; }
+  if (targetColors.length === 0) { showToast('请添加至少一个目标颜色', 'warn'); return; }
+  if (sourceCount === 0) {
+    if (!confirm('当前容差下没有匹配的像素，要提高容差到 200 重试吗？')) {
+      showToast('已取消：调整容差后重试', 'warn');
+      return;
+    }
+    document.getElementById('tolerance').value = 200;
+    document.getElementById('tolVal').textContent = 200;
+    updateSourceStats();
+    if (sourceCount === 0) { showToast('即使容差 200 也没匹配像素，请换源色', 'error'); return; }
+  }
+
+  showLoading(true, '生成中 0/' + targetColors.length + '...');
+  document.getElementById('btnGenerate').disabled = true;
+
+  generatedBlobs.forEach(function(b){ if (b.url) URL.revokeObjectURL(b.url); });
+  generatedBlobs = [];
+  document.getElementById('resultsGrid').innerHTML = '';
+
+  var srcRgb = [sourceColor.r, sourceColor.g, sourceColor.b];
+  var tolerance = parseInt(document.getElementById('tolerance').value);
+  var soften = document.getElementById('toggleSoften').classList.contains('on');
+  var keepAlpha = document.getElementById('toggleKeepAlpha').classList.contains('on');
+
+  var tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = originalImageData.width;
+  tmpCanvas.height = originalImageData.height;
+  var tmpCtx = tmpCanvas.getContext('2d');
+
+  // 临时关闭预览
+  var prevPreview = previewEnabled;
+  if (prevPreview) { previewEnabled = false; }
+
+  var processed = 0;
+  function next() {
+    if (processed >= targetColors.length) {
+      showLoading(false);
+      document.getElementById('btnGenerate').disabled = false;
+      document.getElementById('btnZip').disabled = false;
+      document.getElementById('resultsCard').style.display = 'block';
+      document.getElementById('resultBadge').textContent = generatedBlobs.length + ' 张';
+      document.getElementById('countBadge').style.display = 'inline-flex';
+      document.getElementById('countBadge').textContent = generatedBlobs.length + ' 张';
+      showToast('✅ 成功生成 ' + generatedBlobs.length + ' 张图片', 'success');
+      document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+      // 恢复预览
+      previewEnabled = prevPreview;
+      if (previewEnabled) drawPreview(); else ctx.putImageData(originalImageData, 0, 0);
+      return;
+    }
+    var t = targetColors[processed];
+    var dstRgb = hexToRgb(t.hex);
+    var newData = replaceColorInData(originalImageData, srcRgb, dstRgb, tolerance, soften, keepAlpha);
+    tmpCtx.putImageData(newData, 0, 0);
+    tmpCanvas.toBlob(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var name = t.name.replace(/[\/\\?%*:|"<>]/g, '_');
+      generatedBlobs.push({ name: name, hex: t.hex, blob: blob, url: url });
+      renderResultCard(generatedBlobs.length - 1);
+      processed++;
+      document.getElementById('loadingText').textContent = '生成中 ' + processed + '/' + targetColors.length + '...';
+      setTimeout(next, 10);
+    }, 'image/png');
+  }
+  setTimeout(next, 30);
+}
+
+function renderResultCard(idx) {
+  var b = generatedBlobs[idx];
+  var grid = document.getElementById('resultsGrid');
+  var card = document.createElement('div');
+  card.className = 'result-card';
+  card.innerHTML =
+    '<img src="'+b.url+'" alt="'+b.name+'">' +
+    '<div class="result-info">' +
+      '<div class="result-name"><span class="result-swatch" style="background:'+b.hex+'"></span>'+b.name+'</div>' +
+      '<div style="font-size:11px;color:var(--text2);font-family:monospace">'+b.hex.toUpperCase()+'</div>' +
+      '<div class="result-actions">' +
+        '<button class="btn btn-secondary" onclick="downloadOne('+idx+')">⬇ 下载</button>' +
+      '</div>' +
+    '</div>';
+  grid.appendChild(card);
+}
+
+function downloadOne(idx) {
+  var b = generatedBlobs[idx];
+  var link = document.createElement('a');
+  link.href = b.url;
+  link.download = b.name + '.png';
+  link.click();
+  showToast('已下载 ' + b.name + '.png', 'success');
+}
+
+function downloadAllZip() {
+  if (generatedBlobs.length === 0) return;
+  showLoading(true, '打包ZIP中...');
+  if (typeof JSZip === 'undefined') {
+    showLoading(false);
+    showToast('ZIP库未加载，逐个下载', 'warn');
+    generatedBlobs.forEach(function(b, i){ setTimeout(function(){ downloadOne(i); }, i*300); });
+    return;
+  }
+  var zip = new JSZip();
+  var folder = zip.folder('batch_colors');
+  generatedBlobs.forEach(function(b){ folder.file(b.name + '.png', b.blob); });
+  zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } }).then(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'batch_colors_' + Date.now() + '.zip';
+    link.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    showLoading(false);
+    showToast('✅ ZIP 完成，共 '+generatedBlobs.length+' 张', 'success');
+  });
+}
+
+// ===== 工具 =====
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length !== 6) return [0,0,0];
+  return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+}
+function rgbToHex(r,g,b) {
+  return '#' + [r,g,b].map(function(v){return v.toString(16).padStart(2,'0')}).join('').toUpperCase();
+}
+
+function showLoading(show, text) {
+  document.getElementById('loading').classList.toggle('show', show);
+  if (text) document.getElementById('loadingText').textContent = text;
+}
+var toastTimer;
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// 颜色输入同步
+document.getElementById('newColor').addEventListener('input', function() {
+  document.getElementById('newColorName').placeholder = this.value;
+});
+</script>
+</body>
+</html>

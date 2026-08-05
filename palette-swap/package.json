@@ -1,0 +1,36 @@
+{
+  "name": "@nkzw/palette-swap",
+  "version": "3.2.0",
+  "description": "Image palette swapping and color replacement tool based on canvas for Node.js and browsers.",
+  "keywords": [
+    "canvas",
+    "color",
+    "palette"
+  ],
+  "license": "MIT",
+  "author": "Christoph Nakazawa <christoph.pojer@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cpojer/palette-swap.git"
+  },
+  "type": "module",
+  "main": "lib/palette-swap.js",
+  "types": "lib/palette-swap.d.ts",
+  "scripts": {
+    "benchmark": "vitest bench --run",
+    "build": "tsdown",
+    "test": "tsc && vitest run"
+  },
+  "dependencies": {
+    "canvas": "^3.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

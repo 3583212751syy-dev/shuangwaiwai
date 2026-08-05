@@ -1,0 +1,114 @@
+@font-face {
+        font-family: lemonMilk;
+        src: url(lemonMilkMed.otf);
+}
+
+#title{
+        font-family: lemonMilk;
+        font-size: 75px;
+        text-align: center;
+        padding-top: 60px;
+        padding-bottom: 50px;
+        letter-spacing: 2px;
+}
+
+#uploadDiv{
+        background-color: white;
+        font-family: lemonMilk;
+        letter-spacing: 2px;
+        text-align: center;
+}
+
+#uploadBtn{
+        border: 3px solid black;
+        border-radius: 12px;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+}
+
+#uploadInput{
+        display: none;
+}
+
+#imgDiv{
+        text-align: center;
+        cursor: pointer;
+        padding-top: 25px;
+        padding-bottom: 25px;;
+}
+
+.coloris{
+        border-radius: 5px;
+        border-color: black;
+        text-align: center;
+        font-size: 18px;
+        letter-spacing: 2px;
+        cursor: pointer;
+        width: 180px;
+}
+
+.square{
+        border-radius: 5px;
+}
+
+.btn{
+        font-family: lemonMilk;
+        font-size: 18px;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+        letter-spacing: 2px;
+}
+
+#downloadDiv{
+        border: 3px solid black;
+        border-radius: 12px;
+        width: 165px;
+        height: 35px;
+        font-family: lemonMilk;
+}
+
+#sliderDiv{
+        width: 165px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        padding-top: 25px;
+}
+
+#btnDiv{
+        position: absolute;
+        left:0vw;
+        width: 100%;
+        padding-bottom: 50px;
+}
+
+#revertDiv{
+        border: 3px solid black;
+        border-radius: 12px;
+        width: 35px;
+        height: 35px;
+        font-family: lemonMilk;
+        padding-left: 0px;
+        padding-right: 10px;
+        margin-left: 10px;
+}
+
+#rBtnDiv{
+        column-gap: 5px;
+        text-align: center;
+}
+
+#revertIcon{
+        /*text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;*/
+        margin-left: 0px;
+        margin-right: 10px;
+}
+
+.row{
+        padding: 10px;
+}

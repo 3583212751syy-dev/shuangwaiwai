@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片改色工具 — ColorForge</title>
+<style>
+:root{
+  --bg:#f0f2f5; --surface:#ffffff; --border:#e0e3e8; --text:#1a1a2e;
+  --text-2:#6b7280; --primary:#4f46e5; --primary-h:#4338ca; --accent:#06b6d4;
+  --danger:#ef4444; --success:#10b981; --radius:12px; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.1),0 4px 12px rgba(0,0,0,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);z-index:10}
+.header h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.header h1 .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.header .subtitle{font-size:13px;color:var(--text-2);margin-left:12px}
+.main{flex:1;display:flex;gap:16px;padding:16px;max-width:1400px;width:100%;margin:0 auto}
+.sidebar{width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
+.canvas-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);min-height:500px;padding:24px;position:relative;overflow:hidden}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.mode-tabs{display:flex;gap:4px;background:#f3f4f6;border-radius:8px;padding:4px}
+.mode-tab{flex:1;padding:8px 4px;text-align:center;font-size:12px;font-weight:500;border-radius:6px;cursor:pointer;transition:all .2s;color:var(--text-2)}
+.mode-tab.active{background:var(--surface);color:var(--primary);box-shadow:var(--shadow)}
+.mode-tab:hover:not(.active){background:rgba(255,255,255,.5)}
+.control-group{margin-bottom:12px}
+.control-group:last-child{margin-bottom:0}
+.control-label{font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.control-label .value{color:var(--primary);font-weight:600}
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input-wrap{position:relative;width:48px;height:36px;border-radius:8px;overflow:hidden;border:2px solid var(--border);cursor:pointer;flex-shrink:0}
+.color-input-wrap:hover{border-color:var(--primary)}
+.color-input-wrap input[type=color]{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);border:none;cursor:pointer}
+.color-hex{flex:1;font-family:"SF Mono",Monaco,Consolas,monospace;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;outline:none;transition:border-color .2s}
+.color-hex:focus{border-color:var(--primary)}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:#e0e3e8;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.15);transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--primary);cursor:pointer;border:none}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfc}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:rgba(79,70,229,.04)}
+.upload-zone .icon{font-size:36px;margin-bottom:8px}
+.upload-zone .text{font-size:14px;color:var(--text-2)}
+.upload-zone .text strong{color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;width:100%}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-h)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{background:#c7d2fe;cursor:not-allowed}
+.btn-secondary{background:#f3f4f6;color:var(--text)}
+.btn-secondary:hover{background:#e5e7eb}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{flex:1}
+.preset-colors{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:8px}
+.preset-color{aspect-ratio:1;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.preset-color:hover{border-color:var(--text-2);transform:scale(1.1)}
+.preset-color.selected{border-color:var(--primary);transform:scale(1.1)}
+.canvas-container{position:relative;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center}
+#canvas{max-width:100%;max-height:65vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.08);cursor:crosshair;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='10' height='10' fill='%23f0f0f0'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%23f0f0f0'/%3E%3C/svg%3E")}
+#canvas.dragging{cursor:grabbing}
+.canvas-empty{text-align:center;color:var(--text-2)}
+.canvas-empty .big-icon{font-size:64px;margin-bottom:16px;opacity:.3}
+.canvas-info{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-family:monospace;pointer-events:none}
+.color-picker-hint{position:absolute;background:rgba(0,0,0,.7);color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;pointer-events:none;white-space:nowrap;z-index:5;transform:translate(-50%,-130%)}
+.toolbar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.toolbar .btn{width:auto;flex:0 1 auto}
+.mode-panel{display:none}
+.mode-panel.active{display:block}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.toggle{position:relative;width:40px;height:22px;background:#d1d5db;border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+.toggle-label{font-size:13px;font-weight:500}
+.info-text{font-size:11px;color:var(--text-2);line-height:1.5;margin-top:4px}
+.dominant-colors{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.dominant-color{width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative}
+.dominant-color:hover{border-color:var(--primary);transform:scale(1.1)}
+.dominant-color .pct{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text-2);white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--text);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;box-shadow:var(--shadow-lg);z-index:1000;opacity:0;transition:all .3s}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;z-index:100;border-radius:var(--radius);font-size:14px;color:var(--text-2)}
+.spinner{width:32px;height:32px;border:3px solid #e5e7eb;border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:900px){.main{flex-direction:column}.sidebar{width:100%}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center">
+    <h1><span class="logo">🎨</span>ColorForge</h1>
+    <span class="subtitle">单图改色工具</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-secondary" style="width:auto" onclick="resetImage()" id="btnReset" disabled>↩ 重置</button>
+    <button class="btn btn-success" style="width:auto" onclick="downloadImage()" id="btnDownload" disabled>⬇ 下载</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="card" id="uploadCard">
+      <div class="card-title">📁 图片上传</div>
+      <div class="upload-zone" id="uploadZone">
+        <div class="icon">🖼️</div>
+        <div class="text">点击或拖拽图片到此处<br><strong>支持 PNG / JPG / WEBP</strong></div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+    </div>
+
+    <div class="card" id="modeCard" style="display:none">
+      <div class="card-title">⚙️ 改色模式</div>
+      <div class="mode-tabs">
+        <div class="mode-tab active" data-mode="replace" onclick="switchMode('replace')">特定颜色替换</div>
+        <div class="mode-tab" data-mode="hue" onclick="switchMode('hue')">全局色调调整</div>
+        <div class="mode-tab" data-mode="tint" onclick="switchMode('tint')">全部改色</div>
+      </div>
+
+      <div class="mode-panel active" id="panel-replace" style="margin-top:12px">
+        <div class="control-group">
+          <div class="control-label">原图颜色（点击画布取色）</div>
+          <div class="color-row">
+            <div class="color-input-wrap"><input type="color" id="srcColor" value="#ff0000"></div>
+            <input type="text" class="color-hex" id="srcHex" value="#ff0000" maxlength="7">
+          </div>
+          <div class="info-text">💡 在画布上点击任意位置可自动取色</div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">替换为</div>
+          <div class="color-row">
+            <div class="color-input-wrap"><input type="color" id="dstColor" value="#0000ff"></div>
+            <input type="text" class="color-hex" id="dstHex" value="#0000ff" maxlength="7">
+          </div>
+          <div class="preset-colors" id="presetColors"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">容差 <span class="value" id="tolVal">50</span></div>
+          <input type="range" id="tolerance" min="0" max="200" value="50">
+          <div class="info-text">容差越大，匹配的颜色范围越广</div>
+        </div>
+        <div class="control-group">
+          <div class="toggle-row">
+            <div class="toggle" id="toggleSoften" onclick="toggleSoften()"></div>
+            <span class="toggle-label">边缘柔化（渐变过渡）</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="applyReplace()">🔄 执行替换</button>
+      </div>
+
+      <div class="mode-panel" id="panel-hue" style="margin-top:12px">
+        <div class="control-group">
+          <div class="control-label">色相偏移 <span class="value" id="hueVal">0°</span></div>
+          <input type="range" id="hueShift" min="-180" max="180" value="0" oninput="liveAdjust()">
+          <div class="info-text">-180° 到 180°，改变整体色调</div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">饱和度 <span class="value" id="satVal">100%</span></div>
+          <input type="range" id="satShift" min="0" max="300" value="100" oninput="liveAdjust()">
+        </div>
+        <div class="control-group">
+          <div class="control-label">亮度 <span class="value" id="lightVal">100%</span></div>
+          <input type="range" id="lightShift" min="0" max="200" value="100" oninput="liveAdjust()">
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="resetAdjust()">重置参数</button>
+          <button class="btn btn-primary" onclick="applyAdjust()">应用</button>
+        </div>
+      </div>
+
+      <div class="mode-panel" id="panel-tint" style="margin-top:12px">
+        <div class="control-group">
+          <div class="control-label">目标颜色</div>
+          <div class="color-row">
+            <div class="color-input-wrap"><input type="color" id="tintColor" value="#ff6600"></div>
+            <input type="text" class="color-hex" id="tintHex" value="#ff6600" maxlength="7">
+          </div>
+          <div class="preset-colors" id="tintPresets"></div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">着色强度 <span class="value" id="tintStrengthVal">100%</span></div>
+          <input type="range" id="tintStrength" min="0" max="100" value="100">
+        </div>
+        <div class="control-group">
+          <div class="control-label">改色模式</div>
+          <div class="mode-tabs" style="margin-bottom:8px">
+            <div class="mode-tab active" data-tintmode="luminance" onclick="switchTintMode('luminance')">保留明暗</div>
+            <div class="mode-tab" data-tintmode="flat" onclick="switchTintMode('flat')">纯色填充</div>
+          </div>
+          <div class="info-text" id="tintModeDesc">保留明暗：保持原图的明暗层次，仅改变颜色</div>
+        </div>
+        <div class="control-group">
+          <div class="toggle-row">
+            <div class="toggle" id="toggleKeepAlpha" onclick="this.classList.toggle('on'); tintKeepAlpha=this.classList.contains('on')">开启</div>
+            <span class="toggle-label">保留透明区域</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="applyTint()">🎨 执行改色</button>
+      </div>
+    </div>
+
+    <div class="card" id="dominantCard" style="display:none">
+      <div class="card-title">🌈 图片主色调</div>
+      <div class="dominant-colors" id="dominantColors"></div>
+      <div class="info-text">点击色块可快速设为替换源颜色</div>
+    </div>
+  </div>
+
+  <div class="canvas-area" id="canvasArea">
+    <div class="canvas-empty" id="canvasEmpty">
+      <div class="big-icon">🖼️</div>
+      <p>上传图片后开始改色</p>
+    </div>
+    <div class="canvas-container" id="canvasContainer" style="display:none">
+      <canvas id="canvas"></canvas>
+      <div class="canvas-info" id="canvasInfo"></div>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay" style="display:none">
+      <div class="spinner"></div>处理中...
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d', { willReadFrequently: true });
+var originalImageData = null;
+var currentImageData = null;
+var currentMode = 'replace';
+var tintMode = 'luminance';
+var softenEnabled = false;
+var tintKeepAlpha = true;
+var imgLoaded = false;
+
+var presetColorList = [
+  '#ff0000','#ff6600','#ffcc00','#ffff00','#00ff00','#00ffcc','#00ccff','#0000ff',
+  '#6600ff','#cc00ff','#ff00cc','#ffffff','#cccccc','#666666','#333333','#000000',
+  '#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#34495e'
+];
+
+function buildPresets(containerId, inputId, hexId) {
+  var c = document.getElementById(containerId);
+  c.innerHTML = '';
+  presetColorList.forEach(function(color) {
+    var d = document.createElement('div');
+    d.className = 'preset-color';
+    d.style.background = color;
+    d.onclick = function() {
+      document.getElementById(inputId).value = color;
+      document.getElementById(hexId).value = color;
+      c.querySelectorAll('.preset-color').forEach(function(e){e.classList.remove('selected')});
+      d.classList.add('selected');
+    };
+    c.appendChild(d);
+  });
+}
+
+var uploadZone = document.getElementById('uploadZone');
+var fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', function() { fileInput.click(); });
+uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+uploadZone.addEventListener('drop', function(e) {
+  e.preventDefault(); this.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', function(e) { if (e.target.files[0]) loadImage(e.target.files[0]); });
+
+function loadImage(file) {
+  if (!file.type.startsWith('image/')) { showToast('请选择图片文件', 'error'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxW = 1200, maxH = 800;
+      var w = img.width, h = img.height;
+      if (w > maxW || h > maxH) { var s = Math.min(maxW/w, maxH/h); w = Math.round(w*s); h = Math.round(h*s); }
+      canvas.width = w; canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      originalImageData = ctx.getImageData(0, 0, w, h);
+      currentImageData = ctx.getImageData(0, 0, w, h);
+      imgLoaded = true;
+      document.getElementById('canvasEmpty').style.display = 'none';
+      document.getElementById('canvasContainer').style.display = 'flex';
+      document.getElementById('uploadCard').style.display = 'none';
+      document.getElementById('modeCard').style.display = 'block';
+      document.getElementById('dominantCard').style.display = 'block';
+      document.getElementById('btnReset').disabled = false;
+      document.getElementById('btnDownload').disabled = false;
+      document.getElementById('canvasInfo').textContent = w + ' × ' + h;
+      buildPresets('presetColors', 'srcColor', 'srcHex');
+      buildPresets('tintPresets', 'tintColor', 'tintHex');
+      extractDominantColors();
+      showToast('图片加载成功', 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+canvas.addEventListener('click', function(e) {
+  if (!imgLoaded || currentMode !== 'replace') return;
+  var rect = canvas.getBoundingClientRect();
+  var scaleX = canvas.width / rect.width;
+  var scaleY = canvas.height / rect.height;
+  var x = Math.round((e.clientX - rect.left) * scaleX);
+  var y = Math.round((e.clientY - rect.top) * scaleY);
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+  var px = ctx.getImageData(x, y, 1, 1).data;
+  var hex = '#' + [px[0], px[1], px[2]].map(function(v) { return v.toString(16).padStart(2, '0'); }).join('');
+  document.getElementById('srcColor').value = hex;
+  document.getElementById('srcHex').value = hex;
+  showToast('已取色: ' + hex, 'success');
+});
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab[data-mode]').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.mode === mode);
+  });
+  document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('panel-' + mode).classList.add('active');
+}
+
+function switchTintMode(mode) {
+  tintMode = mode;
+  document.querySelectorAll('.mode-tab[data-tintmode]').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.tintmode === mode);
+  });
+  document.getElementById('tintModeDesc').textContent = mode === 'luminance'
+    ? '保留明暗：保持原图的明暗层次，仅改变颜色'
+    : '纯色填充：所有非透明像素替换为统一颜色';
+}
+
+function toggleSoften() {
+  softenEnabled = !softenEnabled;
+  document.getElementById('toggleSoften').classList.toggle('on', softenEnabled);
+}
+
+function syncColor(pickerId, hexId) {
+  var picker = document.getElementById(pickerId);
+  var hex = document.getElementById(hexId);
+  picker.addEventListener('input', function() { hex.value = picker.value; });
+  hex.addEventListener('input', function() {
+    var v = hex.value;
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) picker.value = v;
+  });
+}
+syncColor('srcColor', 'srcHex');
+syncColor('dstColor', 'dstHex');
+syncColor('tintColor', 'tintHex');
+
+function applyReplace() {
+  if (!imgLoaded) return;
+  showLoading(true);
+  setTimeout(function() {
+    var srcHex = document.getElementById('srcHex').value;
+    var dstHex = document.getElementById('dstHex').value;
+    var tolerance = parseInt(document.getElementById('tolerance').value);
+    var srcRgb = hexToRgb(srcHex);
+    var dstRgb = hexToRgb(dstHex);
+    var tolSq = tolerance * tolerance * 3;
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+    for (var i = 0; i < data.length; i += 4) {
+      if (data[i + 3] === 0) continue;
+      var dr = data[i] - srcRgb[0];
+      var dg = data[i + 1] - srcRgb[1];
+      var db = data[i + 2] - srcRgb[2];
+      var distSq = dr * dr + dg * dg + db * db;
+      if (distSq <= tolSq) {
+        if (softenEnabled && distSq > 0) {
+          var factor = 1 - Math.sqrt(distSq / tolSq);
+          factor = factor * factor * (3 - 2 * factor);
+          data[i]     = Math.round(data[i] * (1 - factor) + dstRgb[0] * factor);
+          data[i + 1] = Math.round(data[i + 1] * (1 - factor) + dstRgb[1] * factor);
+          data[i + 2] = Math.round(data[i + 2] * (1 - factor) + dstRgb[2] * factor);
+        } else {
+          data[i]     = dstRgb[0];
+          data[i + 1] = dstRgb[1];
+          data[i + 2] = dstRgb[2];
+        }
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    currentImageData = imgData;
+    showLoading(false);
+    showToast('颜色替换完成', 'success');
+  }, 50);
+}
+
+var adjustBaseData = null;
+function liveAdjust() {
+  if (!imgLoaded) return;
+  var hue = parseInt(document.getElementById('hueShift').value);
+  var sat = parseInt(document.getElementById('satShift').value);
+  var light = parseInt(document.getElementById('lightShift').value);
+  document.getElementById('hueVal').textContent = hue + '°';
+  document.getElementById('satVal').textContent = sat + '%';
+  document.getElementById('lightVal').textContent = light + '%';
+  if (!adjustBaseData) adjustBaseData = new ImageData(
+    new Uint8ClampedArray(originalImageData.data), originalImageData.width, originalImageData.height
+  );
+  var imgData = new ImageData(
+    new Uint8ClampedArray(adjustBaseData.data), adjustBaseData.width, adjustBaseData.height
+  );
+  var data = imgData.data;
+  var hueNorm = hue / 360;
+  var satFactor = sat / 100;
+  var lightFactor = light / 100;
+  for (var i = 0; i < data.length; i += 4) {
+    if (data[i + 3] === 0) continue;
+    var r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+    var hsl = rgbToHsl(r, g, b);
+    hsl[0] = (hsl[0] + hueNorm + 1) % 1;
+    hsl[1] = Math.min(1, Math.max(0, hsl[1] * satFactor));
+    hsl[2] = Math.min(1, Math.max(0, hsl[2] * lightFactor));
+    var rgb = hslToRgb(hsl[0], hsl[1], hsl[2]);
+    data[i]     = Math.round(rgb[0] * 255);
+    data[i + 1] = Math.round(rgb[1] * 255);
+    data[i + 2] = Math.round(rgb[2] * 255);
+  }
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function resetAdjust() {
+  document.getElementById('hueShift').value = 0;
+  document.getElementById('satShift').value = 100;
+  document.getElementById('lightShift').value = 100;
+  adjustBaseData = null;
+  liveAdjust();
+}
+
+function applyAdjust() {
+  adjustBaseData = null;
+  currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  showToast('色调调整已应用', 'success');
+}
+
+function applyTint() {
+  if (!imgLoaded) return;
+  showLoading(true);
+  setTimeout(function() {
+    var tintHexVal = document.getElementById('tintHex').value;
+    var strength = parseInt(document.getElementById('tintStrength').value) / 100;
+    var tintRgb = hexToRgb(tintHexVal);
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+    for (var i = 0; i < data.length; i += 4) {
+      if (tintKeepAlpha && data[i + 3] === 0) continue;
+      if (tintMode === 'luminance') {
+        var r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
+        var lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        var tr = tintRgb[0] / 255, tg = tintRgb[1] / 255, tb = tintRgb[2] / 255;
+        var thsl = rgbToHsl(tr, tg, tb);
+        var newRgb = hslToRgb(thsl[0], thsl[1], lum);
+        data[i]     = Math.round(data[i] * (1 - strength) + newRgb[0] * 255 * strength);
+        data[i + 1] = Math.round(data[i + 1] * (1 - strength) + newRgb[1] * 255 * strength);
+        data[i + 2] = Math.round(data[i + 2] * (1 - strength) + newRgb[2] * 255 * strength);
+      } else {
+        data[i]     = Math.round(data[i] * (1 - strength) + tintRgb[0] * strength);
+        data[i + 1] = Math.round(data[i + 1] * (1 - strength) + tintRgb[1] * strength);
+        data[i + 2] = Math.round(data[i + 2] * (1 - strength) + tintRgb[2] * strength);
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+    currentImageData = imgData;
+    showLoading(false);
+    showToast('全部改色完成', 'success');
+  }, 50);
+}
+
+function resetImage() {
+  if (!originalImageData) return;
+  ctx.putImageData(originalImageData, 0, 0);
+  currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  adjustBaseData = null;
+  document.getElementById('hueShift').value = 0;
+  document.getElementById('satShift').value = 100;
+  document.getElementById('lightShift').value = 100;
+  document.getElementById('hueVal').textContent = '0°';
+  document.getElementById('satVal').textContent = '100%';
+  document.getElementById('lightVal').textContent = '100%';
+  showToast('已重置为原图', 'success');
+}
+
+function downloadImage() {
+  if (!imgLoaded) return;
+  var link = document.createElement('a');
+  link.download = 'colorforge_' + Date.now() + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('图片已下载', 'success');
+}
+
+function extractDominantColors() {
+  if (!originalImageData) return;
+  var data = originalImageData.data;
+  var colorMap = {};
+  var step = Math.max(1, Math.floor(data.length / 4 / 5000));
+  for (var i = 0; i < data.length; i += 4 * step) {
+    if (data[i + 3] < 128) continue;
+    var r = Math.round(data[i] / 32) * 32;
+    var g = Math.round(data[i + 1] / 32) * 32;
+    var b = Math.round(data[i + 2] / 32) * 32;
+    var key = r + ',' + g + ',' + b;
+    if (!colorMap[key]) colorMap[key] = { count: 0, r: r, g: g, b: b };
+    colorMap[key].count++;
+  }
+  var sorted = Object.values(colorMap).sort(function(a, b) { return b.count - a.count; }).slice(0, 10);
+  var total = sorted.reduce(function(s, c) { return s + c.count; }, 0);
+  var container = document.getElementById('dominantColors');
+  container.innerHTML = '';
+  sorted.forEach(function(c) {
+    var hex = '#' + [c.r, c.g, c.b].map(function(v) { return v.toString(16).padStart(2, '0'); }).join('');
+    var pct = Math.round(c.count / total * 100);
+    var el = document.createElement('div');
+    el.className = 'dominant-color';
+    el.style.background = hex;
+    el.title = hex + ' (' + pct + '%)';
+    el.innerHTML = '<span class="pct">' + pct + '%</span>';
+    el.onclick = function() {
+      document.getElementById('srcColor').value = hex;
+      document.getElementById('srcHex').value = hex;
+      showToast('已选择: ' + hex, 'success');
+    };
+    container.appendChild(el);
+  });
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length !== 6) return [0, 0, 0];
+  return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+}
+function rgbToHsl(r, g, b) {
+  var max = Math.max(r, g, b), min = Math.min(r, g, b);
+  var h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    var d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return [h, s, l];
+}
+function hslToRgb(h, s, l) {
+  var r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    var hue2rgb = function(p, q, t) {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return [r, g, b];
+}
+
+function showLoading(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
+var toastTimer;
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
