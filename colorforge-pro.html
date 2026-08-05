@@ -72,8 +72,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 /* ===== Canvas ===== */
 .canvas-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:flex;align-items:center;justify-content:center;min-height:320px;position:relative;flex-direction:column;gap:10px}
 #srcCanvas{max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;pointer-events:auto}
-.canvas-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;pointer-events:none;z-index:5;display:none;backdrop-filter:blur(4px)}
-.canvas-hint.show{display:block;animation:pulse 2s infinite}
+.canvas-hint-static{background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;text-align:center;margin-top:10px;animation:pulse 2s infinite}
+.debug-panel{background:#111;color:#0f0;padding:12px;border-radius:var(--radius-sm);font-family:"SF Mono",Monaco,Consolas,monospace;font-size:11px;margin-top:10px}
+.debug-title{color:#fff;font-weight:700;margin-bottom:6px}
+.debug-log{max-height:120px;overflow-y:auto;line-height:1.5}
+.debug-log div{border-bottom:1px solid #333;padding:2px 0}
 @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes ripplePop{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 .empty-state{text-align:center;color:var(--text2);padding:40px 20px}
@@ -319,8 +322,12 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
         <div class="big">🖼️</div>
         <p>上传图片后开始智能改色</p>
       </div>
-      <canvas id="srcCanvas" style="display:none"></canvas>
-      <div class="canvas-hint" id="canvasHint">👆 点图片选源色（可多选）</div>
+      <canvas id="srcCanvas" style="display:none" onclick="handleCanvasClick(event)"></canvas>
+    </div>
+    <div class="canvas-hint-static" id="canvasHint">👆 点击图片任意位置选择源色（可多选）</div>
+    <div class="debug-panel" id="debugPanel" style="display:none">
+      <div class="debug-title">🔧 调试日志</div>
+      <div class="debug-log" id="debugLog"></div>
     </div>
 
     <div class="card" id="resultsCard" style="display:none;margin-top:10px">
@@ -497,13 +504,13 @@ function loadImage(file) {
       ctx.drawImage(img, 0, 0, w, h);
       originalImageData = ctx.getImageData(0, 0, w, h);
       imgLoaded = true;
+      cfLog('图片加载成功 ' + w + 'x' + h + ', originalImageData ready');
       // Reset state
       sourceColors = [];
       targetColors = [];
       generatedBlobs = [];
       document.getElementById('emptyState').style.display = 'none';
       canvas.style.display = 'block';
-      document.getElementById('canvasHint').classList.add('show');
       document.getElementById('uploadCard').style.display = 'none';
       document.getElementById('settingsCard').style.display = 'block';
       document.getElementById('resultsCard').style.display = 'none';
@@ -533,58 +540,84 @@ document.getElementById('reuploadBtn').addEventListener('click', function(e){
 // Canvas click — add/toggle source color (multi-select)
 // Bind both to canvas and canvas-wrap as fallback
 // ============================================================
-function handleCanvasClick(e) {
-  if (!imgLoaded) { console.log('[CF] click ignored: img not loaded'); return; }
-  var target = e.target;
-  // If clicked on canvas-wrap empty area, still try; if clicked on other children, ignore
-  var rect = canvas.getBoundingClientRect();
-  if (!rect || rect.width === 0 || rect.height === 0) {
-    console.log('[CF] canvas rect empty', rect);
-    return;
-  }
-  var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
-  var cx = e.clientX, cy = e.clientY;
-  var x = Math.round((cx - rect.left) * sx);
-  var y = Math.round((cy - rect.top) * sy);
-  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
-    console.log('[CF] click outside canvas', x, y);
-    return;
-  }
-  var px = ctx.getImageData(x, y, 1, 1).data;
-  console.log('[CF] picked', x, y, 'rgb(' + px[0] + ',' + px[1] + ',' + px[2] + ')');
-  showClickRipple(cx, cy);
-  toggleSourceColor(px[0], px[1], px[2]);
+// ============================================================
+// Debug panel
+// ============================================================
+function cfLog(msg) {
+  var d = document.getElementById('debugPanel');
+  var l = document.getElementById('debugLog');
+  if (!d || !l) return;
+  d.style.display = 'block';
+  var line = document.createElement('div');
+  var t = new Date().toLocaleTimeString();
+  line.textContent = '[' + t + '] ' + msg;
+  l.appendChild(line);
+  l.scrollTop = l.scrollHeight;
 }
 
+function handleCanvasClick(e) {
+  cfLog('handleCanvasClick triggered, target=' + (e && e.target ? e.target.tagName + '#' + (e.target.id||'') : 'none'));
+  try {
+    if (!e) { cfLog('ERROR: event missing'); return; }
+    if (!imgLoaded) { cfLog('imgLoaded=false, ignoring click'); return; }
+    var rect = canvas.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) { cfLog('ERROR: canvas rect empty'); return; }
+    var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+    var cx = e.clientX, cy = e.clientY;
+    cfLog('clientX=' + cx + ' clientY=' + cy + ' rect=' + rect.width.toFixed(1) + 'x' + rect.height.toFixed(1) + ' canvas=' + canvas.width + 'x' + canvas.height);
+    var x = Math.round((cx - rect.left) * sx);
+    var y = Math.round((cy - rect.top) * sy);
+    cfLog('computed x=' + x + ' y=' + y);
+    if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
+      cfLog('WARN: click outside bounds');
+      return;
+    }
+    var px = ctx.getImageData(x, y, 1, 1).data;
+    cfLog('pixel rgb(' + px[0] + ',' + px[1] + ',' + px[2] + ') alpha=' + px[3]);
+    showClickRipple(cx, cy);
+    toggleSourceColor(px[0], px[1], px[2]);
+  } catch (err) {
+    cfLog('CRASH in handleCanvasClick: ' + (err && err.message ? err.message : String(err)));
+  }
+}
+
+// Bind click on canvas
 canvas.addEventListener('click', handleCanvasClick);
-document.getElementById('canvasWrap').addEventListener('click', function(e){
-  // Only act as fallback if click didn't hit canvas itself (which already handled)
-  if (e.target === canvas || e.target.closest('#srcCanvas')) return;
-  // If user clicked somewhere inside canvas-wrap (e.g. empty space or hint), treat as canvas click
+// Bind click on wrap as fallback, but ignore if already handled via canvas propagation
+var wrapEl = document.getElementById('canvasWrap');
+wrapEl.addEventListener('click', function(e){
+  if (e.target === canvas || (e.target.closest && e.target.closest('#srcCanvas'))) return;
+  cfLog('wrap fallback click target=' + e.target.tagName);
   handleCanvasClick(e);
 });
 
 function toggleSourceColor(r, g, b) {
-  var hex = rgbToHex(r, g, b);
-  // Check if already selected — if so remove it
-  for (var i = 0; i < sourceColors.length; i++) {
-    if (sourceColors[i].hex === hex) {
-      sourceColors.splice(i, 1);
-      updateSourceChips();
-      updateDomSelection();
-      if (previewEnabled) drawPreview();
-      updateGenButton();
-      return;
+  cfLog('toggleSourceColor rgb(' + r + ',' + g + ',' + b + ')');
+  try {
+    var hex = rgbToHex(r, g, b);
+    // Check if already selected — if so remove it
+    for (var i = 0; i < sourceColors.length; i++) {
+      if (sourceColors[i].hex === hex) {
+        sourceColors.splice(i, 1);
+        updateSourceChips();
+        updateDomSelection();
+        if (previewEnabled) drawPreview();
+        updateGenButton();
+        cfLog('removed source color ' + hex);
+        return;
+      }
     }
+    // Add new
+    sourceColors.push({ r: r, g: g, b: b, hex: hex });
+    updateSourceChips();
+    updateDomSelection();
+    if (previewEnabled) drawPreview();
+    updateGenButton();
+    cfLog('added source color ' + hex + ', total=' + sourceColors.length);
+    showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
+  } catch (err) {
+    cfLog('CRASH in toggleSourceColor: ' + (err && err.message ? err.message : String(err)));
   }
-  // Add new
-  sourceColors.push({ r: r, g: g, b: b, hex: hex });
-  document.getElementById('canvasHint').classList.remove('show');
-  updateSourceChips();
-  updateDomSelection();
-  if (previewEnabled) drawPreview();
-  updateGenButton();
-  showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
 }
 
 function showClickRipple(clientX, clientY) {
@@ -674,36 +707,42 @@ function findNearestPixel(targetR, targetG, targetB) {
 // Source chips & stats
 // ============================================================
 function updateSourceChips() {
-  var c = document.getElementById('srcChips');
-  var stats = document.getElementById('srcStats');
-  if (sourceColors.length === 0) {
-    c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
-    stats.style.display = 'none';
-    document.getElementById('canvasHint').classList.toggle('show', imgLoaded);
-  } else {
-    c.innerHTML = '';
-    sourceColors.forEach(function(s, idx) {
-      var chip = document.createElement('div');
-      chip.className = 'src-chip';
-      chip.innerHTML =
-        '<div class="sw" style="background:' + s.hex + '"></div>' +
-        '<span class="hex">' + s.hex + '</span>' +
-        '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
-      c.appendChild(chip);
-    });
-    // Also add a "clear all" button
-    var clearBtn = document.createElement('button');
-    clearBtn.className = 'btn btn-danger btn-sm';
-    clearBtn.style.borderRadius = '14px';
-    clearBtn.style.padding = '2px 10px';
-    clearBtn.textContent = '清空';
-    clearBtn.onclick = clearAllSources;
-    c.appendChild(clearBtn);
-    stats.style.display = 'flex';
-    updateSourceStats();
+  cfLog('updateSourceChips called, sourceColors=' + sourceColors.length);
+  try {
+    var c = document.getElementById('srcChips');
+    var stats = document.getElementById('srcStats');
+    var hint = document.getElementById('canvasHint');
+    if (sourceColors.length === 0) {
+      c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
+      stats.style.display = 'none';
+      if (hint) hint.style.display = imgLoaded ? 'block' : 'none';
+    } else {
+      if (hint) hint.style.display = 'none';
+      c.innerHTML = '';
+      sourceColors.forEach(function(s, idx) {
+        var chip = document.createElement('div');
+        chip.className = 'src-chip';
+        chip.innerHTML =
+          '<div class="sw" style="background:' + s.hex + '"></div>' +
+          '<span class="hex">' + s.hex + '</span>' +
+          '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
+        c.appendChild(chip);
+      });
+      var clearBtn = document.createElement('button');
+      clearBtn.className = 'btn btn-danger btn-sm';
+      clearBtn.style.borderRadius = '14px';
+      clearBtn.style.padding = '2px 10px';
+      clearBtn.textContent = '清空';
+      clearBtn.onclick = clearAllSources;
+      c.appendChild(clearBtn);
+      stats.style.display = 'flex';
+      updateSourceStats();
+    }
+    document.getElementById('srcBadge').style.display = sourceColors.length > 0 ? 'inline-flex' : 'none';
+    document.getElementById('srcBadge').textContent = sourceColors.length + ' 源色';
+  } catch (err) {
+    cfLog('CRASH in updateSourceChips: ' + (err && err.message ? err.message : String(err)));
   }
-  document.getElementById('srcBadge').style.display = sourceColors.length > 0 ? 'inline-flex' : 'none';
-  document.getElementById('srcBadge').textContent = sourceColors.length + ' 源色';
 }
 
 function updateDomSelection() {
