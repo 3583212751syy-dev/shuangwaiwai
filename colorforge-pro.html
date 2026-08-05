@@ -515,7 +515,7 @@ function loadImage(file) {
       document.getElementById('settingsCard').style.display = 'block';
       document.getElementById('resultsCard').style.display = 'none';
       document.getElementById('resultsGrid').innerHTML = '';
-      document.getElementById('imgInfo').textContent = w + 'x' + h;
+      var ii = document.getElementById('imgInfo'); if (ii) ii.textContent = w + 'x' + h;
       extractDominant();
       buildCommonColors();
       buildMaterialGrid();
@@ -713,33 +713,34 @@ function updateSourceChips() {
     var stats = document.getElementById('srcStats');
     var hint = document.getElementById('canvasHint');
     if (sourceColors.length === 0) {
-      c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
-      stats.style.display = 'none';
+      if (c) c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
+      if (stats) stats.style.display = 'none';
       if (hint) hint.style.display = imgLoaded ? 'block' : 'none';
     } else {
       if (hint) hint.style.display = 'none';
-      c.innerHTML = '';
-      sourceColors.forEach(function(s, idx) {
-        var chip = document.createElement('div');
-        chip.className = 'src-chip';
-        chip.innerHTML =
-          '<div class="sw" style="background:' + s.hex + '"></div>' +
-          '<span class="hex">' + s.hex + '</span>' +
-          '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
-        c.appendChild(chip);
-      });
-      var clearBtn = document.createElement('button');
-      clearBtn.className = 'btn btn-danger btn-sm';
-      clearBtn.style.borderRadius = '14px';
-      clearBtn.style.padding = '2px 10px';
-      clearBtn.textContent = '清空';
-      clearBtn.onclick = clearAllSources;
-      c.appendChild(clearBtn);
-      stats.style.display = 'flex';
+      if (c) {
+        sourceColors.forEach(function(s, idx) {
+          var chip = document.createElement('div');
+          chip.className = 'src-chip';
+          chip.innerHTML =
+            '<div class="sw" style="background:' + s.hex + '"></div>' +
+            '<span class="hex">' + s.hex + '</span>' +
+            '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
+          c.appendChild(chip);
+        });
+        var clearBtn = document.createElement('button');
+        clearBtn.className = 'btn btn-danger btn-sm';
+        clearBtn.style.borderRadius = '14px';
+        clearBtn.style.padding = '2px 10px';
+        clearBtn.textContent = '清空';
+        clearBtn.onclick = clearAllSources;
+        c.appendChild(clearBtn);
+      }
+      if (stats) stats.style.display = 'flex';
       updateSourceStats();
     }
-    document.getElementById('srcBadge').style.display = sourceColors.length > 0 ? 'inline-flex' : 'none';
-    document.getElementById('srcBadge').textContent = sourceColors.length + ' 源色';
+    var sb = document.getElementById('srcBadge');
+    if (sb) { sb.style.display = sourceColors.length > 0 ? 'inline-flex' : 'none'; sb.textContent = sourceColors.length + ' 源色'; }
   } catch (err) {
     cfLog('CRASH in updateSourceChips: ' + (err && err.message ? err.message : String(err)));
   }
@@ -769,12 +770,12 @@ function updateSourceStats() {
       if (dr * dr + dg * dg + db * db <= tolSq) { count++; break; }
     }
   }
-  document.getElementById('totalMatchPixels').textContent = count.toLocaleString();
+  var tmp = document.getElementById('totalMatchPixels'); if (tmp) tmp.textContent = count.toLocaleString();
 }
 
 // Tolerance slider
 document.getElementById('tolerance').addEventListener('input', function() {
-  document.getElementById('tolVal').textContent = this.value;
+  var tv = document.getElementById('tolVal'); if (tv) tv.textContent = this.value;
   if (sourceColors.length > 0) {
     updateSourceStats();
     if (previewEnabled) drawPreview();
@@ -1025,19 +1026,20 @@ function updateCommonSelection() {
 }
 
 function updateGenButton() {
-  var n = targetColors.length;
-  document.getElementById('genCount').textContent = n;
-  var canGen = n > 0 && imgLoaded && sourceColors.length > 0;
-  document.getElementById('btnGenerate').disabled = !canGen;
-  document.getElementById('tgtBadge').style.display = n > 0 ? 'inline-flex' : 'none';
-  document.getElementById('tgtBadge').textContent = n + ' 目标';
-  if (sourceColors.length === 0 && imgLoaded) {
-    document.getElementById('btnGenerate').innerHTML = '请先选择源色';
-  } else if (n === 0 && imgLoaded) {
-    document.getElementById('btnGenerate').innerHTML = '请添加目标色';
-  } else {
-    document.getElementById('btnGenerate').innerHTML = '🚀 批量生成 (<span id="genCount">' + n + '</span> 张)';
-  }
+  try {
+    var n = targetColors.length;
+    var gc = document.getElementById('genCount'); if (gc) gc.textContent = n;
+    var bg = document.getElementById('btnGenerate'); if (bg) bg.disabled = !(n > 0 && imgLoaded && sourceColors.length > 0);
+    var tb = document.getElementById('tgtBadge');
+    if (tb) { tb.style.display = n > 0 ? 'inline-flex' : 'none'; tb.textContent = n + ' 目标'; }
+    if (bg && sourceColors.length === 0 && imgLoaded) {
+      bg.innerHTML = '请先选择源色';
+    } else if (bg && n === 0 && imgLoaded) {
+      bg.innerHTML = '请添加目标色';
+    } else if (bg) {
+      bg.innerHTML = '🚀 批量生成 (<span id="genCount">' + n + '</span> 张)';
+    }
+  } catch(err) { cfLog('CRASH updateGenButton: ' + err.message); }
 }
 
 // ============================================================
@@ -1104,14 +1106,14 @@ function generateBatch() {
       return;
     }
     document.getElementById('tolerance').value = 200;
-    document.getElementById('tolVal').textContent = 200;
+    var tv = document.getElementById('tolVal'); if (tv) tv.textContent = 200;
     return generateBatch(); // retry
   }
 
   showLoading(true, '准备生成...');
   document.getElementById('btnGenerate').disabled = true;
-  document.getElementById('genBar').classList.add('show');
-  document.getElementById('genBarFill').style.width = '0%';
+  var gb = document.getElementById('genBar'); if (gb) gb.classList.add('show');
+  var gbf = document.getElementById('genBarFill'); if (gbf) gbf.style.width = '0%';
 
   // Clean up old blobs
   generatedBlobs.forEach(function(b) { if (b.url) URL.revokeObjectURL(b.url); });
@@ -1134,10 +1136,10 @@ function generateBatch() {
     if (processed >= total) {
       showLoading(false);
       document.getElementById('btnGenerate').disabled = false;
-      document.getElementById('btnZip').disabled = false;
+      var bz = document.getElementById('btnZip'); if (bz) bz.disabled = false;
       document.getElementById('resultsCard').style.display = 'block';
-      document.getElementById('resultBadge').textContent = generatedBlobs.length + ' 张';
-      document.getElementById('genBar').classList.remove('show');
+      var rb = document.getElementById('resultBadge'); if (rb) rb.textContent = generatedBlobs.length + ' 张';
+      var gb2 = document.getElementById('genBar'); if (gb2) gb2.classList.remove('show');
       showToast('✅ 成功生成 ' + generatedBlobs.length + ' 张图片', 'success');
       document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
       previewEnabled = prevPreview;
@@ -1153,8 +1155,8 @@ function generateBatch() {
       generatedBlobs.push({ name: name, hex: t.hex, type: t.type, material: t.material, blob: blob, url: url });
       renderResultCard(generatedBlobs.length - 1);
       processed++;
-      document.getElementById('loadingText').textContent = '生成中 ' + processed + '/' + total + '...';
-      document.getElementById('genBarFill').style.width = Math.round(processed / total * 100) + '%';
+      var lt = document.getElementById('loadingText'); if (lt) lt.textContent = '生成中 ' + processed + '/' + total + '...';
+      var gbf2 = document.getElementById('genBarFill'); if (gbf2) gbf2.style.width = Math.round(processed / total * 100) + '%';
       setTimeout(next, 10);
     }, 'image/png');
   }
@@ -1239,16 +1241,19 @@ function rgbToHex(r, g, b) {
   return '#' + [r, g, b].map(function(v) { return v.toString(16).padStart(2, '0'); }).join('').toUpperCase();
 }
 function showLoading(show, text) {
-  document.getElementById('loading').classList.toggle('show', show);
-  if (text) document.getElementById('loadingText').textContent = text;
+  var ld = document.getElementById('loading'); if (ld) ld.classList.toggle('show', show);
+  if (text) { var lt = document.getElementById('loadingText'); if (lt) lt.textContent = text; }
 }
 var toastTimer;
 function showToast(msg, type) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show' + (type ? ' ' + type : '');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+  try {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+  } catch(err) { cfLog('CRASH showToast: ' + err.message); }
 }
 
 // Sync custom hex input
