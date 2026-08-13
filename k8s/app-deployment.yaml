@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doubleiface-app
+  labels:
+    app: doubleiface
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: doubleiface
+  template:
+    metadata:
+      labels:
+        app: doubleiface
+    spec:
+      containers:
+      - name: app
+        image: your-registry/doubleiface:latest
+        ports:
+        - containerPort: 5088
+        env:
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: POSTGRES_URL
+        - name: MINIO_ENDPOINT
+          value: "http://minio:9000"
+        - name: S3_BUCKET
+          value: "doubleiface"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secrets
+              key: MINIO_ROOT_USER
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secrets
+              key: MINIO_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: doubleiface-app
+spec:
+  selector:
+    app: doubleiface
+  ports:
+  - protocol: TCP
+    port: 5088
+    targetPort: 5088
+  type: ClusterIP
