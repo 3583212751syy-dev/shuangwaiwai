@@ -52,13 +52,36 @@ async def load_real_pipeline():
             return _real_pipeline
         try:
             import torch
-            from diffusers import StableDiffusionXLPipeline
+            from diffusers import StableDiffusionXLPipeline, UniPCMultistepScheduler
+            from diffusers import ControlNetModel
+
             model_id = os.environ.get('MODEL_ID') or 'stabilityai/stable-diffusion-xl-base-1.0'
+            controlnet_id = os.environ.get('CONTROLNET_ID')
             device = os.environ.get('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
-            pipe = StableDiffusionXLPipeline.from_pretrained(model_id, torch_dtype=torch.float16 if device.startswith('cuda') else torch.float32)
+
+            # load base pipeline
+            pipe_kwargs = {}
+            dtype = torch.float16 if device.startswith('cuda') else torch.float32
+            pipe = StableDiffusionXLPipeline.from_pretrained(model_id, torch_dtype=dtype, **pipe_kwargs)
+
+            # optional ControlNet
+            if controlnet_id:
+                try:
+                    cn = ControlNetModel.from_pretrained(controlnet_id, torch_dtype=dtype)
+                    # If library supports adding controlnet, user should adapt
+                    pipe.controlnet = cn
+                except Exception as e:
+                    logger.warning(f'ControlNet 加载失败: {e}')
+
+            # scheduler selection
+            try:
+                pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+            except Exception:
+                pass
+
             pipe = pipe.to(device)
             _real_pipeline = pipe
-            logger.info('Real pipeline loaded')
+            logger.info('Real pipeline loaded (skeleton)')
             return _real_pipeline
         except Exception as e:
             logger.warning(f'加载真实模型失败: {e}')
@@ -69,9 +92,36 @@ async def infer_real(image_bytes: bytes, variants: int = 4):
     pipe = await load_real_pipeline()
     if pipe is None:
         return None
-    # Placeholder behaviour: you should implement prompt/conditioning mapping here.
-    # For now return None to indicate not implemented in this environment.
-    return None
+
+    # Note: this is a minimal implementation. Real-world usage needs prompt engineering,
+    # safety checking, batch handling, and device/precision tuning.
+    try:
+        import torch
+        from PIL import Image
+        from io import BytesIO
+
+        prompt = os.environ.get('DEFAULT_PROMPT', 'best quality portrait')
+        negative_prompt = os.environ.get('NEGATIVE_PROMPT', '')
+        results = []
+        for i in range(int(variants)):
+            with torch.autocast("cuda") if torch.cuda.is_available() else nullcontext():
+                out = pipe(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=20)
+            img = out.images[0]
+            buf = BytesIO()
+            img.save(buf, format='PNG')
+            results.append(buf.getvalue())
+        return results
+    except Exception as e:
+        logger.warning(f'infer_real failed: {e}')
+        return None
+
+
+# compatibility helper for non-cuda contexts
+class nullcontext:
+    def __enter__(self):
+        return None
+    def __exit__(self, exc_type, exc, tb):
+        return False
 
 @app.post('/infer_enhanced')
 async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4)):

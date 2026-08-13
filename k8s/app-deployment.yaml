@@ -39,6 +39,11 @@ spec:
             secretKeyRef:
               name: minio-secrets
               key: MINIO_ROOT_PASSWORD
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        - name: outputs
+          mountPath: /app/outputs
 ---
 apiVersion: v1
 kind: Service
@@ -52,3 +57,8 @@ spec:
     port: 5088
     targetPort: 5088
   type: ClusterIP
+volumes:
+  - name: uploads
+    emptyDir: {}
+  - name: outputs
+    emptyDir: {}
