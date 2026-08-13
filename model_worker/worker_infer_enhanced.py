@@ -91,7 +91,7 @@ async def load_real_pipeline():
             _real_pipeline = None
             return None
 
-async def infer_real(image_bytes: bytes, variants: int = 4):
+async def infer_real(image_bytes: bytes, variants: int = 4, prompt: Optional[str] = None, negative_prompt: Optional[str] = None, control_bytes: Optional[bytes] = None):
     pipe = await load_real_pipeline()
     if pipe is None:
         return None
@@ -103,14 +103,17 @@ async def infer_real(image_bytes: bytes, variants: int = 4):
         from PIL import Image
         from io import BytesIO
 
-        prompt = os.environ.get('DEFAULT_PROMPT', 'best quality portrait')
-        negative_prompt = os.environ.get('NEGATIVE_PROMPT', '')
+        prompt = prompt or os.environ.get('DEFAULT_PROMPT', 'best quality portrait')
+        negative_prompt = negative_prompt or os.environ.get('NEGATIVE_PROMPT', '')
 
         # blocking sync call wrapper for the (potentially) heavy pipeline
         def _sync_infer(pipeline, prompt, negative_prompt, steps, control_pil=None):
             try:
                 if control_pil is not None and hasattr(pipeline, 'controlnet'):
-                    out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps, control_image=control_pil)
+                    try:
+                        out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps, image=control_pil)
+                    except TypeError:
+                        out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps, control_image=control_pil)
                 else:
                     out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps)
                 return out.images
@@ -118,11 +121,14 @@ async def infer_real(image_bytes: bytes, variants: int = 4):
                 logger.warning(f"_sync_infer pipeline call failed: {e}")
                 return None
 
-        # prepare optional control image if provided via env (CONTROL_IMAGE_PATH)
-        control_path = os.environ.get('CONTROL_IMAGE_PATH')
+        # prepare optional control image from direct bytes > env path > nothing
         control_pil = None
-        if control_path and os.path.exists(control_path):
-            control_pil = Image.open(control_path).convert('RGB')
+        if control_bytes:
+            control_pil = Image.open(io.BytesIO(control_bytes)).convert('RGB')
+        else:
+            control_path = os.environ.get('CONTROL_IMAGE_PATH')
+            if control_path and os.path.exists(control_path):
+                control_pil = Image.open(control_path).convert('RGB')
 
         loop = asyncio.get_running_loop()
         results = []
@@ -149,18 +155,24 @@ class nullcontext:
         return False
 
 @app.post('/infer_enhanced')
-async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4)):
+async def infer_enhanced(
+    image: UploadFile = File(...),
+    variants: int = Form(4),
+    prompt: Optional[str] = Form(None),
+    negative_prompt: Optional[str] = Form(None),
+    control_image: UploadFile | None = File(default=None),
+):
     """Return generated variant images (base64 or saved paths)."""
     content = await image.read()
-    # no control image/prompt support in current signature; kept for backward compat
+    control_bytes = None
+    if control_image is not None and getattr(control_image, 'filename', None):
+        control_bytes = await control_image.read()
+
     request_id = uuid.uuid4().hex[:8]
     logger.info(f"infer_enhanced request {request_id} variants={variants} use_real={USE_REAL_MODEL}")
 
     if USE_REAL_MODEL:
-        # Try to read optional form fields if present (prompt, negative_prompt, control_image).
-        # FastAPI requires explicit parameters; to keep backward compatibility we attempt to
-        # read environment defaults inside infer_real.
-        real = await infer_real(content, variants=int(variants))
+        real = await infer_real(content, variants=int(variants), prompt=prompt, negative_prompt=negative_prompt, control_bytes=control_bytes)
         if real is None:
             return JSONResponse({'success': False, 'error': 'Real model not available or inference failed'})
         saved = []
