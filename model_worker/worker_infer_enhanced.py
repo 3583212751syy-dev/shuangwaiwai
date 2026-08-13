@@ -11,6 +11,7 @@ from PIL import Image, ImageFilter
 import io
 import asyncio
 import logging
+import base64
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -131,8 +132,18 @@ async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4))
     logger.info(f"infer_enhanced request {request_id} variants={variants} use_real={USE_REAL_MODEL}")
 
     if USE_REAL_MODEL:
-        # Placeholder: call real SDXL+ControlNet pipeline here
-        return JSONResponse({'success': False, 'error': 'Real model not configured in this worker image'})
+        real = await infer_real(content, variants=int(variants))
+        if real is None:
+            return JSONResponse({'success': False, 'error': 'Real model not available or inference failed'})
+        saved = []
+        for idx, b in enumerate(real):
+            fname = f"{request_id}_{idx}.png"
+            path = os.path.join(WORK_DIR, fname)
+            with open(path, 'wb') as f:
+                f.write(b)
+            b64 = base64.b64encode(b).decode('utf-8')
+            saved.append({'path': path, 'filename': fname, 'b64': b64})
+        return {'success': True, 'request_id': request_id, 'outputs': saved}
 
     imgs = await simulate_fission(content, variants=int(variants))
     saved = []
@@ -141,7 +152,8 @@ async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4))
         path = os.path.join(WORK_DIR, fname)
         with open(path, 'wb') as f:
             f.write(b)
-        saved.append({'path': path, 'filename': fname})
+        b64 = base64.b64encode(b).decode('utf-8')
+        saved.append({'path': path, 'filename': fname, 'b64': b64})
 
     return {'success': True, 'request_id': request_id, 'outputs': saved}
 
