@@ -1,0 +1,14 @@
+flask
+flask-cors
+waitress
+pillow
+numpy
+opencv-python-headless
+sqlalchemy
+psycopg2-binary
+boto3
+botocore
+requests
+torch
+transformers
+rembg

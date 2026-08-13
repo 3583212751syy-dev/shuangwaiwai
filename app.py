@@ -18,6 +18,21 @@ import uuid
 from PIL import Image
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from datetime import datetime
+
+# Optional persistence imports (import failures are tolerated at runtime)
+try:
+    from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
+    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import sessionmaker
+except Exception:
+    create_engine = None
+
+try:
+    import boto3
+    from botocore.client import Config
+except Exception:
+    boto3 = None
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 1200
@@ -1707,6 +1722,105 @@ class UltraFashionSegmenter:
 
 segmenter = UltraFashionSegmenter()
 
+# --- Persistence setup (Postgres / MinIO) ---
+POSTGRES_URL = os.environ.get('POSTGRES_URL')
+S3_ENDPOINT = os.environ.get('MINIO_ENDPOINT') or os.environ.get('S3_ENDPOINT')
+S3_BUCKET = os.environ.get('S3_BUCKET')
+S3_ACCESS_KEY = os.environ.get('MINIO_ACCESS_KEY') or os.environ.get('S3_ACCESS_KEY')
+S3_SECRET_KEY = os.environ.get('MINIO_SECRET_KEY') or os.environ.get('S3_SECRET_KEY')
+
+DB_ENGINE = None
+DB_Session = None
+Base = None
+
+if create_engine is not None:
+    try:
+        if POSTGRES_URL:
+            DB_ENGINE = create_engine(POSTGRES_URL, echo=False, future=True)
+        else:
+            # fallback to sqlite file in repo
+            sqlite_path = os.path.join(os.path.dirname(__file__), 'data.db')
+            DB_ENGINE = create_engine(f'sqlite:///{sqlite_path}', echo=False, connect_args={"check_same_thread": False})
+
+        from sqlalchemy.orm import declarative_base
+        Base = declarative_base()
+
+        class Task(Base):
+            __tablename__ = 'tasks'
+            id = Column(Integer, primary_key=True)
+            request_id = Column(String(64), index=True)
+            input_path = Column(Text)
+            output_path = Column(Text)
+            s3_input_url = Column(Text)
+            s3_output_url = Column(Text)
+            qa_result = Column(Text)
+            created_at = Column(DateTime, default=datetime.utcnow)
+            completed_at = Column(DateTime, nullable=True)
+
+        Base.metadata.create_all(DB_ENGINE)
+        DB_Session = sessionmaker(bind=DB_ENGINE)
+        logger.info("数据库（Task）初始化完成")
+    except Exception as e:
+        logger.warning(f"数据库初始化失败: {e}")
+        DB_ENGINE = None
+
+# MinIO/S3 client
+S3_CLIENT = None
+if boto3 is not None and S3_ENDPOINT and S3_BUCKET and S3_ACCESS_KEY and S3_SECRET_KEY:
+    try:
+        s3_config = Config(signature_version='s3v4')
+        S3_CLIENT = boto3.client('s3', endpoint_url=S3_ENDPOINT, aws_access_key_id=S3_ACCESS_KEY, aws_secret_access_key=S3_SECRET_KEY, config=s3_config)
+        logger.info("S3/MinIO 客户端初始化完成")
+    except Exception as e:
+        logger.warning(f"S3 客户端初始化失败: {e}")
+
+def upload_file_to_s3(local_path, key):
+    """Upload a local file to configured S3/MinIO bucket and return an accessible URL."""
+    if S3_CLIENT is None:
+        return None
+    try:
+        S3_CLIENT.upload_file(local_path, S3_BUCKET, key)
+        # Construct URL (path-style). Users may need to adapt to their MinIO setup.
+        url = f"{S3_ENDPOINT.rstrip('/')}/{S3_BUCKET}/{key}"
+        return url
+    except Exception as e:
+        logger.warning(f"上传到 S3 失败: {e}")
+        return None
+
+def create_task_record(request_id, input_path):
+    if DB_Session is None:
+        return None
+    try:
+        session = DB_Session()
+        t = Task(request_id=request_id, input_path=input_path, created_at=datetime.utcnow())
+        session.add(t)
+        session.commit()
+        session.refresh(t)
+        session.close()
+        return t.id
+    except Exception as e:
+        logger.warning(f"创建任务记录失败: {e}")
+        return None
+
+def update_task_record(request_id, **kwargs):
+    if DB_Session is None:
+        return
+    try:
+        session = DB_Session()
+        t = session.query(Task).filter(Task.request_id == request_id).first()
+        if not t:
+            session.close()
+            return
+        for k, v in kwargs.items():
+            if hasattr(t, k):
+                setattr(t, k, v)
+        if 'completed_at' in kwargs and kwargs['completed_at'] is None:
+            t.completed_at = None
+        session.commit()
+        session.close()
+    except Exception as e:
+        logger.warning(f"更新任务记录失败: {e}")
+
 @app.route('/')
 def index():
     return jsonify({'status': 'ok', 'message': '服装抠图API服务', 'endpoints': ['POST /api/segment', 'GET /api/health', 'GET /api/model-status']})
@@ -1779,6 +1893,16 @@ def segment():
         except Exception as e:
             logger.error(f"  - 文件保存异常: {e}")
             return jsonify({'success': False, 'error': '文件保存失败'})
+        # Create DB task record (if enabled) and optionally upload input to S3/MinIO
+        try:
+            create_task_record(request_id, input_path)
+            if S3_CLIENT is not None:
+                s3_key_in = f"inputs/{filename}"
+                s3_url_in = upload_file_to_s3(input_path, s3_key_in)
+                if s3_url_in:
+                    update_task_record(request_id, s3_input_url=s3_url_in)
+        except Exception as e:
+            logger.warning(f"任务记录/上传输入失败: {e}")
         
         model_type = request.form.get('model_type', 'Best')
         return_layers = request.form.get('return_layers', 'false').lower() == 'true'
@@ -1805,12 +1929,37 @@ def segment():
                 if bottom_path:
                     bottom_filename = os.path.basename(bottom_path)
                     result['bottom_url'] = f'/outputs/{bottom_filename}'
+                # Upload outputs to S3 and update DB record if configured
+                try:
+                    if S3_CLIENT is not None:
+                        s3_key_out = f"outputs/{filename}"
+                        s3_url_out = upload_file_to_s3(output_path, s3_key_out)
+                        if s3_url_out:
+                            update_task_record(request_id, s3_output_url=s3_url_out)
+                        # also upload layer files if present
+                        if top_path and os.path.exists(top_path):
+                            upload_file_to_s3(top_path, f"outputs/{os.path.basename(top_path)}")
+                        if bottom_path and os.path.exists(bottom_path):
+                            upload_file_to_s3(bottom_path, f"outputs/{os.path.basename(bottom_path)}")
+                    update_task_record(request_id, output_path=output_path, completed_at=datetime.utcnow())
+                except Exception as e:
+                    logger.warning(f"上传输出或更新任务记录失败: {e}")
                 return jsonify(result)
         else:
             success, error = segmenter.process_image(input_path, output_path, model_type)
             
             if success:
                 logger.info(f"=== 请求 {request_id} 成功 ===")
+                # Upload output to S3 and update DB record if configured
+                try:
+                    if S3_CLIENT is not None:
+                        s3_key_out = f"outputs/{filename}"
+                        s3_url_out = upload_file_to_s3(output_path, s3_key_out)
+                        if s3_url_out:
+                            update_task_record(request_id, s3_output_url=s3_url_out)
+                    update_task_record(request_id, output_path=output_path, completed_at=datetime.utcnow())
+                except Exception as e:
+                    logger.warning(f"上传输出或更新任务记录失败: {e}")
                 return jsonify({
                     'success': True,
                     'output_url': f'/outputs/{filename}'
