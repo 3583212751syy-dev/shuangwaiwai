@@ -36,6 +36,43 @@ async def simulate_fission(image_bytes: bytes, variants: int = 4):
     await asyncio.sleep(0.1)
     return results
 
+
+# --- Real model lazy loader (skeleton) ---
+_real_pipeline = None
+_real_lock = asyncio.Lock()
+
+async def load_real_pipeline():
+    """Lazy-load a real SDXL/ControlNet pipeline if requested. This is a skeleton
+    — heavy dependencies are imported inside this function. Returns pipeline or None."""
+    global _real_pipeline
+    if _real_pipeline is not None:
+        return _real_pipeline
+    async with _real_lock:
+        if _real_pipeline is not None:
+            return _real_pipeline
+        try:
+            import torch
+            from diffusers import StableDiffusionXLPipeline
+            model_id = os.environ.get('MODEL_ID') or 'stabilityai/stable-diffusion-xl-base-1.0'
+            device = os.environ.get('DEVICE', 'cuda' if torch.cuda.is_available() else 'cpu')
+            pipe = StableDiffusionXLPipeline.from_pretrained(model_id, torch_dtype=torch.float16 if device.startswith('cuda') else torch.float32)
+            pipe = pipe.to(device)
+            _real_pipeline = pipe
+            logger.info('Real pipeline loaded')
+            return _real_pipeline
+        except Exception as e:
+            logger.warning(f'加载真实模型失败: {e}')
+            _real_pipeline = None
+            return None
+
+async def infer_real(image_bytes: bytes, variants: int = 4):
+    pipe = await load_real_pipeline()
+    if pipe is None:
+        return None
+    # Placeholder behaviour: you should implement prompt/conditioning mapping here.
+    # For now return None to indicate not implemented in this environment.
+    return None
+
 @app.post('/infer_enhanced')
 async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4)):
     """Return generated variant images (base64 or saved paths)."""

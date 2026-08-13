@@ -32,6 +32,15 @@ services:
       - "9000:9000"
     volumes:
       - miniodata:/data
+  model_worker:
+    build: ./model_worker
+    environment:
+      - WORK_DIR=/work
+      - USE_REAL_MODEL=false
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./model_worker:/work
 volumes:
   pgdata:
   miniodata:
