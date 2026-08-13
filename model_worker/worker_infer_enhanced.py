@@ -12,6 +12,8 @@ import io
 import asyncio
 import logging
 import base64
+from typing import Optional
+import concurrent.futures
 
 app = FastAPI()
 logging.basicConfig(level=logging.INFO)
@@ -103,14 +105,36 @@ async def infer_real(image_bytes: bytes, variants: int = 4):
 
         prompt = os.environ.get('DEFAULT_PROMPT', 'best quality portrait')
         negative_prompt = os.environ.get('NEGATIVE_PROMPT', '')
+
+        # blocking sync call wrapper for the (potentially) heavy pipeline
+        def _sync_infer(pipeline, prompt, negative_prompt, steps, control_pil=None):
+            try:
+                if control_pil is not None and hasattr(pipeline, 'controlnet'):
+                    out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps, control_image=control_pil)
+                else:
+                    out = pipeline(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=steps)
+                return out.images
+            except Exception as e:
+                logger.warning(f"_sync_infer pipeline call failed: {e}")
+                return None
+
+        # prepare optional control image if provided via env (CONTROL_IMAGE_PATH)
+        control_path = os.environ.get('CONTROL_IMAGE_PATH')
+        control_pil = None
+        if control_path and os.path.exists(control_path):
+            control_pil = Image.open(control_path).convert('RGB')
+
+        loop = asyncio.get_running_loop()
         results = []
-        for i in range(int(variants)):
-            with torch.autocast("cuda") if torch.cuda.is_available() else nullcontext():
-                out = pipe(prompt=prompt, negative_prompt=negative_prompt, num_inference_steps=20)
-            img = out.images[0]
-            buf = BytesIO()
-            img.save(buf, format='PNG')
-            results.append(buf.getvalue())
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            for i in range(int(variants)):
+                imgs = await loop.run_in_executor(pool, _sync_infer, pipe, prompt, negative_prompt, 20, control_pil)
+                if imgs is None:
+                    continue
+                for img in imgs:
+                    buf = BytesIO()
+                    img.save(buf, format='PNG')
+                    results.append(buf.getvalue())
         return results
     except Exception as e:
         logger.warning(f'infer_real failed: {e}')
@@ -128,10 +152,14 @@ class nullcontext:
 async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4)):
     """Return generated variant images (base64 or saved paths)."""
     content = await image.read()
+    # no control image/prompt support in current signature; kept for backward compat
     request_id = uuid.uuid4().hex[:8]
     logger.info(f"infer_enhanced request {request_id} variants={variants} use_real={USE_REAL_MODEL}")
 
     if USE_REAL_MODEL:
+        # Try to read optional form fields if present (prompt, negative_prompt, control_image).
+        # FastAPI requires explicit parameters; to keep backward compatibility we attempt to
+        # read environment defaults inside infer_real.
         real = await infer_real(content, variants=int(variants))
         if real is None:
             return JSONResponse({'success': False, 'error': 'Real model not available or inference failed'})
@@ -158,13 +186,16 @@ async def infer_enhanced(image: UploadFile = File(...), variants: int = Form(4))
     return {'success': True, 'request_id': request_id, 'outputs': saved}
 
 @app.post('/infer_batch_enhanced')
-async def infer_batch_enhanced(images: list[UploadFile] | None = None, variants: int = Form(4)):
+async def infer_batch_enhanced(images: list[UploadFile] | None = None, variants: int = Form(4), prompt: Optional[str] = Form(None), negative_prompt: Optional[str] = Form(None)):
     # simple batch loop
     results = []
     if images is None:
         return {'success': False, 'error': 'no images provided'}
     for im in images:
         content = await im.read()
-        res = await simulate_fission(content, variants=int(variants))
-        results.append({'filename': im.filename, 'variants': len(res)})
+        if USE_REAL_MODEL:
+            res = await infer_real(content, variants=int(variants))
+        else:
+            res = await simulate_fission(content, variants=int(variants))
+        results.append({'filename': im.filename, 'variants': len(res) if res else 0})
     return {'success': True, 'count': len(results), 'results': results}
