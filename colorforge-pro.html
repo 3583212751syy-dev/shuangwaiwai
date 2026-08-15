@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ColorForge Pro v5.0 - 智能色域+平滑色相</title>
+<title>ColorForge Pro v6.0 - 整体色调映射</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -64,50 +64,18 @@ body {
   justify-content: space-between;
   box-shadow: var(--shadow);
 }
-.header h1 {
-  font-size: 18px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
 .header .ver { font-size: 11px; opacity: .7; font-weight: 400; }
-.card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-}
+.card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); }
 .card h3 {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
 }
-.card h3 .badge {
-  background: var(--primary);
-  color: white;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: 500;
-}
+.card h3 .badge { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 8px; font-weight: 500; }
 .btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  padding: 8px 14px; border-radius: 8px; border: none; background: var(--primary); color: white;
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 4px;
 }
 .btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
 .btn:disabled { background: #d1d5db; cursor: not-allowed; transform: none; }
@@ -117,420 +85,139 @@ body {
 .btn-success { background: var(--success); }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-full { width: 100%; justify-content: center; }
-.toggle {
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  background: #d1d5db;
-  border-radius: 10px;
-  position: relative;
-  cursor: pointer;
-  transition: background .2s;
-}
-.toggle::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  top: 2px;
-  left: 2px;
-  transition: left .2s;
-}
+.toggle { display: inline-block; width: 36px; height: 20px; background: #d1d5db; border-radius: 10px; position: relative; cursor: pointer; transition: background .2s; }
+.toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: left .2s; }
 .toggle.on { background: var(--success); }
 .toggle.on::after { left: 18px; }
 
-/* === Upload area === */
 .upload-zone {
-  border: 2px dashed var(--border);
-  border-radius: 10px;
-  padding: 30px 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .2s;
-  background: #fafbfc;
+  border: 2px dashed var(--border); border-radius: 10px; padding: 30px 20px;
+  text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc;
 }
-.upload-zone:hover {
-  border-color: var(--primary);
-  background: #f0f3ff;
-}
+.upload-zone:hover { border-color: var(--primary); background: #f0f3ff; }
 .upload-zone .icon { font-size: 36px; margin-bottom: 6px; }
 .upload-zone .text { font-size: 13px; color: var(--text-light); }
 
-/* === Color detection panel === */
-.detect-panel {
+.mode-panel {
   background: linear-gradient(135deg, #f0f3ff 0%, #faf5ff 100%);
-  border: 1px solid #e0e7ff;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
+  border: 1px solid #e0e7ff; border-radius: 10px; padding: 12px; margin-bottom: 12px;
 }
-.detect-panel h4 {
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--primary-dark);
-}
+.mode-label { font-size: 12px; color: var(--text-light); margin-bottom: 6px; }
+.mode-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.mode-options .btn { flex: 1; justify-content: center; font-size: 12px; padding: 6px 10px; }
+.mode-options .btn.active { background: var(--primary-dark); box-shadow: inset 0 2px 4px rgba(0,0,0,.15); }
+
 .domain-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 200px;
-  overflow-y: auto;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  max-height: 160px; overflow-y: auto;
 }
-.domain-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all .15s;
-  border: 2px solid transparent;
+.domain-cell {
+  padding: 6px 4px; background: white; border-radius: 8px; text-align: center;
+  cursor: pointer; transition: all .15s; border: 2px solid transparent; font-size: 11px;
 }
-.domain-row:hover { background: #f9fafb; }
-.domain-row.selected {
-  border-color: var(--primary);
-  background: #f0f3ff;
-}
-.domain-row .swatches {
-  display: flex;
-  gap: 2px;
-}
-.domain-row .sw {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,.08);
-}
-.domain-row .info { flex: 1; min-width: 0; }
-.domain-row .name {
-  font-size: 12px;
-  font-weight: 500;
-}
-.domain-row .meta {
-  font-size: 10px;
-  color: var(--text-light);
-}
-.domain-row .pct {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--primary);
-}
+.domain-cell:hover { background: #f9fafb; }
+.domain-cell.selected { border-color: var(--primary); background: #f0f3ff; }
+.domain-cell .sw { width: 100%; height: 24px; border-radius: 6px; margin-bottom: 4px; border: 1px solid rgba(0,0,0,.08); }
+.domain-cell .name { font-weight: 500; }
+.domain-cell .meta { font-size: 9px; color: var(--text-light); }
 
-/* === Tabs === */
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid var(--border);
-}
-.tab {
-  padding: 6px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all .15s;
-  color: var(--text-light);
-}
-.tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-  font-weight: 500;
-}
-
-/* === Color palette === */
-.palette-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 6px;
-  margin-bottom: 8px;
-}
+.palette-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 8px; }
 .color-cell {
-  aspect-ratio: 1;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  transition: all .15s;
-  border: 2px solid transparent;
+  aspect-ratio: 1; border-radius: 6px; cursor: pointer; position: relative;
+  transition: all .15s; border: 2px solid transparent;
 }
 .color-cell:hover { transform: scale(1.1); z-index: 2; box-shadow: var(--shadow); }
-.color-cell.selected {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px white inset;
-}
-.color-cell .label {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 9px;
-  color: var(--text-light);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity .15s;
-  pointer-events: none;
-}
+.color-cell.selected { border-color: var(--primary); box-shadow: 0 0 0 2px white inset; }
+.color-cell .label { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-light); white-space: nowrap; opacity: 0; transition: opacity .15s; pointer-events: none; }
 .color-cell:hover .label { opacity: 1; }
 
-/* === Hue themes === */
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
+.theme-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .theme-card {
-  padding: 8px 4px;
-  border-radius: 8px;
-  text-align: center;
-  font-size: 11px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all .15s;
-  background: white;
-  font-weight: 500;
+  padding: 8px 4px; border-radius: 8px; text-align: center; font-size: 11px;
+  cursor: pointer; border: 2px solid transparent; transition: all .15s; background: white; font-weight: 500;
 }
 .theme-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-.theme-card.selected {
-  border-color: var(--primary);
-  background: #f0f3ff;
-}
-.theme-card .preview {
-  width: 100%;
-  height: 28px;
-  border-radius: 6px;
-  margin-bottom: 4px;
-}
+.theme-card.selected { border-color: var(--primary); background: #f0f3ff; }
+.theme-card .preview { width: 100%; height: 28px; border-radius: 6px; margin-bottom: 4px; }
 
-/* === Source/Target chip === */
 .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  font-size: 12px;
-  margin: 2px;
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  background: white; border: 1px solid var(--border); border-radius: 16px; font-size: 12px; margin: 2px;
 }
-.chip .sw {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1px solid rgba(0,0,0,.1);
-}
-.chip .x {
-  cursor: pointer;
-  color: var(--text-light);
-  font-weight: bold;
-  font-size: 14px;
-}
+.chip .sw { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,.1); }
+.chip .x { cursor: pointer; color: var(--text-light); font-weight: bold; font-size: 14px; }
 .chip .x:hover { color: var(--danger); }
 .chip-area {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  min-height: 32px;
-  padding: 6px;
-  background: #fafbfc;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  display: flex; flex-wrap: wrap; gap: 4px; min-height: 32px; padding: 6px;
+  background: #fafbfc; border-radius: 8px; margin-bottom: 8px;
 }
-.empty-hint {
-  font-size: 11px;
-  color: var(--text-light);
-  padding: 6px;
-  text-align: center;
-}
+.empty-hint { font-size: 11px; color: var(--text-light); padding: 6px; text-align: center; width: 100%; }
 
-/* === Slider === */
-.slider-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 6px 0;
-}
+.slider-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 .slider-row label { font-size: 12px; color: var(--text-light); min-width: 60px; }
 .slider-row input[type=range] {
-  flex: 1;
-  height: 4px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: #e5e7eb;
-  border-radius: 2px;
-  outline: none;
+  flex: 1; height: 4px; -webkit-appearance: none; appearance: none;
+  background: #e5e7eb; border-radius: 2px; outline: none;
 }
 .slider-row input[type=range]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  background: var(--primary);
-  border-radius: 50%;
-  cursor: pointer;
+  -webkit-appearance: none; width: 16px; height: 16px; background: var(--primary);
+  border-radius: 50%; cursor: pointer;
 }
-.slider-row .val {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--primary);
-  min-width: 36px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
+.slider-row .val { font-size: 12px; font-weight: 600; color: var(--primary); min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 
-/* === Canvas === */
 .canvas-card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-  min-height: 400px;
+  background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); min-height: 400px;
 }
 .canvas-wrap {
-  position: relative;
-  background: #f3f4f6;
-  border-radius: 10px;
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  position: relative; background: #f3f4f6; border-radius: 10px; min-height: 300px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
   background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
                     linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
                     linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
                     linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0;
 }
-#srcCanvas {
-  max-width: 100%;
-  max-height: 70vh;
-  border-radius: 6px;
-  cursor: crosshair;
-  display: block;
-}
-.canvas-empty {
-  text-align: center;
-  color: var(--text-light);
-}
+#srcCanvas { max-width: 100%; max-height: 70vh; border-radius: 6px; display: block; }
+.canvas-empty { text-align: center; color: var(--text-light); }
 .canvas-empty .icon { font-size: 48px; margin-bottom: 8px; }
 .canvas-info {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(0,0,0,.6);
-  color: white;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  backdrop-filter: blur(8px);
+  position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.6); color: white;
+  padding: 4px 10px; border-radius: 12px; font-size: 11px; backdrop-filter: blur(8px);
 }
-.canvas-toolbar {
-  display: flex;
-  gap: 6px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+.canvas-toolbar { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
 
-/* === Results grid === */
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-.result-card {
-  background: white;
-  border-radius: 8px;
-  padding: 6px;
-  border: 1px solid var(--border);
-}
-.result-card img {
-  width: 100%;
-  border-radius: 4px;
-  display: block;
-  margin-bottom: 4px;
-}
-.result-card .info {
-  font-size: 11px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+.tab { padding: 6px 10px; font-size: 12px; cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; color: var(--text-light); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
 
-/* === Toast === */
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.result-card { background: white; border-radius: 8px; padding: 6px; border: 1px solid var(--border); }
+.result-card img { width: 100%; border-radius: 4px; display: block; margin-bottom: 4px; }
+.result-card .info { font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+
 .toast {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  background: #1f2937;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all .25s;
-  pointer-events: none;
-  z-index: 1000;
-  max-width: 320px;
+  position: fixed; top: 16px; right: 16px; background: #1f2937; color: white;
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; box-shadow: var(--shadow-lg);
+  opacity: 0; transform: translateY(-20px); transition: all .25s; pointer-events: none; z-index: 1000; max-width: 320px;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.success { background: var(--success); }
 .toast.error { background: var(--danger); }
 .toast.warn { background: var(--warning); }
 
-/* === Loading === */
 .loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.5);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  backdrop-filter: blur(4px);
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none;
+  align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(4px);
 }
 .loading-overlay.show { display: flex; }
-.loading-box {
-  background: white;
-  padding: 24px 32px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: var(--shadow-lg);
-}
-.loading-box .spin {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #e5e7eb;
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 12px;
-}
+.loading-box { background: white; padding: 24px 32px; border-radius: 12px; text-align: center; box-shadow: var(--shadow-lg); }
+.loading-box .spin { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-box .text { font-size: 13px; color: var(--text); }
-.progress-bar {
-  width: 200px;
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  margin-top: 12px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--primary);
-  width: 0;
-  transition: width .2s;
-}
+.progress-bar { width: 200px; height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); width: 0; transition: width .2s; }
 
-/* === Hidden helpers === */
 .hidden { display: none !important; }
-
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { position: relative; max-height: none; }
@@ -540,10 +227,8 @@ body {
 <body>
 
 <div class="app">
-  <!-- ==== SIDEBAR ==== -->
   <aside class="sidebar">
 
-    <!-- Upload -->
     <div id="uploadCard" class="card">
       <h3>📁 上传图片</h3>
       <div class="upload-zone" id="uploadZone">
@@ -553,42 +238,36 @@ body {
       <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
 
-    <!-- Color domain detection -->
-    <div id="detectCard" class="card hidden">
-      <h3>🎯 色域识别 <span class="badge" id="domainCount">0</span></h3>
-      <div class="detect-panel">
-        <h4>📊 自动检测到的色域（点选切换源色）</h4>
-        <div class="domain-list" id="domainList"></div>
-        <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="selectAllDomains()">全选</button>
-          <button class="btn btn-ghost btn-sm" onclick="clearDomains()">清空</button>
-          <button class="btn btn-sm" onclick="redetectDomains()">🔄 重新识别</button>
+    <div id="modeCard" class="card hidden">
+      <h3>🎨 上色模式</h3>
+      <div class="mode-panel">
+        <div class="mode-label">选择如何把目标色应用到图片上</div>
+        <div class="mode-options">
+          <button class="btn btn-ghost active" data-mode="color" onclick="setMode('color')">保留亮度</button>
+          <button class="btn btn-ghost" data-mode="hue" onclick="setMode('hue')">仅改色相</button>
+          <button class="btn btn-ghost" data-mode="overlay" onclick="setMode('overlay')">柔光叠加</button>
+        </div>
+      </div>
+      <div class="mode-panel">
+        <div class="mode-label">高级：亮度混合强度（避免过曝/死黑）</div>
+        <div class="slider-row">
+          <label>强度</label>
+          <input type="range" id="mapIntensity" min="0" max="100" value="85">
+          <span class="val" id="mapIntensityVal">85%</span>
         </div>
       </div>
     </div>
 
-    <!-- Source colors -->
-    <div id="srcCard" class="card hidden">
-      <h3>📌 源色 <span class="badge" id="srcBadge">0</span></h3>
-      <div class="chip-area" id="srcChips">
-        <div class="empty-hint">点击图片 / 点击色域 / 点下方色板</div>
-      </div>
-      <div class="slider-row">
-        <label>容差</label>
-        <input type="range" id="tolerance" min="0" max="500" value="120">
-        <span class="val" id="tolVal">120</span>
-      </div>
-      <div class="slider-row">
-        <label>边缘羽化</label>
-        <input type="range" id="feather" min="0" max="100" value="40">
-        <span class="val" id="featherVal">40</span>
-      </div>
-      <div style="font-size:11px;color:var(--text-light);margin-top:6px" id="srcStats">
-        匹配像素: <strong id="matchPx">0</strong>
+    <div id="detectCard" class="card hidden">
+      <h3>🎯 色域识别 <span class="badge" id="domainCount">0</span></h3>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px">点击色域可保留原色（反向蒙版）。什么都不选 = 全图生效</div>
+      <div class="domain-list" id="domainList"></div>
+      <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="clearProtectedDomains()">清空保留</button>
+        <button class="btn btn-sm" onclick="redetectDomains()">🔄 重新识别</button>
       </div>
     </div>
 
-    <!-- Target colors -->
     <div id="tgtCard" class="card hidden">
       <h3>🎨 目标色 <span class="badge" id="tgtBadge">0</span></h3>
 
@@ -599,7 +278,6 @@ body {
         <div class="tab" data-tab="custom">自定义</div>
       </div>
 
-      <!-- Tab: Common colors -->
       <div class="tab-pane" data-pane="common">
         <div class="palette-grid" id="commonPalette"></div>
         <div style="display:flex;gap:4px;margin-top:8px">
@@ -608,19 +286,16 @@ body {
         </div>
       </div>
 
-      <!-- Tab: Themes (hue shifts) -->
       <div class="tab-pane hidden" data-pane="theme">
-        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">基于原图整体色相偏移</div>
+        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">整体色调偏移（保留细节）</div>
         <div class="theme-grid" id="themeGrid"></div>
       </div>
 
-      <!-- Tab: Materials -->
       <div class="tab-pane hidden" data-pane="material">
         <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">金属/材质渐变映射</div>
         <div class="theme-grid" id="materialGrid"></div>
       </div>
 
-      <!-- Tab: Custom -->
       <div class="tab-pane hidden" data-pane="custom">
         <input type="color" id="customColor" value="#ff6b6b" style="width:100%;height:40px;border:none;border-radius:8px;cursor:pointer">
         <input type="text" id="customHex" placeholder="#hex 或 rgb(...)" style="width:100%;margin-top:6px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:monospace">
@@ -634,7 +309,6 @@ body {
       </div>
     </div>
 
-    <!-- Generate -->
     <div id="genCard" class="card hidden">
       <button class="btn btn-success btn-full" id="btnGenerate" onclick="generateBatch()" disabled>
         🚀 批量生成 <span id="genCount">0</span> 张
@@ -647,11 +321,10 @@ body {
 
   </aside>
 
-  <!-- ==== MAIN ==== -->
   <main class="main">
     <div class="header">
-      <h1>🎨 ColorForge Pro <span class="ver">v5.0</span></h1>
-      <div style="font-size:11px;opacity:.8">智能色域识别 · 平滑色相算法 · 高保真输出</div>
+      <h1>🎨 ColorForge Pro <span class="ver">v6.0</span></h1>
+      <div style="font-size:11px;opacity:.8">整体色调映射 · 保留纹理 · 高保真改色</div>
     </div>
 
     <div class="canvas-card">
@@ -663,42 +336,13 @@ body {
         <canvas id="srcCanvas" class="hidden"></canvas>
         <div class="canvas-info hidden" id="canvasInfo"></div>
       </div>
-
       <div class="canvas-toolbar hidden" id="canvasToolbar">
         <button class="btn btn-ghost btn-sm" onclick="resetImage()">🔄 重置</button>
-        <button class="btn btn-ghost btn-sm" onclick="togglePreview()">
-          <span id="previewLabel">🔴 显示预览</span>
-        </button>
         <button class="btn btn-ghost btn-sm" onclick="downloadCurrent()">💾 下载当前</button>
         <div style="margin-left:auto;font-size:11px;color:var(--text-light)" id="imgMeta"></div>
       </div>
     </div>
 
-    <!-- Global hue shift -->
-    <div class="card hidden" id="hueCard">
-      <h3>🌈 全局色相偏移 <span class="badge">保细节</span></h3>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px">
-        只改变 chroma 色相层，保留亮度细节，避免颜色突兀
-      </div>
-      <div class="slider-row">
-        <label>色相偏移</label>
-        <input type="range" id="hueShift" min="-180" max="180" value="0" step="1">
-        <span class="val" id="hueShiftVal">0°</span>
-      </div>
-      <div class="slider-row">
-        <label>饱和度</label>
-        <input type="range" id="satAdjust" min="-100" max="100" value="0" step="1">
-        <span class="val" id="satAdjustVal">0%</span>
-      </div>
-      <div class="slider-row">
-        <label>亮度</label>
-        <input type="range" id="lightAdjust" min="-100" max="100" value="0" step="1">
-        <span class="val" id="lightAdjustVal">0%</span>
-      </div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addHueShiftAsTarget()">📌 加入目标列表</button>
-    </div>
-
-    <!-- Results -->
     <div class="card hidden" id="resultsCard">
       <h3>📦 生成结果 <span class="badge" id="resultBadge">0 张</span></h3>
       <div class="results-grid" id="resultsGrid"></div>
@@ -706,7 +350,6 @@ body {
   </main>
 </div>
 
-<!-- Loading overlay -->
 <div class="loading-overlay" id="loading">
   <div class="loading-box">
     <div class="spin"></div>
@@ -722,15 +365,14 @@ body {
 // GLOBAL STATE
 // ============================================================
 let imgLoaded = false;
-let originalImageData = null;      // Uint8ClampedArray of source
-let currentRenderData = null;      // currently displayed
-let sourceColors = [];             // [{r,g,b,h,s,l,domain,featherMul}]
-let sourceDomains = [];            // detected color domains
-let targetColors = [];             // [{r,g,b,hex,name,kind,gradientLUT?}]
-let generatedBlobs = [];           // [{blob,url,name}]
-let previewEnabled = true;
+let originalImageData = null;
+let targetColors = [];
+let generatedBlobs = [];
+let mode = 'color'; // 'color' | 'hue' | 'overlay'
+let mapIntensity = 0.85;
+let protectedDomains = new Set(); // domain indices to protect
+let sourceDomains = [];
 let toastTimer = null;
-let hueShift = 0, satAdjust = 0, lightAdjust = 0;
 
 const canvas = document.getElementById('srcCanvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -773,14 +415,10 @@ function rgbToHsl(r, g, b) {
   return { h: h * 360, s: s * 100, l: l * 100 };
 }
 function hslToRgb(h, s, l) {
-  h /= 360; s /= 100; l /= 100;
-  if (s === 0) {
-    const v = Math.round(l * 255);
-    return { r: v, g: v, b: v };
-  }
+  h = (h % 360 + 360) % 360 / 360; s /= 100; l /= 100;
+  if (s === 0) { const v = Math.round(l * 255); return { r: v, g: v, b: v }; }
   const hue2rgb = (p, q, t) => {
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
+    if (t < 0) t += 1; if (t > 1) t -= 1;
     if (t < 1/6) return p + (q - p) * 6 * t;
     if (t < 1/2) return q;
     if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
@@ -794,29 +432,19 @@ function hslToRgb(h, s, l) {
     b: Math.round(hue2rgb(p, q, h - 1/3) * 255)
   };
 }
-function smoothstep(edge0, edge1, x) {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
 function showToast(msg, type = '') {
-  const t = $('toast');
-  if (!t) return;
+  const t = $('toast'); if (!t) return;
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 function showLoading(show, text = '') {
-  const l = $('loading');
-  if (l) l.classList.toggle('show', show);
-  if (text) {
-    const lt = $('loadingText');
-    if (lt) lt.textContent = text;
-  }
+  const l = $('loading'); if (l) l.classList.toggle('show', show);
+  if (text) { const lt = $('loadingText'); if (lt) lt.textContent = text; }
 }
 function setProgress(p) {
-  const f = $('progressFill');
-  if (f) f.style.width = Math.round(p) + '%';
+  const f = $('progressFill'); if (f) f.style.width = Math.round(p) + '%';
 }
 
 // ============================================================
@@ -824,8 +452,7 @@ function setProgress(p) {
 // ============================================================
 function loadImage(file) {
   if (!file || !file.type.startsWith('image/')) {
-    showToast('请选择图片文件', 'error');
-    return;
+    showToast('请选择图片文件', 'error'); return;
   }
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -833,41 +460,34 @@ function loadImage(file) {
     img.onload = () => {
       const maxW = 1600, maxH = 1600;
       let w = img.width, h = img.height;
-      if (w > maxW || h > maxH) {
-        const s = Math.min(maxW / w, maxH / h);
-        w = Math.round(w * s);
-        h = Math.round(h * s);
-      }
-      canvas.width = w;
-      canvas.height = h;
+      if (w > maxW || h > maxH) { const s = Math.min(maxW / w, maxH / h); w = Math.round(w * s); h = Math.round(h * s); }
+      canvas.width = w; canvas.height = h;
       ctx.drawImage(img, 0, 0, w, h);
       originalImageData = ctx.getImageData(0, 0, w, h);
-      currentRenderData = new Uint8ClampedArray(originalImageData.data);
       imgLoaded = true;
 
-      // Reset UI
-      sourceColors = [];
       targetColors = [];
       generatedBlobs = [];
+      protectedDomains.clear();
 
       $('canvasEmpty').classList.add('hidden');
       canvas.classList.remove('hidden');
       $('canvasInfo').classList.remove('hidden');
-      $('canvasToolbar').classList.remove('hidden');
       $('canvasInfo').textContent = `${w} × ${h}`;
       $('imgMeta').textContent = `${file.name} · ${w}×${h}`;
 
       $('uploadCard').classList.add('hidden');
+      $('modeCard').classList.remove('hidden');
       $('detectCard').classList.remove('hidden');
-      $('srcCard').classList.remove('hidden');
       $('tgtCard').classList.remove('hidden');
       $('genCard').classList.remove('hidden');
-      $('hueCard').classList.remove('hidden');
       $('resultsCard').classList.add('hidden');
+      $('canvasToolbar').classList.remove('hidden');
 
-      redraw();
+      renderPreview();
       detectColorDomains();
-      updateAllUI();
+      updateTargetUI();
+      updateGenButton();
       showToast(`图片加载成功 ${w}×${h}`, 'success');
     };
     img.onerror = () => showToast('图片加载失败', 'error');
@@ -877,509 +497,277 @@ function loadImage(file) {
 }
 
 // ============================================================
-// COLOR DOMAIN DETECTION (k-means on hue histogram)
+// COLOR DOMAIN DETECTION (for protection mask)
 // ============================================================
 function detectColorDomains() {
   if (!originalImageData) return;
   const data = originalImageData.data;
-  const W = originalImageData.width;
-  const H = originalImageData.height;
+  const W = originalImageData.width, H = originalImageData.height;
   const STEP = 4;
 
-  // 1. Build hue histogram (weighted by saturation × value)
-  const hueBuckets = new Array(36).fill(0); // 10° per bucket
+  const hueBuckets = new Array(36).fill(0);
   const bucketSamples = Array.from({length: 36}, () => []);
+
   for (let y = 0; y < H; y += STEP) {
     for (let x = 0; x < W; x += STEP) {
       const i = (y * W + x) * 4;
-      const a = data[i + 3];
-      if (a < 128) continue;
+      if (data[i + 3] < 128) continue;
       const r = data[i], g = data[i+1], b = data[i+2];
       const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      if (max < 30) continue; // skip near-black
-      if (max - min < 15) continue; // skip near-gray
+      if (max < 30 || max - min < 15) continue;
       const hsl = rgbToHsl(r, g, b);
       const bucket = Math.floor(hsl.h / 10) % 36;
       hueBuckets[bucket] += hsl.s * Math.max(0.1, hsl.l / 50);
-      if (bucketSamples[bucket].length < 200) {
-        bucketSamples[bucket].push({ r, g, b, h: hsl.h, s: hsl.s, l: hsl.l });
-      }
+      if (bucketSamples[bucket].length < 200) bucketSamples[bucket].push({ r, g, b, h: hsl.h, s: hsl.s, l: hsl.l });
     }
   }
 
-  // 2. Find peaks (local maxima above threshold)
   const total = hueBuckets.reduce((a, b) => a + b, 0);
-  if (total === 0) {
-    sourceDomains = [];
-    renderDomains();
-    return;
-  }
-  const threshold = total * 0.04; // 4% of total
+  if (total === 0) { sourceDomains = []; renderDomains(); return; }
+
+  const threshold = total * 0.04;
   const peaks = [];
   for (let i = 0; i < 36; i++) {
     if (hueBuckets[i] < threshold) continue;
     const prev = hueBuckets[(i - 1 + 36) % 36];
     const next = hueBuckets[(i + 1) % 36];
-    if (hueBuckets[i] >= prev && hueBuckets[i] >= next) {
-      peaks.push({ bucket: i, weight: hueBuckets[i] });
-    }
+    if (hueBuckets[i] >= prev && hueBuckets[i] >= next) peaks.push({ bucket: i, weight: hueBuckets[i] });
   }
   peaks.sort((a, b) => b.weight - a.weight);
   const topPeaks = peaks.slice(0, 8);
 
-  // 3. For each peak, gather cluster of similar pixels
   sourceDomains = topPeaks.map((peak, idx) => {
     const samples = bucketSamples[peak.bucket];
     const centerHue = peak.bucket * 10 + 5;
-    // Filter samples within ±20° hue
     const cluster = samples.filter(s => {
       let dh = s.h - centerHue;
-      if (dh > 180) dh -= 360;
-      if (dh < -180) dh += 360;
+      if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
       return Math.abs(dh) < 25;
     });
-    // Average color
     let r = 0, g = 0, b = 0;
-    cluster.forEach(c => { r += c.r; g += c.g; b += c.b; });
     if (cluster.length > 0) {
+      cluster.forEach(c => { r += c.r; g += c.g; b += c.b; });
       r /= cluster.length; g /= cluster.length; b /= cluster.length;
     } else {
-      // fallback to bucket center
-      const hsl = { h: centerHue, s: 70, l: 50 };
-      const rgb = hslToRgb(hsl.h, hsl.s, hsl.l);
+      const rgb = hslToRgb(centerHue, 70, 50);
       r = rgb.r; g = rgb.g; b = rgb.b;
     }
     const pct = (peak.weight / total) * 100;
     const hex = rgbToHex(r, g, b);
     const hsl = rgbToHsl(r, g, b);
-    return {
-      idx,
-      name: hueName(hsl.h),
-      hex,
-      r: Math.round(r), g: Math.round(g), b: Math.round(b),
-      h: hsl.h, s: hsl.s, l: hsl.l,
-      centerHue,
-      pct: pct.toFixed(1),
-      sample: samples[0] || { r: Math.round(r), g: Math.round(g), b: Math.round(b) }
-    };
+    return { idx, name: hueName(hsl.h), hex, r: Math.round(r), g: Math.round(g), b: Math.round(b), h: hsl.h, centerHue, pct: pct.toFixed(1) };
   });
 
   renderDomains();
 }
 
 function hueName(h) {
-  if (h < 15 || h >= 345) return '红色域';
-  if (h < 35) return '橙色域';
-  if (h < 65) return '黄色域';
-  if (h < 95) return '黄绿域';
-  if (h < 145) return '绿色域';
-  if (h < 175) return '青绿域';
-  if (h < 205) return '青色域';
-  if (h < 235) return '蓝色域';
-  if (h < 265) return '蓝紫域';
-  if (h < 295) return '紫色域';
-  if (h < 325) return '紫红域';
-  return '红色域';
+  if (h < 15 || h >= 345) return '红';
+  if (h < 35) return '橙';
+  if (h < 65) return '黄';
+  if (h < 95) return '黄绿';
+  if (h < 145) return '绿';
+  if (h < 175) return '青绿';
+  if (h < 205) return '青';
+  if (h < 235) return '蓝';
+  if (h < 265) return '蓝紫';
+  if (h < 295) return '紫';
+  if (h < 325) return '紫红';
+  return '红';
 }
 
 function renderDomains() {
-  const list = $('domainList');
-  if (!list) return;
+  const list = $('domainList'); if (!list) return;
   list.innerHTML = '';
-  sourceDomains.forEach((d) => {
-    const row = document.createElement('div');
-    row.className = 'domain-row';
-    row.dataset.idx = d.idx;
-    row.innerHTML = `
-      <div class="swatches">
-        <div class="sw" style="background:${d.hex}"></div>
-      </div>
-      <div class="info">
-        <div class="name">${d.name}</div>
-        <div class="meta">色相 ${Math.round(d.centerHue)}° · ${d.hex}</div>
-      </div>
-      <div class="pct">${d.pct}%</div>
+  sourceDomains.forEach(d => {
+    const cell = document.createElement('div');
+    cell.className = 'domain-cell';
+    cell.dataset.idx = d.idx;
+    cell.innerHTML = `
+      <div class="sw" style="background:${d.hex}"></div>
+      <div class="name">${d.name}</div>
+      <div class="meta">${d.pct}%</div>
     `;
-    row.onclick = () => toggleSourceFromDomain(d);
-    list.appendChild(row);
+    cell.onclick = () => toggleProtectedDomain(d.idx);
+    list.appendChild(cell);
   });
   $('domainCount').textContent = sourceDomains.length;
   updateDomainSelection();
 }
 
-function toggleSourceFromDomain(d) {
-  const idx = sourceColors.findIndex(s => s.domainIdx === d.idx);
-  if (idx >= 0) {
-    sourceColors.splice(idx, 1);
-  } else {
-    sourceColors.push({
-      r: d.r, g: d.g, b: d.b, hex: d.hex,
-      domainIdx: d.idx,
-      centerHue: d.centerHue,
-      hueRange: 25,
-      featherRange: 25
-    });
-  }
-  updateAllUI();
+function toggleProtectedDomain(idx) {
+  if (protectedDomains.has(idx)) protectedDomains.delete(idx);
+  else protectedDomains.add(idx);
+  updateDomainSelection();
+  renderPreview();
 }
-
+function clearProtectedDomains() {
+  protectedDomains.clear();
+  updateDomainSelection();
+  renderPreview();
+}
 function updateDomainSelection() {
-  document.querySelectorAll('.domain-row').forEach(row => {
-    const idx = parseInt(row.dataset.idx);
-    row.classList.toggle('selected', sourceColors.some(s => s.domainIdx === idx));
+  document.querySelectorAll('.domain-cell').forEach(cell => {
+    const idx = parseInt(cell.dataset.idx);
+    cell.classList.toggle('selected', protectedDomains.has(idx));
   });
 }
-
-function selectAllDomains() {
-  sourceColors = sourceDomains.map(d => ({
-    r: d.r, g: d.g, b: d.b, hex: d.hex,
-    domainIdx: d.idx, centerHue: d.centerHue, hueRange: 25, featherRange: 25
-  }));
-  updateAllUI();
-}
-function clearDomains() {
-  sourceColors = [];
-  updateAllUI();
-}
-function redetectDomains() {
-  detectColorDomains();
-  showToast('已重新识别色域');
-}
+function redetectDomains() { detectColorDomains(); showToast('已重新识别色域'); }
 
 // ============================================================
-// CANVAS CLICK - pick source color
+// COLOR MAPPING CORE (preserve luminosity/details)
 // ============================================================
-canvas.addEventListener('click', (e) => {
-  if (!imgLoaded) return;
-  const rect = canvas.getBoundingClientRect();
-  const sx = canvas.width / rect.width;
-  const sy = canvas.height / rect.height;
-  const x = Math.round((e.clientX - rect.left) * sx);
-  const y = Math.round((e.clientY - rect.top) * sy);
-  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
-  const data = ctx.getImageData(x, y, 1, 1).data;
-  // Check if near-transparent
-  if (data[3] < 128) {
-    showToast('透明区域无法取色', 'warn');
-    return;
-  }
-  const r = data[0], g = data[1], b = data[2];
-  const hex = rgbToHex(r, g, b);
-  // Toggle: if exact hex already in source, remove
-  const idx = sourceColors.findIndex(s => s.hex === hex);
-  if (idx >= 0) {
-    sourceColors.splice(idx, 1);
+function applyColorMapping(outputData, targetHexOrFn, kind = 'solid') {
+  if (!originalImageData) return;
+  const W = originalImageData.width, H = originalImageData.height;
+  const data = originalImageData.data;
+  const n = W * H;
+
+  // Prepare target color accessors
+  let getTarget;
+  if (kind === 'gradient' && typeof targetHexOrFn === 'function') {
+    getTarget = targetHexOrFn;
+  } else if (kind === 'hue-shift') {
+    // targetHexOrFn is {h: shiftDeg, s: percent, l: percent}
+    const shift = targetHexOrFn.h || 0;
+    const satMul = 1 + (targetHexOrFn.s || 0) / 100;
+    const lightAdd = targetHexOrFn.l || 0;
+    getTarget = (r, g, b, luma) => {
+      const hsl = rgbToHsl(r, g, b);
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const gray = max - min < 15 || max < 30;
+      const newH = gray ? hsl.h : (hsl.h + shift + 360) % 360;
+      const newS = Math.min(100, hsl.s * satMul);
+      const newL = Math.max(0, Math.min(100, hsl.l + lightAdd));
+      return hslToRgb(newH, newS, newL);
+    };
   } else {
-    const hsl = rgbToHsl(r, g, b);
-    sourceColors.push({
-      r, g, b, hex,
-      centerHue: hsl.h,
-      hueRange: 25,
-      featherRange: 25
-    });
-  }
-  updateAllUI();
-});
-
-// ============================================================
-// SMART MATCHING - hue-based with feather
-// ============================================================
-function matchStrength(pixelR, pixelG, pixelB, src) {
-  if (src.centerHue !== undefined) {
-    // Hue-domain match: use HSL distance
-    const hsl = rgbToHsl(pixelR, pixelG, pixelB);
-    const max = Math.max(pixelR, pixelG, pixelB);
-    const min = Math.min(pixelR, pixelG, pixelB);
-    if (max - min < 10) return 0; // skip near-grays
-    let dh = hsl.h - src.centerHue;
-    if (dh > 180) dh -= 360;
-    if (dh < -180) dh += 360;
-    const hueDist = Math.abs(dh);
-    if (hueDist > src.hueRange + src.featherRange) return 0;
-    // Feather: linear fade from hueRange to hueRange+featherRange
-    if (hueDist <= src.hueRange) return 1;
-    return 1 - smoothstep(src.hueRange, src.hueRange + src.featherRange, hueDist);
-  }
-  // Direct color match (RGB Euclidean with tolerance)
-  const tol = parseInt($('tolerance').value);
-  const feather = parseInt($('feather').value);
-  const dr = pixelR - src.r;
-  const dg = pixelG - src.g;
-  const db = pixelB - src.b;
-  const dist = Math.sqrt(dr*dr + dg*dg + db*db);
-  if (dist > tol + feather) return 0;
-  if (dist <= tol) return 1;
-  return 1 - smoothstep(tol, tol + feather, dist);
-}
-
-// ============================================================
-// SMOOTH HUE SHIFT - in LCh color space (or HSL with feather)
-// ============================================================
-function applyColorShift(data, src, tgt) {
-  const tol = parseInt($('tolerance').value);
-  const feather = parseInt($('feather').value);
-  const srcHsl = rgbToHsl(src.r, src.g, src.b);
-  const tgtHsl = rgbToHsl(tgt.r, tgt.g, tgt.b);
-
-  // Hue shift on color wheel (shortest path)
-  let hueDelta = tgtHsl.h - srcHsl.h;
-  if (hueDelta > 180) hueDelta -= 360;
-  if (hueDelta < -180) hueDelta += 360;
-
-  // Sat/Light adjustments scaled to match target feel
-  const satScale = tgtHsl.s / Math.max(1, srcHsl.s);
-  const lightDelta = tgtHsl.l - srcHsl.l;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const a = data[i + 3];
-    if (a < 128) continue;
-
-    const r = data[i], g = data[i+1], b = data[i+2];
-    const m = matchStrength(r, g, b, src);
-    if (m <= 0) continue;
-
-    const hsl = rgbToHsl(r, g, b);
-
-    // Smooth hue interpolation on color wheel (shortest path)
-    let dH = hueDelta;
-    // Take saturation/lightness mix only proportional to match strength
-    const newH = (hsl.h + dH * m + 360) % 360;
-    const newS = Math.max(0, Math.min(100, hsl.s + (tgtHsl.s - hsl.s) * m * 0.8));
-    const newL = Math.max(0, Math.min(100, hsl.l + lightDelta * m * 0.8));
-
-    const rgb = hslToRgb(newH, newS, newL);
-    data[i] = rgb.r;
-    data[i+1] = rgb.g;
-    data[i+2] = rgb.b;
-    // Keep alpha
-  }
-}
-
-// ============================================================
-// MATERIAL RENDERING (metallic gradient LUT)
-// ============================================================
-function buildMaterialLUT(baseR, baseG, baseB, kind) {
-  // Build 256-level LUT that maps original luminance to material color
-  const lut = new Uint8ClampedArray(256 * 3);
-  const hsl = rgbToHsl(baseR, baseG, baseB);
-  for (let i = 0; i < 256; i++) {
-    const t = i / 255;
-    let r, g, b;
-    switch (kind) {
-      case 'gold':
-        // dark gold -> bright gold -> white highlight
-        r = lerp(60, 255, t) * 0.9 + hsl.h * 0; // we'll use HSL path below
-        g = lerp(40, 200, t);
-        b = lerp(10, 100, t);
-        break;
-      case 'silver':
-        r = lerp(60, 230, t);
-        g = lerp(60, 230, t);
-        b = lerp(70, 240, t);
-        break;
-      case 'bronze':
-        r = lerp(70, 200, t);
-        g = lerp(40, 130, t);
-        b = lerp(20, 70, t);
-        break;
-      case 'copper':
-        r = lerp(90, 220, t);
-        g = lerp(50, 110, t);
-        b = lerp(30, 60, t);
-        break;
-      case 'rosegold':
-        r = lerp(120, 230, t);
-        g = lerp(80, 170, t);
-        b = lerp(90, 140, t);
-        break;
-      case 'chrome':
-        // High contrast
-        r = lerp(20, 255, Math.pow(t, 0.6));
-        g = lerp(20, 255, Math.pow(t, 0.6));
-        b = lerp(30, 255, Math.pow(t, 0.6));
-        break;
-      case 'platinum':
-        r = lerp(80, 240, t);
-        g = lerp(80, 240, t);
-        b = lerp(100, 250, t);
-        break;
-      case 'pearl':
-        r = lerp(150, 250, t);
-        g = lerp(150, 250, t);
-        b = lerp(160, 250, t);
-        break;
-      default:
-        r = lerp(0, 255, t);
-        g = lerp(0, 255, t);
-        b = lerp(0, 255, t);
-    }
-    lut[i*3] = Math.round(r);
-    lut[i*3+1] = Math.round(g);
-    lut[i*3+2] = Math.round(b);
-  }
-  return lut;
-}
-function lerp(a, b, t) { return a + (b - a) * t; }
-
-// ============================================================
-// RENDERING PIPELINE
-// ============================================================
-function redraw() {
-  if (!imgLoaded || !originalImageData) return;
-
-  // Start from original
-  const data = new Uint8ClampedArray(originalImageData.data);
-  const W = originalImageData.width;
-  const H = originalImageData.height;
-
-  // Apply global hue shift if any (only to colored pixels, not grayscale)
-  if (hueShift !== 0 || satAdjust !== 0 || lightAdjust !== 0) {
-    applyGlobalHueShift(data);
-  }
-
-  // Apply per-source -> per-target replacements
-  // For each source, apply against all targets (combined blend)
-  // To get smooth multi-target: distribute match strength across targets
-  if (sourceColors.length > 0 && targetColors.length > 0) {
-    applySmartReplace(data, W, H);
-  }
-
-  currentRenderData = data;
-  ctx.putImageData(new ImageData(data, W, H), 0, 0);
-}
-
-function applyGlobalHueShift(data) {
-  for (let i = 0; i < data.length; i += 4) {
-    const a = data[i + 3];
-    if (a < 128) continue;
-    const r = data[i], g = data[i+1], b = data[i+2];
-    const hsl = rgbToHsl(r, g, b);
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    const sat = max === 0 ? 0 : (max - min) / max;
-    // Only shift colored pixels (sat > 0.15), grayscale stays
-    if (sat < 0.15) continue;
-    const newH = (hsl.h + hueShift + 360) % 360;
-    const newS = Math.max(0, Math.min(100, hsl.s * (1 + satAdjust / 100)));
-    const newL = Math.max(0, Math.min(100, hsl.l + lightAdjust));
-    const rgb = hslToRgb(newH, newS, newL);
-    data[i] = rgb.r;
-    data[i+1] = rgb.g;
-    data[i+2] = rgb.b;
-  }
-}
-
-function applySmartReplace(data, W, H) {
-  // Strategy: for each pixel, find which source matches, find its target blend
-  // Build weight map for each (source -> target) combination
-  // For smoothness: blend multiple targets weighted by their hue distance to source
-
-  // For simplicity: iterate sources, for each pixel in match range,
-  // distribute weight across all targets weighted by hue similarity
-  const n = data.length / 4;
-  const pixelTargetWeight = new Float32Array(n * targetColors.length);
-  const pixelSourceMask = new Uint8Array(n);
-
-  for (let s = 0; s < sourceColors.length; s++) {
-    const src = sourceColors[s];
-    for (let i = 0; i < n; i++) {
-      const off = i * 4;
-      const r = data[off], g = data[off+1], b = data[off+2], a = data[off+3];
-      if (a < 128) continue;
-      const m = matchStrength(r, g, b, src);
-      if (m <= 0) continue;
-      pixelSourceMask[i] = 1;
-      // Distribute weight to targets based on hue distance
-      let totalW = 0;
-      const ws = new Float32Array(targetColors.length);
-      for (let t = 0; t < targetColors.length; t++) {
-        const tgt = targetColors[t];
-        // weight: prefer target close to source's natural direction
-        const srcHsl = rgbToHsl(src.r, src.g, src.b);
-        const tgtHsl = rgbToHsl(tgt.r, tgt.g, tgt.b);
-        let dh = tgtHsl.h - srcHsl.h;
-        if (dh > 180) dh -= 360;
-        if (dh < -180) dh += 360;
-        const dist = Math.abs(dh);
-        // Heavier weight when target is in a distinct direction
-        const w = (1 / (1 + dist / 90)) * m;
-        ws[t] = w;
-        totalW += w;
+    const rgb = hexToRgb(targetHexOrFn);
+    if (!rgb) return;
+    const targetHsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    getTarget = (r, g, b, luma) => {
+      if (mode === 'color') {
+        // Preserve original luminosity, replace hue & saturation
+        return hslToRgb(targetHsl.h, targetHsl.s, Math.max(0, Math.min(100, luma)));
+      } else if (mode === 'hue') {
+        // Preserve original saturation & luminosity, replace hue
+        const hsl = rgbToHsl(r, g, b);
+        return hslToRgb(targetHsl.h, hsl.s, hsl.l);
+      } else { // overlay-like soft light
+        return {
+          r: Math.round(r + (rgb.r - r) * mapIntensity),
+          g: Math.round(g + (rgb.g - g) * mapIntensity),
+          b: Math.round(b + (rgb.b - b) * mapIntensity)
+        };
       }
-      if (totalW > 0) {
-        for (let t = 0; t < targetColors.length; t++) {
-          pixelTargetWeight[i * targetColors.length + t] = ws[t] / totalW;
+    };
+  }
+
+  for (let i = 0; i < n; i++) {
+    const off = i * 4;
+    const r = data[off], g = data[off+1], b = data[off+2], a = data[off+3];
+    if (a < 128) { outputData[off+3] = a; continue; }
+
+    // Protection mask: skip pixels in protected domains
+    if (protectedDomains.size > 0) {
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      if (max - min >= 15 && max >= 30) {
+        const hsl = rgbToHsl(r, g, b);
+        let protectedHere = false;
+        for (let idx of protectedDomains) {
+          const d = sourceDomains[idx]; if (!d) continue;
+          let dh = hsl.h - d.centerHue;
+          if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+          if (Math.abs(dh) < 25) { protectedHere = true; break; }
+        }
+        if (protectedHere) {
+          outputData[off] = r; outputData[off+1] = g; outputData[off+2] = b; outputData[off+3] = a;
+          continue;
         }
       }
     }
-  }
 
-  // Apply target blend to each pixel
-  for (let i = 0; i < n; i++) {
-    if (!pixelSourceMask[i]) continue;
-    const off = i * 4;
-    const r = data[off], g = data[off+1], b = data[off+2];
-    const hsl = rgbToHsl(r, g, b);
-    let newH = hsl.h, newS = hsl.s, newL = hsl.l;
-    for (let t = 0; t < targetColors.length; t++) {
-      const w = pixelTargetWeight[i * targetColors.length + t];
-      if (w <= 0) continue;
-      const tgt = targetColors[t];
-      const tgtHsl = rgbToHsl(tgt.r, tgt.g, tgt.b);
-      const srcHsl = rgbToHsl(sourceColors[0].r, sourceColors[0].g, sourceColors[0].b);
-      let dH = tgtHsl.h - srcHsl.h;
-      if (dH > 180) dH -= 360;
-      if (dH < -180) dH += 360;
-      newH = (hsl.h + dH * w + 360) % 360;
-      newS = Math.max(0, Math.min(100, newS + (tgtHsl.s - newS) * w * 0.7));
-      newL = Math.max(0, Math.min(100, newL + (tgtHsl.l - newL) * w * 0.7));
-    }
-    const rgb = hslToRgb(newH, newS, newL);
-    data[off] = rgb.r;
-    data[off+1] = rgb.g;
-    data[off+2] = rgb.b;
+    const luma = rgbToHsl(r, g, b).l;
+    const t = getTarget(r, g, b, luma);
+    const out = mode === 'overlay' ? t : blendPixel(r, g, b, t.r, t.g, t.b, mapIntensity);
+    outputData[off] = out.r;
+    outputData[off+1] = out.g;
+    outputData[off+2] = out.b;
+    outputData[off+3] = a;
   }
+}
+
+// Better blending: mix original and target, preserving some local contrast
+function blendPixel(r, g, b, tr, tg, tb, strength) {
+  if (mode === 'color') {
+    // color mode already does luminosity preservation; use strength to crossfade
+    return {
+      r: Math.round(r + (tr - r) * strength),
+      g: Math.round(g + (tg - g) * strength),
+      b: Math.round(b + (tb - b) * strength)
+    };
+  } else if (mode === 'hue') {
+    return {
+      r: Math.round(r + (tr - r) * strength),
+      g: Math.round(g + (tg - g) * strength),
+      b: Math.round(b + (tb - b) * strength)
+    };
+  } else {
+    return { r: tr, g: tg, b: tb };
+  }
+}
+
+function renderPreview() {
+  if (!imgLoaded || !originalImageData) return;
+  // For preview we use the LAST target color as live preview, or none
+  if (targetColors.length === 0) {
+    ctx.putImageData(originalImageData, 0, 0);
+    return;
+  }
+  const tgt = targetColors[targetColors.length - 1];
+  const out = new Uint8ClampedArray(originalImageData.data);
+  if (tgt.kind === 'hue-shift') {
+    applyColorMapping(out, { h: tgt.hueShift, s: tgt.satAdjust, l: tgt.lightAdjust }, 'hue-shift');
+  } else if (tgt.kind === 'gradient') {
+    applyColorMapping(out, makeGradientFn(tgt.stops), 'gradient');
+  } else {
+    applyColorMapping(out, tgt.hex, 'solid');
+  }
+  ctx.putImageData(new ImageData(out, originalImageData.width, originalImageData.height), 0, 0);
+}
+
+function makeGradientFn(stops) {
+  // stops: array of {hex, pos} sorted
+  return (r, g, b, luma) => {
+    // Map original luminosity to gradient position
+    const pos = Math.max(0, Math.min(1, luma / 100));
+    // Find segment
+    let s0 = stops[0], s1 = stops[stops.length - 1];
+    for (let i = 0; i < stops.length - 1; i++) {
+      if (pos >= stops[i].pos && pos <= stops[i+1].pos) { s0 = stops[i]; s1 = stops[i+1]; break; }
+    }
+    const segLen = s1.pos - s0.pos || 1;
+    const t = Math.max(0, Math.min(1, (pos - s0.pos) / segLen));
+    const c0 = hexToRgb(s0.hex), c1 = hexToRgb(s1.hex);
+    return {
+      r: Math.round(c0.r + (c1.r - c0.r) * t),
+      g: Math.round(c0.g + (c1.g - c0.g) * t),
+      b: Math.round(c0.b + (c1.b - c0.b) * t)
+    };
+  };
 }
 
 // ============================================================
 // UI UPDATES
 // ============================================================
-function updateAllUI() {
-  updateSourceChips();
-  updateTargetChips();
-  updateDomainSelection();
-  updateGenButton();
-  redraw();
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-options .btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+  renderPreview();
 }
 
-function updateSourceChips() {
-  const c = $('srcChips');
-  if (!c) return;
-  c.innerHTML = '';
-  if (sourceColors.length === 0) {
-    c.innerHTML = '<div class="empty-hint">点击图片 / 点击色域 / 点下方色板</div>';
-  } else {
-    sourceColors.forEach((s, idx) => {
-      const chip = document.createElement('div');
-      chip.className = 'chip';
-      chip.innerHTML = `
-        <div class="sw" style="background:${s.hex}"></div>
-        <span>${s.hex}</span>
-        <span class="x">×</span>
-      `;
-      chip.querySelector('.x').onclick = () => {
-        sourceColors.splice(idx, 1);
-        updateAllUI();
-      };
-      c.appendChild(chip);
-    });
-  }
-  const badge = $('srcBadge');
-  if (badge) badge.textContent = sourceColors.length;
-}
-
-function updateTargetChips() {
-  const c = $('tgtChips');
-  if (!c) return;
+function updateTargetUI() {
+  const c = $('tgtChips'); if (!c) return;
   c.innerHTML = '';
   if (targetColors.length === 0) {
     c.innerHTML = '<div class="empty-hint">还没添加目标色</div>';
@@ -1387,96 +775,63 @@ function updateTargetChips() {
     targetColors.forEach((t, idx) => {
       const chip = document.createElement('div');
       chip.className = 'chip';
-      chip.innerHTML = `
-        <div class="sw" style="background:${t.hex}"></div>
-        <span>${t.name || t.hex}</span>
-        <span class="x">×</span>
-      `;
+      chip.innerHTML = `<div class="sw" style="background:${t.hex}"></div><span>${t.name || t.hex}</span><span class="x">×</span>`;
       chip.querySelector('.x').onclick = () => {
         targetColors.splice(idx, 1);
-        updateAllUI();
+        updateTargetUI();
+        updateGenButton();
+        renderPreview();
       };
       c.appendChild(chip);
     });
   }
-  const badge = $('tgtBadge');
-  if (badge) badge.textContent = targetColors.length;
+  const badge = $('tgtBadge'); if (badge) badge.textContent = targetColors.length;
 }
 
 function updateGenButton() {
   const n = targetColors.length;
-  const c = $('genCount');
-  if (c) c.textContent = n;
+  const c = $('genCount'); if (c) c.textContent = n;
   const btn = $('btnGenerate');
-  if (btn) {
-    btn.disabled = !(n > 0 && imgLoaded);
-    btn.innerHTML = `🚀 批量生成 ${n} 张`;
-  }
-  const zip = $('btnZip');
-  if (zip) zip.disabled = generatedBlobs.length === 0;
+  if (btn) { btn.disabled = !(n > 0 && imgLoaded); btn.innerHTML = `🚀 批量生成 ${n} 张`; }
+  const zip = $('btnZip'); if (zip) zip.disabled = generatedBlobs.length === 0;
 }
 
 // ============================================================
 // PALETTES & THEMES
 // ============================================================
 const COMMON_COLORS = [
-  { hex: '#ff4444', name: '正红' },
-  { hex: '#ff6b6b', name: '浅红' },
-  { hex: '#e74c3c', name: '朱红' },
-  { hex: '#c0392b', name: '暗红' },
-  { hex: '#ff7f50', name: '珊瑚' },
-  { hex: '#ff8c00', name: '橙色' },
-  { hex: '#ffa500', name: '橙黄' },
-  { hex: '#ffc107', name: '金黄' },
-  { hex: '#f1c40f', name: '向日葵' },
-  { hex: '#daa520', name: '金棕' },
-  { hex: '#27ae60', name: '森林' },
-  { hex: '#2ecc71', name: '翠绿' },
-  { hex: '#00d68f', name: '薄荷' },
-  { hex: '#16a085', name: '青绿' },
-  { hex: '#1abc9c', name: '绿松' },
-  { hex: '#3498db', name: '天蓝' },
-  { hex: '#2980b9', name: '深蓝' },
-  { hex: '#007aff', name: 'iOS蓝' },
-  { hex: '#1e90ff', name: '道奇蓝' },
-  { hex: '#4169e1', name: '皇家蓝' },
-  { hex: '#9b59b6', name: '紫罗兰' },
-  { hex: '#8e44ad', name: '深紫' },
-  { hex: '#a569bd', name: '淡紫' },
-  { hex: '#d35400', name: '南瓜' },
-  { hex: '#6c5ce7', name: '薰衣草' },
-  { hex: '#34495e', name: '深灰' },
-  { hex: '#7f8c8d', name: '石板灰' },
-  { hex: '#95a5a6', name: '银灰' },
-  { hex: '#ecf0f1', name: '云白' },
-  { hex: '#2c3e50', name: '午夜蓝' }
+  { hex: '#ff4444', name: '正红' }, { hex: '#ff6b6b', name: '浅红' }, { hex: '#e74c3c', name: '朱红' }, { hex: '#c0392b', name: '暗红' }, { hex: '#ff7f50', name: '珊瑚' },
+  { hex: '#ff8c00', name: '橙色' }, { hex: '#ffa500', name: '橙黄' }, { hex: '#ffc107', name: '金黄' }, { hex: '#f1c40f', name: '向日葵' }, { hex: '#daa520', name: '金棕' },
+  { hex: '#27ae60', name: '森林' }, { hex: '#2ecc71', name: '翠绿' }, { hex: '#00d68f', name: '薄荷' }, { hex: '#16a085', name: '青绿' }, { hex: '#1abc9c', name: '绿松' },
+  { hex: '#3498db', name: '天蓝' }, { hex: '#2980b9', name: '深蓝' }, { hex: '#007aff', name: 'iOS蓝' }, { hex: '#1e90ff', name: '道奇蓝' }, { hex: '#4169e1', name: '皇家蓝' },
+  { hex: '#9b59b6', name: '紫罗兰' }, { hex: '#8e44ad', name: '深紫' }, { hex: '#a569bd', name: '淡紫' }, { hex: '#e91e63', name: '玫瑰红' }, { hex: '#6c5ce7', name: '薰衣草' },
+  { hex: '#34495e', name: '深灰' }, { hex: '#7f8c8d', name: '石板灰' }, { hex: '#95a5a6', name: '银灰' }, { hex: '#ecf0f1', name: '云白' }, { hex: '#2c3e50', name: '午夜蓝' }
 ];
 
 const HUE_THEMES = [
-  { name: '暖红', shift: -30, sat: 10, preview: 'linear-gradient(90deg, #ff6b6b, #ff8c00)' },
-  { name: '金秋', shift: -50, sat: 20, preview: 'linear-gradient(90deg, #ffa500, #daa520)' },
-  { name: '森林', shift: -100, sat: -10, preview: 'linear-gradient(90deg, #27ae60, #16a085)' },
-  { name: '青蓝', shift: -150, sat: 0, preview: 'linear-gradient(90deg, #1abc9c, #3498db)' },
+  { name: '暖红', shift: -25, sat: 15, preview: 'linear-gradient(90deg, #ff6b6b, #ff8c00)' },
+  { name: '金秋', shift: -45, sat: 25, preview: 'linear-gradient(90deg, #ffa500, #daa520)' },
+  { name: '森林', shift: -95, sat: -5, preview: 'linear-gradient(90deg, #27ae60, #16a085)' },
+  { name: '青蓝', shift: -145, sat: 5, preview: 'linear-gradient(90deg, #1abc9c, #3498db)' },
   { name: '深海', shift: 170, sat: 10, preview: 'linear-gradient(90deg, #2980b9, #2c3e50)' },
-  { name: '紫罗兰', shift: 130, sat: 5, preview: 'linear-gradient(90deg, #6c5ce7, #9b59b6)' },
-  { name: '玫瑰', shift: 110, sat: 15, preview: 'linear-gradient(90deg, #e91e63, #ff6b9d)' },
-  { name: '赛博', shift: 60, sat: 30, preview: 'linear-gradient(90deg, #00d4ff, #ff00ff)' }
+  { name: '紫罗兰', shift: 130, sat: 10, preview: 'linear-gradient(90deg, #6c5ce7, #9b59b6)' },
+  { name: '玫瑰', shift: 110, sat: 20, preview: 'linear-gradient(90deg, #e91e63, #ff6b9d)' },
+  { name: '赛博', shift: 55, sat: 35, preview: 'linear-gradient(90deg, #00d4ff, #ff00ff)' }
 ];
 
 const MATERIALS = [
-  { name: '🥇 金色', kind: 'gold', hex: '#ffd700', grad: 'linear-gradient(90deg, #6b4423, #ffd700, #fffbe6)' },
-  { name: '🥈 银色', kind: 'silver', hex: '#c0c0c0', grad: 'linear-gradient(90deg, #404040, #c0c0c0, #ffffff)' },
-  { name: '🟫 青铜', kind: 'bronze', hex: '#cd7f32', grad: 'linear-gradient(90deg, #4a2c0a, #cd7f32, #ffd9a8)' },
-  { name: '🟠 紫铜', kind: 'copper', hex: '#b87333', grad: 'linear-gradient(90deg, #5c2e0d, #b87333, #f5cba7)' },
-  { name: '🌸 玫瑰金', kind: 'rosegold', hex: '#b76e79', grad: 'linear-gradient(90deg, #6e3a4a, #b76e79, #f4d4d8)' },
-  { name: '⚙️ 铬色', kind: 'chrome', hex: '#aaa', grad: 'linear-gradient(90deg, #1a1a1a, #aaa, #fff)' },
-  { name: '⚪ 铂金', kind: 'platinum', hex: '#e5e4e2', grad: 'linear-gradient(90deg, #606060, #e5e4e2, #fff)' },
-  { name: '🫧 珍珠', kind: 'pearl', hex: '#f8f6f0', grad: 'linear-gradient(90deg, #b0a89a, #f8f6f0, #fff)' }
+  { name: '🥇 金', kind: 'gradient', stops: [{hex:'#6b4423',pos:0},{hex:'#d4af37',pos:.5},{hex:'#fffbe6',pos:1}], hex: '#d4af37' },
+  { name: '🥈 银', kind: 'gradient', stops: [{hex:'#404040',pos:0},{hex:'#c0c0c0',pos:.5},{hex:'#ffffff',pos:1}], hex: '#c0c0c0' },
+  { name: '🟫 青铜', kind: 'gradient', stops: [{hex:'#4a2c0a',pos:0},{hex:'#cd7f32',pos:.5},{hex:'#ffd9a8',pos:1}], hex: '#cd7f32' },
+  { name: '🟠 紫铜', kind: 'gradient', stops: [{hex:'#5c2e0d',pos:0},{hex:'#b87333',pos:.5},{hex:'#f5cba7',pos:1}], hex: '#b87333' },
+  { name: '🌸 玫瑰金', kind: 'gradient', stops: [{hex:'#6e3a4a',pos:0},{hex:'#b76e79',pos:.5},{hex:'#f4d4d8',pos:1}], hex: '#b76e79' },
+  { name: '⚙️ 铬', kind: 'gradient', stops: [{hex:'#1a1a1a',pos:0},{hex:'#aaa',pos:.5},{hex:'#fff',pos:1}], hex: '#aaaaaa' },
+  { name: '⚪ 铂', kind: 'gradient', stops: [{hex:'#606060',pos:0},{hex:'#e5e4e2',pos:.5},{hex:'#fff',pos:1}], hex: '#e5e4e2' },
+  { name: '🫧 珍珠', kind: 'gradient', stops: [{hex:'#b0a89a',pos:0},{hex:'#f8f6f0',pos:.5},{hex:'#fff',pos:1}], hex: '#f8f6f0' }
 ];
 
 function renderCommonPalette() {
-  const grid = $('commonPalette');
-  if (!grid) return;
+  const grid = $('commonPalette'); if (!grid) return;
   grid.innerHTML = '';
   COMMON_COLORS.forEach(c => {
     const cell = document.createElement('div');
@@ -1487,84 +842,76 @@ function renderCommonPalette() {
     grid.appendChild(cell);
   });
 }
-
 function renderThemes() {
-  const grid = $('themeGrid');
-  if (!grid) return;
+  const grid = $('themeGrid'); if (!grid) return;
   grid.innerHTML = '';
   HUE_THEMES.forEach((t, idx) => {
     const card = document.createElement('div');
     card.className = 'theme-card';
     card.innerHTML = `<div class="preview" style="background:${t.preview}"></div>${t.name}`;
-    card.onclick = () => {
-      // Set as global hue shift
-      hueShift = t.shift;
-      satAdjust = t.sat;
-      $('hueShift').value = t.shift;
-      $('satAdjust').value = t.sat;
-      $('hueShiftVal').textContent = t.shift + '°';
-      $('satAdjustVal').textContent = t.sat + '%';
-      document.querySelectorAll('#themeGrid .theme-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      redraw();
-      showToast(`已应用「${t.name}」色调 ${t.shift}°`, 'success');
-    };
+    card.onclick = () => addHueShiftTarget(t);
     grid.appendChild(card);
   });
 }
-
 function renderMaterials() {
-  const grid = $('materialGrid');
-  if (!grid) return;
+  const grid = $('materialGrid'); if (!grid) return;
   grid.innerHTML = '';
   MATERIALS.forEach(m => {
     const card = document.createElement('div');
     card.className = 'theme-card';
-    card.innerHTML = `<div class="preview" style="background:${m.grad}"></div>${m.name}`;
-    card.onclick = () => addTargetColor(m.hex, m.name, m.kind);
+    card.innerHTML = `<div class="preview" style="background:linear-gradient(90deg, ${m.stops.map(s => s.hex).join(',')})"></div>${m.name}`;
+    card.onclick = () => addTargetColor(m.hex, m.name, m.kind, m.stops);
     grid.appendChild(card);
   });
 }
 
-function addTargetColor(hex, name, kind) {
+function addTargetColor(hex, name, kind = 'solid', stops = null) {
   const rgb = hexToRgb(hex);
   if (!rgb) return;
-  if (targetColors.find(t => t.hex === hex)) {
-    showToast(`颜色 ${hex} 已存在`, 'warn');
-    return;
+  if (targetColors.find(t => t.hex === hex && t.kind === kind && !t.stops)) {
+    showToast(`颜色 ${hex} 已存在`, 'warn'); return;
   }
-  targetColors.push({ ...rgb, hex, name: name || hex, kind: kind || 'solid' });
-  updateAllUI();
-  showToast(`已添加目标色 ${name || hex}`, 'success');
+  targetColors.push({ ...rgb, hex, name: name || hex, kind, stops });
+  updateTargetUI();
+  updateGenButton();
+  renderPreview();
+  showToast(`已添加 ${name || hex}`, 'success');
+}
+
+function addHueShiftTarget(t) {
+  targetColors.push({
+    hex: '#888888', name: `${t.name} ${t.shift > 0 ? '+' : ''}${t.shift}°`,
+    r: 128, g: 128, b: 128,
+    kind: 'hue-shift', hueShift: t.shift, satAdjust: t.sat, lightAdjust: 0
+  });
+  updateTargetUI();
+  updateGenButton();
+  renderPreview();
+  showToast(`已添加「${t.name}」色调偏移`, 'success');
 }
 
 function addRainbow() {
   ['#ff4444', '#ff8c00', '#ffd700', '#27ae60', '#3498db', '#6c5ce7', '#e91e63'].forEach((hex, i) => {
     if (!targetColors.find(t => t.hex === hex)) {
       const rgb = hexToRgb(hex);
-      targetColors.push({ ...rgb, hex, name: '彩虹' + (i+1) });
+      targetColors.push({ ...rgb, hex, name: '彩虹' + (i + 1), kind: 'solid' });
     }
   });
-  updateAllUI();
+  updateTargetUI(); updateGenButton(); renderPreview();
 }
-
 function addAllCommon() {
   COMMON_COLORS.forEach(c => {
     if (!targetColors.find(t => t.hex === c.hex)) {
       const rgb = hexToRgb(c.hex);
-      targetColors.push({ ...rgb, hex: c.hex, name: c.name });
+      targetColors.push({ ...rgb, hex: c.hex, name: c.name, kind: 'solid' });
     }
   });
-  updateAllUI();
+  updateTargetUI(); updateGenButton(); renderPreview();
 }
-
 function addCustomColor() {
   let hex = $('customHex').value.trim() || $('customColor').value;
   const rgb = hexToRgb(hex);
-  if (!rgb) {
-    showToast('颜色格式错误', 'error');
-    return;
-  }
+  if (!rgb) { showToast('颜色格式错误', 'error'); return; }
   addTargetColor(rgbToHex(rgb.r, rgb.g, rgb.b), '自定义');
 }
 
@@ -1576,60 +923,55 @@ document.querySelectorAll('.tab').forEach(tab => {
     const tabName = tab.dataset.tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    document.querySelectorAll('.tab-pane').forEach(p => {
-      p.classList.toggle('hidden', p.dataset.pane !== tabName);
-    });
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('hidden', p.dataset.pane !== tabName));
   };
+});
+
+// ============================================================
+// INTENSITY SLIDER
+// ============================================================
+$('mapIntensity').addEventListener('input', (e) => {
+  mapIntensity = parseInt(e.target.value) / 100;
+  $('mapIntensityVal').textContent = e.target.value + '%';
+  renderPreview();
 });
 
 // ============================================================
 // BATCH GENERATION
 // ============================================================
 async function generateBatch() {
-  if (!imgLoaded || targetColors.length === 0) {
-    showToast('请先添加目标色', 'warn');
-    return;
-  }
+  if (!imgLoaded || targetColors.length === 0) { showToast('请先添加目标色', 'warn'); return; }
   showLoading(true, '准备生成...');
   generatedBlobs.forEach(b => b.url && URL.revokeObjectURL(b.url));
   generatedBlobs = [];
   $('resultsGrid').innerHTML = '';
 
-  const W = originalImageData.width;
-  const H = originalImageData.height;
+  const W = originalImageData.width, H = originalImageData.height;
   const total = targetColors.length;
 
   for (let i = 0; i < total; i++) {
     setProgress((i / total) * 100);
-    $('loadingText').textContent = `生成中 ${i+1}/${total}...`;
+    $('loadingText').textContent = `生成中 ${i + 1}/${total}...`;
 
     const tgt = targetColors[i];
-    const data = new Uint8ClampedArray(originalImageData.data);
+    const out = new Uint8ClampedArray(originalImageData.data);
 
-    // Apply global hue shift
-    if (hueShift !== 0 || satAdjust !== 0 || lightAdjust !== 0) {
-      applyGlobalHueShift(data);
+    if (tgt.kind === 'hue-shift') {
+      applyColorMapping(out, { h: tgt.hueShift, s: tgt.satAdjust, l: tgt.lightAdjust }, 'hue-shift');
+    } else if (tgt.kind === 'gradient') {
+      applyColorMapping(out, makeGradientFn(tgt.stops), 'gradient');
+    } else {
+      applyColorMapping(out, tgt.hex, 'solid');
     }
 
-    // Apply source -> this target
-    if (sourceColors.length > 0) {
-      // Single-target version for batch (avoid multi-blend confusion per output)
-      for (let s = 0; s < sourceColors.length; s++) {
-        applyColorShift(data, sourceColors[s], tgt);
-      }
-    }
-
-    // Render to canvas and convert to blob
     const tmp = document.createElement('canvas');
     tmp.width = W; tmp.height = H;
-    tmp.getContext('2d').putImageData(new ImageData(data, W, H), 0, 0);
+    tmp.getContext('2d').putImageData(new ImageData(out, W, H), 0, 0);
     const blob = await new Promise(res => tmp.toBlob(res, 'image/png'));
     const url = URL.createObjectURL(blob);
     const name = (tgt.name || tgt.hex).replace(/[\\/:*?"<>|]/g, '_');
     generatedBlobs.push({ blob, url, name: `${i+1}_${name}.png`, tgt });
     renderResultCard(generatedBlobs.length - 1);
-
-    // Yield to UI
     await new Promise(r => setTimeout(r, 10));
   }
 
@@ -1645,38 +987,20 @@ async function generateBatch() {
 function renderResultCard(idx) {
   const card = document.createElement('div');
   card.className = 'result-card';
-  card.innerHTML = `
-    <img src="${generatedBlobs[idx].url}" loading="lazy">
-    <div class="info">
-      <span>${generatedBlobs[idx].name}</span>
-      <button class="btn btn-sm" onclick="downloadOne(${idx})">⬇</button>
-    </div>
-  `;
+  card.innerHTML = `<img src="${generatedBlobs[idx].url}" loading="lazy"><div class="info"><span>${generatedBlobs[idx].name}</span><button class="btn btn-sm" onclick="downloadOne(${idx})">⬇</button></div>`;
   $('resultsGrid').appendChild(card);
 }
 
 function downloadOne(idx) {
-  const b = generatedBlobs[idx];
-  if (!b) return;
-  const a = document.createElement('a');
-  a.href = b.url;
-  a.download = b.name;
-  a.click();
+  const b = generatedBlobs[idx]; if (!b) return;
+  const a = document.createElement('a'); a.href = b.url; a.download = b.name; a.click();
 }
-
 function downloadAll() {
-  if (generatedBlobs.length === 0) {
-    showToast('请先生成图片', 'warn');
-    return;
-  }
+  if (generatedBlobs.length === 0) { showToast('请先生成图片', 'warn'); return; }
   generatedBlobs.forEach((b, i) => setTimeout(() => downloadOne(i), i * 200));
 }
-
 async function downloadZip() {
-  if (generatedBlobs.length === 0) {
-    showToast('请先生成图片', 'warn');
-    return;
-  }
+  if (generatedBlobs.length === 0) { showToast('请先生成图片', 'warn'); return; }
   showLoading(true, '打包ZIP...');
   try {
     if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
@@ -1698,17 +1022,14 @@ async function downloadZip() {
 // ============================================================
 // CANVAS TOOLBAR
 // ============================================================
-function togglePreview() {
-  previewEnabled = !previewEnabled;
-  $('previewLabel').textContent = previewEnabled ? '🔴 显示预览' : '⚪ 隐藏预览';
-  redraw();
-}
 function resetImage() {
   if (!originalImageData) return;
-  hueShift = 0; satAdjust = 0; lightAdjust = 0;
-  $('hueShift').value = 0; $('satAdjust').value = 0; $('lightAdjust').value = 0;
-  $('hueShiftVal').textContent = '0°'; $('satAdjustVal').textContent = '0%'; $('lightAdjustVal').textContent = '0%';
-  redraw();
+  targetColors = [];
+  protectedDomains.clear();
+  updateDomainSelection();
+  updateTargetUI();
+  updateGenButton();
+  renderPreview();
   showToast('已重置');
 }
 function downloadCurrent() {
@@ -1716,86 +1037,24 @@ function downloadCurrent() {
   canvas.toBlob(b => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(b);
-    a.download = `colorforge_current.png`;
+    a.download = 'colorforge_current.png';
     a.click();
   }, 'image/png');
-}
-
-// ============================================================
-// HUE SHIFT SLIDERS
-// ============================================================
-$('hueShift').addEventListener('input', (e) => {
-  hueShift = parseInt(e.target.value);
-  $('hueShiftVal').textContent = hueShift + '°';
-  redraw();
-});
-$('satAdjust').addEventListener('input', (e) => {
-  satAdjust = parseInt(e.target.value);
-  $('satAdjustVal').textContent = satAdjust + '%';
-  redraw();
-});
-$('lightAdjust').addEventListener('input', (e) => {
-  lightAdjust = parseInt(e.target.value);
-  $('lightAdjustVal').textContent = lightAdjust + '%';
-  redraw();
-});
-
-function addHueShiftAsTarget() {
-  // Save current global hue shift state as a snapshot target
-  if (hueShift === 0 && satAdjust === 0 && lightAdjust === 0) {
-    showToast('当前无色调调整', 'warn');
-    return;
-  }
-  // Use a distinctive color to represent this adjustment
-  const preview = document.createElement('canvas');
-  preview.width = 100; preview.height = 100;
-  // Generate a preview blob URL
-  const hex = '#888888'; // placeholder
-  targetColors.push({
-    r: 128, g: 128, b: 128,
-    hex: hex,
-    name: `色调${hueShift > 0 ? '+' : ''}${hueShift}°`,
-    kind: 'hueShift',
-    hueShift, satAdjust, lightAdjust
-  });
-  updateAllUI();
-  showToast('已加入目标列表（生成时会应用当前色相偏移）', 'success');
 }
 
 // ============================================================
 // FILE UPLOAD HANDLERS
 // ============================================================
 $('uploadZone').addEventListener('click', () => $('fileInput').click());
-$('fileInput').addEventListener('change', (e) => {
-  if (e.target.files[0]) loadImage(e.target.files[0]);
-});
-$('uploadZone').addEventListener('dragover', (e) => {
-  e.preventDefault();
-  $('uploadZone').style.borderColor = 'var(--primary)';
-});
-$('uploadZone').addEventListener('dragleave', () => {
-  $('uploadZone').style.borderColor = '';
-});
+$('fileInput').addEventListener('change', (e) => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+$('uploadZone').addEventListener('dragover', (e) => { e.preventDefault(); $('uploadZone').style.borderColor = 'var(--primary)'; });
+$('uploadZone').addEventListener('dragleave', () => { $('uploadZone').style.borderColor = ''; });
 $('uploadZone').addEventListener('drop', (e) => {
-  e.preventDefault();
-  $('uploadZone').style.borderColor = '';
+  e.preventDefault(); $('uploadZone').style.borderColor = '';
   if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
 });
 
-// Tolerance & feather
-$('tolerance').addEventListener('input', (e) => {
-  $('tolVal').textContent = e.target.value;
-  redraw();
-});
-$('feather').addEventListener('input', (e) => {
-  $('featherVal').textContent = e.target.value;
-  redraw();
-});
-
-// Custom color hex sync
-$('customColor').addEventListener('input', (e) => {
-  $('customHex').value = e.target.value;
-});
+$('customColor').addEventListener('input', (e) => { $('customHex').value = e.target.value; });
 
 // ============================================================
 // INIT
@@ -1804,16 +1063,10 @@ renderCommonPalette();
 renderThemes();
 renderMaterials();
 
-// Try to load JSZip for ZIP download (with CDN fallback)
 const jszipScript = document.createElement('script');
 jszipScript.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
-jszipScript.onerror = () => {
-  const s = document.createElement('script');
-  s.src = 'https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js';
-  document.head.appendChild(s);
-};
+jszipScript.onerror = () => { const s = document.createElement('script'); s.src = 'https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js'; document.head.appendChild(s); };
 document.head.appendChild(jszipScript);
-
 </script>
 
 </body>
