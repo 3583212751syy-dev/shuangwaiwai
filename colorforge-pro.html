@@ -18,7 +18,6 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-/* ===== Header ===== */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100}
 .header-left{display:flex;align-items:center;gap:12px}
 .logo{width:34px;height:34px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;box-shadow:0 2px 8px rgba(79,70,229,.3)}
@@ -26,21 +25,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 .header .ver{font-size:10px;color:var(--text3);background:var(--surface2);padding:2px 7px;border-radius:10px;border:1px solid var(--border);margin-left:4px}
 .header-right{display:flex;gap:8px;align-items:center}
 
-/* ===== Layout ===== */
 .main{display:flex;gap:14px;padding:14px;max-width:1600px;margin:0 auto;align-items:flex-start}
 .sidebar{width:400px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;position:sticky;top:70px;max-height:calc(100vh - 84px);overflow-y:auto;overflow-x:hidden;padding-right:4px}
 .sidebar::-webkit-scrollbar{width:5px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .content{flex:1;min-width:0}
 
-/* ===== Cards ===== */
 .card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:10px}
-.card.compact{padding:12px}
 .card-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;letter-spacing:-.2px}
 .card-title .step{width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-.card-title .count{margin-left:auto;font-size:11px;color:var(--text2);font-weight:500}
 
-/* ===== Upload ===== */
 .upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2)}
 .upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:var(--primary-l)}
 .upload-zone .icon{font-size:28px;margin-bottom:4px}
@@ -52,7 +46,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 .upload-mini .text{font-size:12px;color:var(--text2);flex:1}
 .upload-mini .text strong{color:var(--text);font-size:13px}
 
-/* ===== Buttons ===== */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .12s;white-space:nowrap}
 .btn-block{width:100%}
 .btn-primary{background:var(--primary);color:#fff}
@@ -60,29 +53,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 .btn-primary:disabled{background:#c7d2fe;cursor:not-allowed}
 .btn-success{background:var(--success);color:#fff}
 .btn-success:disabled{background:#6ee7b7;cursor:not-allowed}
-.btn-warn{background:var(--warn);color:#fff}
-.btn-warn:hover{background:#d97706}
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
 .btn-secondary:hover{background:#e5e7eb}
 .btn-danger{background:var(--danger);color:#fff;font-size:10px;padding:3px 7px;min-width:24px;height:24px}
-.btn-danger:hover{background:#dc2626}
 .btn-sm{padding:6px 10px;font-size:11px}
 .btn-lg{padding:14px 20px;font-size:14px;border-radius:10px}
 
-/* ===== Canvas ===== */
 .canvas-wrap{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:flex;align-items:center;justify-content:center;min-height:320px;position:relative;flex-direction:column;gap:10px}
-#srcCanvas{max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;pointer-events:auto}
-.canvas-hint-static{background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;text-align:center;margin-top:10px;animation:pulse 2s infinite}
-.debug-panel{background:#111;color:#0f0;padding:12px;border-radius:var(--radius-sm);font-family:"SF Mono",Monaco,Consolas,monospace;font-size:11px;margin-top:10px}
-.debug-title{color:#fff;font-weight:700;margin-bottom:6px}
-.debug-log{max-height:120px;overflow-y:auto;line-height:1.5}
-.debug-log div{border-bottom:1px solid #333;padding:2px 0}
+#srcCanvas{max-width:100%;max-height:55vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);cursor:crosshair;background-image:linear-gradient(45deg,#f0f0f0 25%,transparent 25%),linear-gradient(-45deg,#f0f0f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#f0f0f0 75%),linear-gradient(-45deg,transparent 75%,#f0f0f0 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;pointer-events:auto;touch-action:none}
+.canvas-hint{background:rgba(0,0,0,.75);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;text-align:center;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes ripplePop{0%{transform:translate(-50%,-50%) scale(.4);opacity:1}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 .empty-state{text-align:center;color:var(--text2);padding:40px 20px}
 .empty-state .big{font-size:48px;opacity:.2;margin-bottom:8px}
 
-/* ===== Dominant Colors ===== */
 .dom-panel{display:flex;flex-wrap:wrap;gap:5px;padding:10px;background:var(--surface2);border-radius:var(--radius-sm);min-height:50px;align-items:flex-start}
 .dom-panel .label{font-size:10px;color:var(--text2);width:100%;margin-bottom:3px;font-weight:500}
 .dom-swatch{position:relative;width:48px;height:48px;border-radius:9px;cursor:pointer;border:3px solid transparent;transition:all .12s;display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;overflow:hidden;flex-shrink:0}
@@ -93,8 +77,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 .dom-swatch .pct{font-size:8px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);font-weight:600}
 .dom-empty{color:var(--text3);font-size:11px;padding:8px;width:100%;text-align:center}
 
-/* ===== Source Colors List (multi) ===== */
-.src-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:32px}
+.src-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;min-height:32px;align-items:center}
 .src-chip{display:flex;align-items:center;gap:4px;padding:3px 6px 3px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;font-size:11px;transition:all .12s}
 .src-chip:hover{border-color:var(--primary)}
 .src-chip .sw{width:18px;height:18px;border-radius:50%;flex-shrink:0;border:1px solid rgba(0,0,0,.1)}
@@ -105,14 +88,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans S
 .src-stats{font-size:10px;color:var(--text2);margin-top:4px;display:flex;gap:8px}
 .src-stats b{color:var(--success)}
 
-/* ===== Sliders ===== */
 input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:#e0e3e8;outline:none}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.15)}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--primary);cursor:pointer;border:none}
 .control-label{font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
 .control-label .value{color:var(--primary);font-weight:700;font-family:monospace}
 
-/* ===== Toggles ===== */
 .toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .toggle{position:relative;width:34px;height:20px;background:#d1d5db;border-radius:10px;cursor:pointer;transition:background .2s;flex-shrink:0}
 .toggle.on{background:var(--primary)}
@@ -120,24 +101,20 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .toggle.on::after{transform:translateX(14px)}
 .toggle-label{font-size:12px}
 
-/* ===== Tabs ===== */
 .tabs{display:flex;gap:3px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px;margin-bottom:8px}
 .tab{flex:1;padding:7px 4px;text-align:center;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;transition:all .15s;color:var(--text2)}
 .tab.active{background:var(--surface);color:var(--primary);box-shadow:var(--shadow)}
 .tab:hover:not(.active){color:var(--text)}
 
-/* ===== Material Grid ===== */
 .mat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .mat-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .12s;background:var(--surface)}
 .mat-item:hover{border-color:var(--primary);transform:translateY(-1px)}
 .mat-item.selected{border-color:var(--primary);box-shadow:var(--shadow-glow)}
 .mat-preview{width:100%;aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative}
-.mat-preview canvas{width:100%;height:100%;display:block}
 .mat-name{font-size:10px;font-weight:600;color:var(--text)}
 .mat-check{position:absolute;top:2px;right:2px;width:16px;height:16px;background:var(--primary);border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700;z-index:2}
 .mat-item.selected .mat-check{display:flex}
 
-/* ===== Common Color Palette ===== */
 .color-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
 .color-cell{aspect-ratio:1;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .1s;position:relative;overflow:hidden}
 .color-cell:hover{border-color:var(--text2);transform:scale(1.12);z-index:2}
@@ -147,7 +124,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .color-cell .name{position:absolute;bottom:0;left:0;right:0;font-size:7px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);text-align:center;font-weight:600;opacity:0;transition:opacity .15s;padding:1px}
 .color-cell:hover .name{opacity:1}
 
-/* ===== Color Input ===== */
 .color-input-wrap{position:relative;width:38px;height:32px;border-radius:var(--radius-sm);overflow:hidden;border:2px solid var(--border);cursor:pointer;flex-shrink:0}
 .color-input-wrap:hover{border-color:var(--primary)}
 .color-input-wrap input[type=color]{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);border:none;cursor:pointer}
@@ -155,7 +131,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .color-hex:focus{border-color:var(--primary)}
 .color-row{display:flex;align-items:center;gap:6px}
 
-/* ===== Target List ===== */
 .target-list{display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto;padding-right:3px;margin-top:8px}
 .target-list::-webkit-scrollbar{width:4px}
 .target-list::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
@@ -169,7 +144,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .target-type.flat{background:#e0f2fe;color:#0369a1}
 .target-type.material{background:#fef3c7;color:#92400e}
 
-/* ===== Results ===== */
 .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
 .result-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .12s,box-shadow .12s}
 .result-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
@@ -180,7 +154,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 .result-actions{display:flex;gap:4px;margin-top:5px}
 .result-actions .btn{flex:1;font-size:10px;padding:4px 7px}
 
-/* ===== Misc ===== */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--primary-l);color:var(--primary)}
 .divider{height:1px;background:var(--border);margin:10px 0}
 .info-text{font-size:10px;color:var(--text2);line-height:1.5;margin-top:3px}
@@ -206,7 +179,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 <div class="header">
   <div class="header-left">
     <div class="logo">🎨</div>
-    <h1>ColorForge Pro<span class="ver">v3.0</span></h1>
+    <h1>ColorForge Pro<span class="ver">v4.0</span></h1>
   </div>
   <div class="header-right">
     <span class="badge" id="srcBadge" style="display:none">0 源色</span>
@@ -216,9 +189,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 </div>
 
 <div class="main">
-  <!-- ===== Sidebar ===== -->
   <div class="sidebar">
-    <!-- Upload -->
     <div class="card" id="uploadCard">
       <div class="card-title"><span class="step">0</span> 上传图片</div>
       <div class="upload-zone" id="uploadZone">
@@ -228,20 +199,17 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
       <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
 
-    <!-- Settings (hidden until image loaded) -->
     <div class="card" id="settingsCard" style="display:none">
-      <!-- Mini re-upload -->
       <div class="upload-mini" id="reuploadBtn" style="margin:-4px -4px 8px -4px;border-radius:8px">
         <div class="icon">📁</div>
         <div class="text">换一张图 <strong id="imgInfo"></strong></div>
       </div>
 
-      <!-- Step 1: Multi-select source colors -->
       <div class="card-title"><span class="step">1</span> 选择要替换的颜色（可多选）</div>
       <div class="info-text">👇 点图片添加颜色 · 点色块切换 · 可选多个颜色同时替换</div>
       <div class="dom-panel" id="domPanel">
         <div class="label">🎯 图片主色板（点选/取消）</div>
-        <div class="dom-empty">识别中...</div>
+        <div class="dom-empty">上传图片后自动识别...</div>
       </div>
       <div class="src-chips" id="srcChips">
         <div class="src-chips-empty">未选择源色</div>
@@ -266,7 +234,6 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
       <div class="divider"></div>
 
-      <!-- Step 2: Target colors & materials -->
       <div class="card-title"><span class="step">2</span> 选择目标颜色 / 材质</div>
       <div class="tabs" id="targetTabs">
         <div class="tab active" data-ttab="palette" onclick="switchTargetTab('palette')">🎨 常见色</div>
@@ -274,40 +241,37 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
         <div class="tab" data-ttab="custom" onclick="switchTargetTab('custom')">⚙ 自定义</div>
       </div>
 
-      <!-- Palette tab -->
       <div class="tab-panel" id="tpanel-palette">
         <div class="section-label">30 种常见色（点选添加）</div>
         <div class="color-grid" id="commonColors"></div>
-        <div style="margin-top:8px;display:flex;gap:5px">
-          <button class="btn btn-warn btn-sm" style="flex:1" onclick="addAllCommon()">＋ 全加30色</button>
-          <button class="btn btn-warn btn-sm" style="flex:1" onclick="addRainbow7()">🌈 彩虹7</button>
-          <button class="btn btn-secondary btn-sm" onclick="clearTargets()">清空</button>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button class="btn btn-secondary btn-sm" onclick="addAllCommon()" style="flex:1">全加30色</button>
+          <button class="btn btn-secondary btn-sm" onclick="addRainbow7()" style="flex:1">彩虹7色</button>
         </div>
       </div>
 
-      <!-- Material tab -->
       <div class="tab-panel" id="tpanel-material" style="display:none">
-        <div class="section-label">金属材质（保留明暗层次）</div>
+        <div class="section-label">金属材质（保留光影立体感）</div>
         <div class="mat-grid" id="matGrid"></div>
-        <div class="info-text" style="margin-top:6px">材质效果根据原图亮度映射金属渐变，保持立体感</div>
       </div>
 
-      <!-- Custom tab -->
       <div class="tab-panel" id="tpanel-custom" style="display:none">
+        <div class="section-label">自定义颜色</div>
         <div class="color-row">
-          <div class="color-input-wrap"><input type="color" id="customColor" value="#ff0000"></div>
-          <input type="text" class="color-hex" id="customHex" value="#FF0000" maxlength="7">
-          <button class="btn btn-primary btn-sm" onclick="addCustomColor()">＋ 添加</button>
+          <div class="color-input-wrap"><input type="color" id="customColor" value="#FF0000"></div>
+          <input type="text" class="color-hex" id="customHex" value="#FF0000" placeholder="#FF0000">
+          <button class="btn btn-primary btn-sm" onclick="addCustomColor()">添加</button>
         </div>
-        <div class="info-text">输入十六进制颜色或使用取色器</div>
       </div>
-
-      <!-- Target list -->
-      <div class="target-list" id="targetList"></div>
 
       <div class="divider"></div>
 
-      <!-- Generate -->
+      <div class="section-label">已添加目标 (<span id="tgtCount">0</span>)</div>
+      <div class="target-list" id="targetList"></div>
+      <button class="btn btn-secondary btn-sm btn-block" onclick="clearTargets()" style="margin-top:6px" id="btnClearTargets">清空目标</button>
+
+      <div class="divider"></div>
+
       <button class="btn btn-primary btn-block btn-lg" onclick="generateBatch()" id="btnGenerate" disabled>
         🚀 批量生成 (<span id="genCount">0</span> 张)
       </button>
@@ -315,104 +279,60 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     </div>
   </div>
 
-  <!-- ===== Content ===== -->
   <div class="content">
     <div class="canvas-wrap" id="canvasWrap">
       <div class="empty-state" id="emptyState">
         <div class="big">🖼️</div>
         <p>上传图片后开始智能改色</p>
       </div>
-      <canvas id="srcCanvas" style="display:none" onclick="handleCanvasClick(event)"></canvas>
-    </div>
-    <div class="canvas-hint-static" id="canvasHint">👆 点击图片任意位置选择源色（可多选）</div>
-    <div class="debug-panel" id="debugPanel" style="display:none">
-      <div class="debug-title">🔧 调试日志</div>
-      <div class="debug-log" id="debugLog"></div>
+      <canvas id="srcCanvas" style="display:none"></canvas>
+      <div class="canvas-hint" id="canvasHint" style="display:none">👆 点图片选源色（可多选）</div>
     </div>
 
-    <div class="card" id="resultsCard" style="display:none;margin-top:10px">
-      <div class="card-title">
-        ✅ 生成结果
-        <span class="badge" id="resultBadge">0 张</span>
-      </div>
+    <div class="card" id="resultsCard" style="display:none">
+      <div class="card-title">📸 生成结果 <span class="badge" id="resultBadge">0 张</span></div>
       <div class="results-grid" id="resultsGrid"></div>
     </div>
   </div>
 </div>
 
-<div class="loading" id="loading">
-  <div class="loading-inner"><div class="spinner"></div><span id="loadingText">处理中...</span></div>
-</div>
+<div class="loading" id="loading"><div class="loading-inner"><div class="spinner"></div><span id="loadingText">处理中...</span></div></div>
 <div class="toast" id="toast"></div>
 
-<script>var JSZIP_LOADED=false;</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" onload="JSZIP_LOADED=true"></script>
-<script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js" onload="JSZIP_LOADED=true"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 "use strict";
 
-// ============================================================
-// State
-// ============================================================
+// ===== State =====
 var canvas = document.getElementById('srcCanvas');
 var ctx = canvas.getContext('2d', { willReadFrequently: true });
 var originalImageData = null;
 var imgLoaded = false;
-var sourceColors = [];          // [{r,g,b,hex}] multi-select
-var targetColors = [];          // [{id,hex,name,type,material}]
+var sourceColors = [];
+var targetColors = [];
 var generatedBlobs = [];
 var nextId = 0;
 var previewEnabled = true;
 var activeTargetTab = 'palette';
+var toastTimer = null;
 
-// ============================================================
-// 30 Common Colors
-// ============================================================
+// ===== 30 Common Colors =====
 var commonColors = [
   {hex:'#FF0000',name:'正红'},{hex:'#DC143C',name:'猩红'},{hex:'#FF4500',name:'橙红'},
-  {hex:'#FF6347',name:'番茄'},{hex:'#8B0000',name:'暗红'},{hex:'#C71585',name:'紫红'},
-  {hex:'#FF1493',name:'深粉'},{hex:'#FF69B4',name:'粉红'},{hex:'#FFB6C1',name:'浅粉'},
-  {hex:'#E75480',name:'暗粉'},
-  {hex:'#FFA500',name:'橙色'},{hex:'#FF8C00',name:'深橙'},{hex:'#FFD700',name:'金黄'},
-  {hex:'#FFFF00',name:'明黄'},{hex:'#DAA520',name:'菊黄'},{hex:'#B8860B',name:'暗金'},
-  {hex:'#F0E68C',name:'卡其'},{hex:'#EEE8AA',name:'苍黄'},{hex:'#BDB76B',name:'暗卡其'},
-  {hex:'#FFDAB9',name:'桃色'},
-  {hex:'#00FF00',name:'亮绿'},{hex:'#008000',name:'深绿'},{hex:'#32CD32',name:'草绿'},
-  {hex:'#228B22',name:'森林'},{hex:'#90EE90',name:'浅绿'},{hex:'#00FA9A',name:'春绿'},
-  {hex:'#00BFFF',name:'天蓝'},{hex:'#1E90FF',name:'道奇蓝'},{hex:'#0000FF',name:'纯蓝'},
-  {hex:'#00008B',name:'深蓝'},
-  {hex:'#4169E1',name:'皇家蓝'},{hex:'#6A5ACD',name:'板岩蓝'},{hex:'#7B68EE',name:'中板蓝'},
-  {hex:'#800080',name:'紫色'},{hex:'#8A2BE2',name:'蓝紫'},{hex:'#9370DB',name:'中紫'},
-  {hex:'#FF00FF',name:'品红'},{hex:'#9400D3',name:'暗紫'},{hex:'#4B0082',name:'靛蓝'},
-  {hex:'#483D8B',name:'暗板岩'}
-];
-
-// Wait, user said 30 common colors. Let me trim to exactly 30.
-// Actually I listed 40. Let me pick the best 30.
-commonColors = [
-  // Reds (5)
-  {hex:'#FF0000',name:'正红'},{hex:'#DC143C',name:'猩红'},{hex:'#FF4500',name:'橙红'},
   {hex:'#8B0000',name:'暗红'},{hex:'#FF1493',name:'深粉'},
-  // Oranges/Yellows (5)
   {hex:'#FFA500',name:'橙色'},{hex:'#FF8C00',name:'深橙'},{hex:'#FFD700',name:'金黄'},
   {hex:'#FFFF00',name:'明黄'},{hex:'#DAA520',name:'菊黄'},
-  // Greens (5)
   {hex:'#00FF00',name:'亮绿'},{hex:'#008000',name:'深绿'},{hex:'#32CD32',name:'草绿'},
   {hex:'#228B22',name:'森林'},{hex:'#90EE90',name:'浅绿'},
-  // Blues (5)
   {hex:'#00BFFF',name:'天蓝'},{hex:'#1E90FF',name:'道奇蓝'},{hex:'#0000FF',name:'纯蓝'},
   {hex:'#00008B',name:'深蓝'},{hex:'#4169E1',name:'皇家蓝'},
-  // Purples (5)
   {hex:'#800080',name:'紫色'},{hex:'#8A2BE2',name:'蓝紫'},{hex:'#9370DB',name:'中紫'},
   {hex:'#FF00FF',name:'品红'},{hex:'#4B0082',name:'靛蓝'},
-  // Neutrals (5)
   {hex:'#000000',name:'纯黑'},{hex:'#FFFFFF',name:'纯白'},{hex:'#808080',name:'灰色'},
   {hex:'#C0C0C0',name:'银灰'},{hex:'#A0522D',name:'赭石'}
 ];
 
-// ============================================================
-// Material Definitions (gradient stops for metallic look)
-// ============================================================
+// ===== Material Definitions =====
 var materialDefs = [
   {key:'gold',name:'金色',icon:'🥇',stops:[
     {p:0.00,c:[26,15,0]},{p:0.15,c:[74,46,3]},{p:0.35,c:[139,105,20]},
@@ -454,7 +374,7 @@ var materialDefs = [
   ]}
 ];
 
-// Pre-compute 256-entry gradient lookup tables for each material
+// Pre-compute 256-entry gradient LUT for each material
 var materialTables = {};
 function buildMaterialTable(stops) {
   var t = new Uint8ClampedArray(256 * 3);
@@ -465,31 +385,54 @@ function buildMaterialTable(stops) {
     var p0 = stops[seg].p, p1 = stops[seg + 1].p;
     var f = p1 > p0 ? (pos - p0) / (p1 - p0) : 0;
     f = Math.max(0, Math.min(1, f));
-    // Smoothstep for smoother transitions
     f = f * f * (3 - 2 * f);
-    t[i * 3]     = stops[seg].c[0] + (stops[seg + 1].c[0] - stops[seg].c[0]) * f;
-    t[i * 3 + 1] = stops[seg].c[1] + (stops[seg + 1].c[1] - stops[seg].c[1]) * f;
-    t[i * 3 + 2] = stops[seg].c[2] + (stops[seg + 1].c[2] - stops[seg].c[2]) * f;
+    t[i*3]   = stops[seg].c[0] + (stops[seg+1].c[0] - stops[seg].c[0]) * f;
+    t[i*3+1] = stops[seg].c[1] + (stops[seg+1].c[1] - stops[seg].c[1]) * f;
+    t[i*3+2] = stops[seg].c[2] + (stops[seg+1].c[2] - stops[seg].c[2]) * f;
   }
   return t;
 }
-materialDefs.forEach(function(m) {
-  materialTables[m.key] = buildMaterialTable(m.stops);
-});
+materialDefs.forEach(function(m) { materialTables[m.key] = buildMaterialTable(m.stops); });
 
-// ============================================================
-// Upload
-// ============================================================
-var uploadZone = document.getElementById('uploadZone');
-var fileInput = document.getElementById('fileInput');
-uploadZone.addEventListener('click', function(){ fileInput.click(); });
-uploadZone.addEventListener('dragover', function(e){ e.preventDefault(); uploadZone.classList.add('dragover'); });
-uploadZone.addEventListener('dragleave', function(){ uploadZone.classList.remove('dragover'); });
-uploadZone.addEventListener('drop', function(e){
+// ===== Utilities =====
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length !== 6) return [0, 0, 0];
+  return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(function(v) { return v.toString(16).padStart(2, '0'); }).join('').toUpperCase();
+}
+function el(id) { return document.getElementById(id); }
+
+function showToast(msg, type) {
+  var t = el('toast'); if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+function showLoading(show, text) {
+  var l = el('loading'); if (l) l.classList.toggle('show', show);
+  if (text) { var lt = el('loadingText'); if (lt) lt.textContent = text; }
+}
+
+// ===== Upload =====
+var uploadZone = el('uploadZone');
+var fileInput = el('fileInput');
+uploadZone.addEventListener('click', function() { fileInput.click(); });
+uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', function() { uploadZone.classList.remove('dragover'); });
+uploadZone.addEventListener('drop', function(e) {
   e.preventDefault(); uploadZone.classList.remove('dragover');
   if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
 });
-fileInput.addEventListener('change', function(e){ if (e.target.files[0]) loadImage(e.target.files[0]); });
+fileInput.addEventListener('change', function(e) { if (e.target.files[0]) loadImage(e.target.files[0]); });
+el('reuploadBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  fileInput.value = '';
+  fileInput.click();
+});
 
 function loadImage(file) {
   if (!file || !file.type.startsWith('image/')) { showToast('请选择图片文件', 'error'); return; }
@@ -504,18 +447,20 @@ function loadImage(file) {
       ctx.drawImage(img, 0, 0, w, h);
       originalImageData = ctx.getImageData(0, 0, w, h);
       imgLoaded = true;
-      cfLog('图片加载成功 ' + w + 'x' + h + ', originalImageData ready');
-      // Reset state
+
       sourceColors = [];
       targetColors = [];
       generatedBlobs = [];
-      document.getElementById('emptyState').style.display = 'none';
+
+      el('emptyState').style.display = 'none';
       canvas.style.display = 'block';
-      document.getElementById('uploadCard').style.display = 'none';
-      document.getElementById('settingsCard').style.display = 'block';
-      document.getElementById('resultsCard').style.display = 'none';
-      document.getElementById('resultsGrid').innerHTML = '';
-      var ii = document.getElementById('imgInfo'); if (ii) ii.textContent = w + 'x' + h;
+      el('uploadCard').style.display = 'none';
+      el('settingsCard').style.display = 'block';
+      el('resultsCard').style.display = 'none';
+      el('resultsGrid').innerHTML = '';
+      var ii = el('imgInfo'); if (ii) ii.textContent = w + 'x' + h;
+      var hint = el('canvasHint'); if (hint) hint.style.display = 'block';
+
       extractDominant();
       buildCommonColors();
       buildMaterialGrid();
@@ -524,128 +469,86 @@ function loadImage(file) {
       updateGenButton();
       showToast('图片已加载 — 点图或色板选源色（可多选）', 'success');
     };
+    img.onerror = function() { showToast('图片加载失败', 'error'); };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
-// Re-upload via mini button
-document.getElementById('reuploadBtn').addEventListener('click', function(e){
-  e.stopPropagation();
-  fileInput.value = '';
-  fileInput.click();
-});
-
-// ============================================================
-// Canvas click — add/toggle source color (multi-select)
-// Bind both to canvas and canvas-wrap as fallback
-// ============================================================
-// ============================================================
-// Debug panel
-// ============================================================
-function cfLog(msg) {
-  var d = document.getElementById('debugPanel');
-  var l = document.getElementById('debugLog');
-  if (!d || !l) return;
-  d.style.display = 'block';
-  var line = document.createElement('div');
-  var t = new Date().toLocaleTimeString();
-  line.textContent = '[' + t + '] ' + msg;
-  l.appendChild(line);
-  l.scrollTop = l.scrollHeight;
-}
-
+// ===== Canvas Click → Pick Source Color =====
 function handleCanvasClick(e) {
-  cfLog('handleCanvasClick triggered, target=' + (e && e.target ? e.target.tagName + '#' + (e.target.id||'') : 'none'));
-  try {
-    if (!e) { cfLog('ERROR: event missing'); return; }
-    if (!imgLoaded) { cfLog('imgLoaded=false, ignoring click'); return; }
-    var rect = canvas.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) { cfLog('ERROR: canvas rect empty'); return; }
-    var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
-    var cx = e.clientX, cy = e.clientY;
-    cfLog('clientX=' + cx + ' clientY=' + cy + ' rect=' + rect.width.toFixed(1) + 'x' + rect.height.toFixed(1) + ' canvas=' + canvas.width + 'x' + canvas.height);
-    var x = Math.round((cx - rect.left) * sx);
-    var y = Math.round((cy - rect.top) * sy);
-    cfLog('computed x=' + x + ' y=' + y);
-    if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
-      cfLog('WARN: click outside bounds');
-      return;
-    }
-    var px = ctx.getImageData(x, y, 1, 1).data;
-    cfLog('pixel rgb(' + px[0] + ',' + px[1] + ',' + px[2] + ') alpha=' + px[3]);
-    showClickRipple(cx, cy);
-    toggleSourceColor(px[0], px[1], px[2]);
-  } catch (err) {
-    cfLog('CRASH in handleCanvasClick: ' + (err && err.message ? err.message : String(err)));
-  }
+  if (!imgLoaded || !originalImageData) return;
+  e.preventDefault();
+  e.stopPropagation();
+
+  var rect = canvas.getBoundingClientRect();
+  if (!rect || rect.width === 0 || rect.height === 0) return;
+
+  var sx = canvas.width / rect.width;
+  var sy = canvas.height / rect.height;
+  var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+  var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+  var x = Math.round((clientX - rect.left) * sx);
+  var y = Math.round((clientY - rect.top) * sy);
+
+  if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+
+  var px = ctx.getImageData(x, y, 1, 1).data;
+  if (px[3] < 10) return; // fully transparent
+
+  showClickRipple(clientX, clientY);
+  toggleSourceColor(px[0], px[1], px[2]);
 }
 
-// Bind click on canvas
+// Bind click + touch on canvas
 canvas.addEventListener('click', handleCanvasClick);
-// Bind click on wrap as fallback, but ignore if already handled via canvas propagation
-var wrapEl = document.getElementById('canvasWrap');
-wrapEl.addEventListener('click', function(e){
-  if (e.target === canvas || (e.target.closest && e.target.closest('#srcCanvas'))) return;
-  cfLog('wrap fallback click target=' + e.target.tagName);
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault();
   handleCanvasClick(e);
-});
+}, { passive: false });
+
+function showClickRipple(cx, cy) {
+  var r = document.createElement('div');
+  r.style.cssText = 'position:fixed;left:' + cx + 'px;top:' + cy + 'px;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:2px solid #4f46e5;pointer-events:none;z-index:9999;animation:ripplePop .45s ease-out forwards';
+  document.body.appendChild(r);
+  setTimeout(function() { r.remove(); }, 500);
+}
 
 function toggleSourceColor(r, g, b) {
-  cfLog('toggleSourceColor rgb(' + r + ',' + g + ',' + b + ')');
-  try {
-    var hex = rgbToHex(r, g, b);
-    // Check if already selected — if so remove it
-    for (var i = 0; i < sourceColors.length; i++) {
-      if (sourceColors[i].hex === hex) {
-        sourceColors.splice(i, 1);
-        updateSourceChips();
-        updateDomSelection();
-        drawPreview();
-        updateGenButton();
-        cfLog('removed source color ' + hex);
-        return;
-      }
+  var hex = rgbToHex(r, g, b);
+  // Check if already selected → remove
+  for (var i = 0; i < sourceColors.length; i++) {
+    if (sourceColors[i].hex === hex) {
+      sourceColors.splice(i, 1);
+      afterSourceChange();
+      return;
     }
-    // Add new
-    sourceColors.push({ r: r, g: g, b: b, hex: hex });
-    updateSourceChips();
-    updateDomSelection();
-    drawPreview(); // 始终绘制预览，不管 toggle 状态
-    updateGenButton();
-    cfLog('added source color ' + hex + ', total=' + sourceColors.length);
-    showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
-  } catch (err) {
-    cfLog('CRASH in toggleSourceColor: ' + (err && err.message ? err.message : String(err)));
   }
+  // Add new
+  sourceColors.push({ r: r, g: g, b: b, hex: hex });
+  afterSourceChange();
+  showToast('已选源色: ' + hex + ' (共' + sourceColors.length + '个)', 'success');
 }
 
-function showClickRipple(clientX, clientY) {
-  var ripple = document.createElement('div');
-  ripple.style.cssText = 'position:fixed;left:' + clientX + 'px;top:' + clientY + 'px;transform:translate(-50%,-50%);width:24px;height:24px;border-radius:50%;border:2px solid var(--primary);pointer-events:none;z-index:9999;animation:ripplePop .45s ease-out forwards';
-  document.body.appendChild(ripple);
-  setTimeout(function(){ ripple.remove(); }, 500);
-}
-
-function removeSourceColor(idx) {
-  sourceColors.splice(idx, 1);
+function afterSourceChange() {
   updateSourceChips();
   updateDomSelection();
   drawPreview();
   updateGenButton();
 }
 
-function clearAllSources() {
-  sourceColors = [];
-  updateSourceChips();
-  updateDomSelection();
-  if (imgLoaded && originalImageData) ctx.putImageData(originalImageData, 0, 0);
-  updateGenButton();
+function removeSourceColor(idx) {
+  sourceColors.splice(idx, 1);
+  afterSourceChange();
 }
 
-// ============================================================
-// Dominant color extraction
-// ============================================================
+function clearAllSources() {
+  sourceColors = [];
+  afterSourceChange();
+  if (imgLoaded && originalImageData) ctx.putImageData(originalImageData, 0, 0);
+}
+
+// ===== Dominant Color Extraction =====
 var dominantColors = [];
 
 function extractDominant() {
@@ -655,8 +558,8 @@ function extractDominant() {
   for (var i = 0; i < data.length; i += 4 * step) {
     if (data[i + 3] < 128) continue;
     var r = Math.round(data[i] / 24) * 24;
-    var g = Math.round(data[i + 1] / 24) * 24;
-    var b = Math.round(data[i + 2] / 24) * 24;
+    var g = Math.round(data[i+1] / 24) * 24;
+    var b = Math.round(data[i+2] / 24) * 24;
     var key = r + ',' + g + ',' + b;
     if (!map[key]) map[key] = { c: 0, r: r, g: g, b: b };
     map[key].c++;
@@ -665,99 +568,86 @@ function extractDominant() {
   Object.values(map).forEach(function(c) { total += c.c; });
   dominantColors = Object.values(map).sort(function(a, b) { return b.c - a.c; }).slice(0, 15);
 
-  var panel = document.getElementById('domPanel');
+  var panel = el('domPanel');
   panel.innerHTML = '<div class="label">🎯 图片主色板（点选/取消，可多选）</div>';
   dominantColors.forEach(function(cl) {
     var hex = rgbToHex(cl.r, cl.g, cl.b);
     var pct = Math.round(cl.c / total * 100);
-    // Find nearest actual pixel for precision
     var nearest = findNearestPixel(cl.r, cl.g, cl.b);
     var preciseHex = rgbToHex(nearest[0], nearest[1], nearest[2]);
-    var el = document.createElement('div');
-    el.className = 'dom-swatch';
-    el.style.background = hex;
-    el.title = preciseHex + ' · ' + pct + '% — 点击选择/取消';
-    el.innerHTML = '<span class="check">✓</span><span class="pct">' + pct + '%</span>';
-    el.dataset.hex = preciseHex;
-    el.dataset.r = nearest[0]; el.dataset.g = nearest[1]; el.dataset.b = nearest[2];
-    el.onclick = function() {
-      toggleSourceColor(parseInt(el.dataset.r), parseInt(el.dataset.g), parseInt(el.dataset.b));
+    var sw = document.createElement('div');
+    sw.className = 'dom-swatch';
+    sw.style.background = hex;
+    sw.title = preciseHex + ' · ' + pct + '%';
+    sw.innerHTML = '<span class="check">✓</span><span class="pct">' + pct + '%</span>';
+    sw.dataset.hex = preciseHex;
+    sw.dataset.r = nearest[0]; sw.dataset.g = nearest[1]; sw.dataset.b = nearest[2];
+    sw.onclick = function() {
+      toggleSourceColor(parseInt(sw.dataset.r), parseInt(sw.dataset.g), parseInt(sw.dataset.b));
     };
-    panel.appendChild(el);
+    panel.appendChild(sw);
   });
 }
 
-function findNearestPixel(targetR, targetG, targetB) {
+function findNearestPixel(tR, tG, tB) {
   var data = originalImageData.data;
-  var bestDist = Infinity, bestR = targetR, bestG = targetG, bestB = targetB;
+  var bestD = Infinity, bR = tR, bG = tG, bB = tB;
   var step = Math.max(1, Math.floor(data.length / 4 / 30000));
   for (var i = 0; i < data.length; i += 4 * step) {
     if (data[i + 3] < 128) continue;
-    var dr = data[i] - targetR, dg = data[i + 1] - targetG, db = data[i + 2] - targetB;
-    var dist = dr * dr + dg * dg + db * db;
-    if (dist < bestDist) {
-      bestDist = dist; bestR = data[i]; bestG = data[i + 1]; bestB = data[i + 2];
-      if (dist === 0) break;
-    }
+    var dr = data[i] - tR, dg = data[i+1] - tG, db = data[i+2] - tB;
+    var d = dr*dr + dg*dg + db*db;
+    if (d < bestD) { bestD = d; bR = data[i]; bG = data[i+1]; bB = data[i+2]; if (d === 0) break; }
   }
-  return [bestR, bestG, bestB];
+  return [bR, bG, bB];
 }
 
-// ============================================================
-// Source chips & stats
-// ============================================================
+// ===== Source Chips & Stats =====
 function updateSourceChips() {
-  cfLog('updateSourceChips called, sourceColors=' + sourceColors.length);
-  try {
-    var c = document.getElementById('srcChips');
-    var stats = document.getElementById('srcStats');
-    var hint = document.getElementById('canvasHint');
-    if (sourceColors.length === 0) {
-      if (c) c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
-      if (stats) stats.style.display = 'none';
-      if (hint) hint.style.display = imgLoaded ? 'block' : 'none';
-    } else {
-      if (hint) hint.style.display = 'none';
-      if (c) {
-        sourceColors.forEach(function(s, idx) {
-          var chip = document.createElement('div');
-          chip.className = 'src-chip';
-          chip.innerHTML =
-            '<div class="sw" style="background:' + s.hex + '"></div>' +
-            '<span class="hex">' + s.hex + '</span>' +
-            '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
-          c.appendChild(chip);
-        });
-        var clearBtn = document.createElement('button');
-        clearBtn.className = 'btn btn-danger btn-sm';
-        clearBtn.style.borderRadius = '14px';
-        clearBtn.style.padding = '2px 10px';
-        clearBtn.textContent = '清空';
-        clearBtn.onclick = clearAllSources;
-        c.appendChild(clearBtn);
-      }
-      if (stats) stats.style.display = 'flex';
-      updateSourceStats();
-    }
-    var sb = document.getElementById('srcBadge');
-    if (sb) { sb.style.display = sourceColors.length > 0 ? 'inline-flex' : 'none'; sb.textContent = sourceColors.length + ' 源色'; }
-  } catch (err) {
-    cfLog('CRASH in updateSourceChips: ' + (err && err.message ? err.message : String(err)));
+  var c = el('srcChips');
+  var stats = el('srcStats');
+  var hint = el('canvasHint');
+  if (sourceColors.length === 0) {
+    c.innerHTML = '<div class="src-chips-empty">未选择源色 — 点图或色板添加</div>';
+    if (stats) stats.style.display = 'none';
+    if (hint && imgLoaded) hint.style.display = 'block';
+  } else {
+    if (hint) hint.style.display = 'none';
+    c.innerHTML = '';
+    sourceColors.forEach(function(s, idx) {
+      var chip = document.createElement('div');
+      chip.className = 'src-chip';
+      chip.innerHTML =
+        '<div class="sw" style="background:' + s.hex + '"></div>' +
+        '<span class="hex">' + s.hex + '</span>' +
+        '<button class="rm" onclick="removeSourceColor(' + idx + ')">✕</button>';
+      c.appendChild(chip);
+    });
+    var clr = document.createElement('button');
+    clr.className = 'btn btn-danger btn-sm';
+    clr.style.borderRadius = '14px';
+    clr.style.padding = '2px 10px';
+    clr.textContent = '清空';
+    clr.onclick = clearAllSources;
+    c.appendChild(clr);
+    if (stats) stats.style.display = 'flex';
+    updateSourceStats();
   }
+  var sb = el('srcBadge');
+  if (sb) { sb.style.display = sourceColors.length > 0 ? 'inline-flex' : 'none'; sb.textContent = sourceColors.length + ' 源色'; }
 }
 
 function updateDomSelection() {
-  var swatches = document.querySelectorAll('.dom-swatch');
-  swatches.forEach(function(el) {
-    var hex = el.dataset.hex;
-    var selected = sourceColors.some(function(s) { return s.hex === hex; });
-    el.classList.toggle('selected', selected);
+  document.querySelectorAll('.dom-swatch').forEach(function(e) {
+    var hex = e.dataset.hex;
+    var sel = sourceColors.some(function(s) { return s.hex === hex; });
+    e.classList.toggle('selected', sel);
   });
 }
 
 function updateSourceStats() {
   if (sourceColors.length === 0 || !originalImageData) return;
-  var tol = parseInt(document.getElementById('tolerance').value);
+  var tol = parseInt(el('tolerance').value);
   var tolSq = tol * tol * 3;
   var data = originalImageData.data;
   var count = 0;
@@ -765,93 +655,79 @@ function updateSourceStats() {
     if (data[i + 3] < 128) continue;
     for (var s = 0; s < sourceColors.length; s++) {
       var dr = data[i] - sourceColors[s].r;
-      var dg = data[i + 1] - sourceColors[s].g;
-      var db = data[i + 2] - sourceColors[s].b;
-      if (dr * dr + dg * dg + db * db <= tolSq) { count++; break; }
+      var dg = data[i+1] - sourceColors[s].g;
+      var db = data[i+2] - sourceColors[s].b;
+      if (dr*dr + dg*dg + db*db <= tolSq) { count++; break; }
     }
   }
-  var tmp = document.getElementById('totalMatchPixels'); if (tmp) tmp.textContent = count.toLocaleString();
+  var tmp = el('totalMatchPixels'); if (tmp) tmp.textContent = count.toLocaleString();
 }
 
 // Tolerance slider
-document.getElementById('tolerance').addEventListener('input', function() {
-  var tv = document.getElementById('tolVal'); if (tv) tv.textContent = this.value;
+el('tolerance').addEventListener('input', function() {
+  var tv = el('tolVal'); if (tv) tv.textContent = this.value;
   if (sourceColors.length > 0) {
     updateSourceStats();
     drawPreview();
   }
 });
 
-// ============================================================
-// Preview (highlight ALL matched regions for all source colors)
-// ============================================================
+// ===== Preview =====
 function togglePreview() {
   previewEnabled = !previewEnabled;
-  var tp = document.getElementById('togglePreview'); if (tp) tp.classList.toggle('on', previewEnabled);
+  var tp = el('togglePreview'); if (tp) tp.classList.toggle('on', previewEnabled);
   if (!imgLoaded) return;
   drawPreview();
 }
 
 function drawPreview() {
-  try {
-    cfLog('drawPreview called, sourceColors=' + sourceColors.length + ', oID=' + (!!originalImageData));
-    if (sourceColors.length === 0 || !originalImageData) {
-      if (imgLoaded && originalImageData) ctx.putImageData(originalImageData, 0, 0);
-      cfLog('drawPreview: early return (no source colors or no image)');
-      return;
-    }
-    var tol = parseInt(document.getElementById('tolerance').value);
-    var tolSq = tol * tol * 3;
-    var data = new Uint8ClampedArray(originalImageData.data);
-    var matched = 0;
-    for (var i = 0; i < data.length; i += 4) {
-      if (data[i + 3] < 128) continue;
-      for (var s = 0; s < sourceColors.length; s++) {
-        var dr = data[i] - sourceColors[s].r;
-        var dg = data[i + 1] - sourceColors[s].g;
-        var db = data[i + 2] - sourceColors[s].b;
-        if (dr * dr + dg * dg + db * db <= tolSq) {
-          data[i] = 255; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = 180;
-          matched++;
-          break;
-        }
+  if (!imgLoaded || !originalImageData) return;
+  if (sourceColors.length === 0 || !previewEnabled) {
+    ctx.putImageData(originalImageData, 0, 0);
+    return;
+  }
+  var tol = parseInt(el('tolerance').value);
+  var tolSq = tol * tol * 3;
+  var data = new Uint8ClampedArray(originalImageData.data);
+  for (var i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 128) continue;
+    for (var s = 0; s < sourceColors.length; s++) {
+      var dr = data[i] - sourceColors[s].r;
+      var dg = data[i+1] - sourceColors[s].g;
+      var db = data[i+2] - sourceColors[s].b;
+      if (dr*dr + dg*dg + db*db <= tolSq) {
+        data[i] = 255; data[i+1] = 0; data[i+2] = 0; data[i+3] = 180;
+        break;
       }
     }
-    ctx.putImageData(new ImageData(data, originalImageData.width, originalImageData.height), 0, 0);
-    cfLog('drawPreview done, matched ' + matched + ' pixels');
-  } catch(err) {
-    cfLog('CRASH in drawPreview: ' + err.message);
   }
+  ctx.putImageData(new ImageData(data, originalImageData.width, originalImageData.height), 0, 0);
 }
 
-// ============================================================
-// Target tabs
-// ============================================================
+// ===== Target Tabs =====
 function switchTargetTab(tab) {
   activeTargetTab = tab;
   document.querySelectorAll('#targetTabs .tab').forEach(function(t) {
     t.classList.toggle('active', t.dataset.ttab === tab);
   });
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'none'; });
-  document.getElementById('tpanel-' + tab).style.display = 'block';
+  var tp = el('tpanel-' + tab); if (tp) tp.style.display = 'block';
 }
 
-// ============================================================
-// Common colors palette
-// ============================================================
+// ===== Common Colors Palette =====
 function buildCommonColors() {
-  var c = document.getElementById('commonColors');
+  var c = el('commonColors');
   c.innerHTML = '';
   commonColors.forEach(function(cc) {
-    var el = document.createElement('div');
-    el.className = 'color-cell';
-    el.style.background = cc.hex;
-    el.title = cc.hex + ' ' + cc.name;
-    el.innerHTML = '<span class="check">✓</span><span class="name">' + cc.name + '</span>';
-    el.dataset.hex = cc.hex;
-    el.dataset.name = cc.name;
-    el.onclick = function() { addTargetColor(cc.hex, cc.name, 'flat'); };
-    c.appendChild(el);
+    var e = document.createElement('div');
+    e.className = 'color-cell';
+    e.style.background = cc.hex;
+    e.title = cc.hex + ' ' + cc.name;
+    e.innerHTML = '<span class="check">✓</span><span class="name">' + cc.name + '</span>';
+    e.dataset.hex = cc.hex;
+    e.dataset.name = cc.name;
+    e.onclick = function() { addTargetColor(cc.hex, cc.name, 'flat'); };
+    c.appendChild(e);
   });
 }
 
@@ -867,11 +743,11 @@ function addAllCommon() {
 }
 
 function addRainbow7() {
-  var rainbow = [
+  var rb = [
     {hex:'#FF0000',name:'红'},{hex:'#FF7F00',name:'橙'},{hex:'#FFCC00',name:'黄'},
     {hex:'#00FF00',name:'绿'},{hex:'#00FFFF',name:'青'},{hex:'#0000FF',name:'蓝'},{hex:'#8B00FF',name:'紫'}
   ];
-  rainbow.forEach(function(c) {
+  rb.forEach(function(c) {
     if (!targetColors.some(function(t) { return t.hex.toLowerCase() === c.hex.toLowerCase(); })) {
       targetColors.push({ id: nextId++, hex: c.hex, name: c.name, type: 'flat' });
     }
@@ -881,85 +757,74 @@ function addRainbow7() {
   showToast('已加彩虹7色', 'success');
 }
 
-// ============================================================
-// Material grid
-// ============================================================
+// ===== Material Grid =====
 function buildMaterialGrid() {
-  var g = document.getElementById('matGrid');
+  var g = el('matGrid');
   g.innerHTML = '';
   materialDefs.forEach(function(m) {
-    var el = document.createElement('div');
-    el.className = 'mat-item';
-    el.dataset.key = m.key;
-    // Generate a small preview using the gradient
-    var previewCanvas = document.createElement('canvas');
-    previewCanvas.width = 60; previewCanvas.height = 60;
-    var pctx = previewCanvas.getContext('2d');
+    var e = document.createElement('div');
+    e.className = 'mat-item';
+    e.dataset.key = m.key;
+
+    var pc = document.createElement('canvas');
+    pc.width = 60; pc.height = 60;
+    var pctx = pc.getContext('2d');
     var pimg = pctx.createImageData(60, 60);
     var table = materialTables[m.key];
     for (var i = 0; i < 60 * 60; i++) {
-      // Create a diagonal gradient with some noise for preview
       var x = i % 60, y = Math.floor(i / 60);
       var lum = Math.round(((x + y) / 120) * 200 + 27);
       lum = Math.min(255, Math.max(0, lum));
-      pimg.data[i * 4] = table[lum * 3];
-      pimg.data[i * 4 + 1] = table[lum * 3 + 1];
-      pimg.data[i * 4 + 2] = table[lum * 3 + 2];
-      pimg.data[i * 4 + 3] = 255;
+      pimg.data[i*4]   = table[lum*3];
+      pimg.data[i*4+1] = table[lum*3+1];
+      pimg.data[i*4+2] = table[lum*3+2];
+      pimg.data[i*4+3] = 255;
     }
     pctx.putImageData(pimg, 0, 0);
-    el.innerHTML =
-      '<div class="mat-preview"><span class="mat-check">✓</span></div>' +
-      '<div class="mat-name">' + m.icon + ' ' + m.name + '</div>';
-    el.querySelector('.mat-preview').style.background = 'url(' + previewCanvas.toDataURL() + ')';
-    el.querySelector('.mat-preview').style.backgroundSize = 'cover';
-    el.onclick = function() {
-      var key = el.dataset.key;
-      var matDef = materialDefs.find(function(md) { return md.key === key; });
+
+    e.innerHTML = '<div class="mat-preview"><span class="mat-check">✓</span></div><div class="mat-name">' + m.icon + ' ' + m.name + '</div>';
+    e.querySelector('.mat-preview').style.background = 'url(' + pc.toDataURL() + ')';
+    e.querySelector('.mat-preview').style.backgroundSize = 'cover';
+    e.onclick = function() {
+      var key = e.dataset.key;
+      var md = materialDefs.find(function(d) { return d.key === key; });
       if (targetColors.some(function(t) { return t.material === key; })) {
-        // Already added — remove it
         targetColors = targetColors.filter(function(t) { return t.material !== key; });
       } else {
-        targetColors.push({ id: nextId++, hex: '#888888', name: matDef.name, type: 'material', material: key });
+        targetColors.push({ id: nextId++, hex: '#888888', name: md.name, type: 'material', material: key });
       }
       updateTargetList();
       updateGenButton();
       updateMatSelection();
     };
-    g.appendChild(el);
+    g.appendChild(e);
   });
 }
 
 function updateMatSelection() {
-  document.querySelectorAll('.mat-item').forEach(function(el) {
-    var key = el.dataset.key;
-    var selected = targetColors.some(function(t) { return t.material === key; });
-    el.classList.toggle('selected', selected);
+  document.querySelectorAll('.mat-item').forEach(function(e) {
+    var key = e.dataset.key;
+    var sel = targetColors.some(function(t) { return t.material === key; });
+    e.classList.toggle('selected', sel);
   });
 }
 
-// ============================================================
-// Custom color
-// ============================================================
-document.getElementById('customColor').addEventListener('input', function() {
-  document.getElementById('customHex').value = this.value.toUpperCase();
+// ===== Custom Color =====
+el('customColor').addEventListener('input', function() {
+  el('customHex').value = this.value.toUpperCase();
 });
-document.getElementById('customHex').addEventListener('input', function() {
-  var v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('customColor').value = v;
+el('customHex').addEventListener('input', function() {
+  if (/^#[0-9a-fA-F]{6}$/.test(this.value)) el('customColor').value = this.value;
 });
 function addCustomColor() {
-  var hex = document.getElementById('customHex').value;
+  var hex = el('customHex').value;
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) { showToast('请输入正确的颜色如 #FF0000', 'error'); return; }
   addTargetColor(hex.toUpperCase(), '自定义', 'flat');
 }
 
-// ============================================================
-// Target color management
-// ============================================================
+// ===== Target Color Management =====
 function addTargetColor(hex, name, type) {
   type = type || 'flat';
-  // Check duplicate (for flat colors, check hex; for materials, they're handled separately)
   if (type === 'flat' && targetColors.some(function(t) { return t.type === 'flat' && t.hex.toLowerCase() === hex.toLowerCase(); })) {
     showToast('该颜色已存在', 'warn');
     return;
@@ -993,7 +858,8 @@ function clearTargets() {
 }
 
 function updateTargetList() {
-  var c = document.getElementById('targetList');
+  var c = el('targetList');
+  var tc = el('tgtCount'); if (tc) tc.textContent = targetColors.length;
   c.innerHTML = '';
   if (targetColors.length === 0) {
     c.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:6px;text-align:center">未添加目标 — 点上方色板或材质添加</div>';
@@ -1002,19 +868,18 @@ function updateTargetList() {
   targetColors.forEach(function(t) {
     var item = document.createElement('div');
     item.className = 'target-item';
-    var swatchStyle = 'background:' + t.hex;
+    var swStyle = 'background:' + t.hex;
     if (t.type === 'material') {
-      // Use a gradient preview for material
-      var matDef = materialDefs.find(function(m) { return m.key === t.material; });
-      if (matDef) {
-        var stops = matDef.stops.map(function(s) {
+      var md = materialDefs.find(function(m) { return m.key === t.material; });
+      if (md) {
+        var stops = md.stops.map(function(s) {
           return 'rgb(' + Math.round(s.c[0]) + ',' + Math.round(s.c[1]) + ',' + Math.round(s.c[2]) + ') ' + Math.round(s.p * 100) + '%';
         }).join(', ');
-        swatchStyle = 'background:linear-gradient(135deg,' + stops + ')';
+        swStyle = 'background:linear-gradient(135deg,' + stops + ')';
       }
     }
     item.innerHTML =
-      '<div class="target-swatch" style="' + swatchStyle + '"></div>' +
+      '<div class="target-swatch" style="' + swStyle + '"></div>' +
       '<div class="target-info">' +
         '<input type="text" value="' + t.name + '" onchange="renameTargetColor(' + t.id + ', this.value)" style="border:none;outline:none;font-size:11px;font-weight:600;width:100%;background:transparent;color:var(--text)">' +
         '<div class="target-hex">' + (t.type === 'material' ? '材质·' + t.material : t.hex.toUpperCase()) + '</div>' +
@@ -1026,33 +891,30 @@ function updateTargetList() {
 }
 
 function updateCommonSelection() {
-  document.querySelectorAll('.color-cell').forEach(function(el) {
-    var hex = el.dataset.hex;
-    var selected = targetColors.some(function(t) { return t.type === 'flat' && t.hex.toLowerCase() === hex.toLowerCase(); });
-    el.classList.toggle('selected', selected);
+  document.querySelectorAll('.color-cell').forEach(function(e) {
+    var hex = e.dataset.hex;
+    var sel = targetColors.some(function(t) { return t.type === 'flat' && t.hex.toLowerCase() === hex.toLowerCase(); });
+    e.classList.toggle('selected', sel);
   });
 }
 
 function updateGenButton() {
-  try {
-    var n = targetColors.length;
-    var gc = document.getElementById('genCount'); if (gc) gc.textContent = n;
-    var bg = document.getElementById('btnGenerate'); if (bg) bg.disabled = !(n > 0 && imgLoaded && sourceColors.length > 0);
-    var tb = document.getElementById('tgtBadge');
-    if (tb) { tb.style.display = n > 0 ? 'inline-flex' : 'none'; tb.textContent = n + ' 目标'; }
-    if (bg && sourceColors.length === 0 && imgLoaded) {
-      bg.innerHTML = '请先选择源色';
-    } else if (bg && n === 0 && imgLoaded) {
-      bg.innerHTML = '请添加目标色';
-    } else if (bg) {
-      bg.innerHTML = '🚀 批量生成 (<span id="genCount">' + n + '</span> 张)';
-    }
-  } catch(err) { cfLog('CRASH updateGenButton: ' + err.message); }
+  var n = targetColors.length;
+  var gc = el('genCount'); if (gc) gc.textContent = n;
+  var bg = el('btnGenerate');
+  if (bg) bg.disabled = !(n > 0 && imgLoaded && sourceColors.length > 0);
+  var tb = el('tgtBadge');
+  if (tb) { tb.style.display = n > 0 ? 'inline-flex' : 'none'; tb.textContent = n + ' 目标'; }
+  if (bg && sourceColors.length === 0 && imgLoaded) {
+    bg.innerHTML = '请先选择源色';
+  } else if (bg && n === 0 && imgLoaded) {
+    bg.innerHTML = '请添加目标色';
+  } else if (bg) {
+    bg.innerHTML = '🚀 批量生成 (<span id="genCount">' + n + '</span> 张)';
+  }
 }
 
-// ============================================================
-// Core: Multi-source color replacement
-// ============================================================
+// ===== Core: Multi-source Color Replacement =====
 function replaceColorsInData(srcData, srcColorsArr, target, tolerance, keepAlpha) {
   var data = new Uint8ClampedArray(srcData.data);
   var tolSq = tolerance * tolerance * 3;
@@ -1065,37 +927,32 @@ function replaceColorsInData(srcData, srcColorsArr, target, tolerance, keepAlpha
     var matched = false;
     for (var s = 0; s < srcColorsArr.length; s++) {
       var dr = data[i] - srcColorsArr[s].r;
-      var dg = data[i + 1] - srcColorsArr[s].g;
-      var db = data[i + 2] - srcColorsArr[s].b;
-      if (dr * dr + dg * dg + db * db <= tolSq) { matched = true; break; }
+      var dg = data[i+1] - srcColorsArr[s].g;
+      var db = data[i+2] - srcColorsArr[s].b;
+      if (dr*dr + dg*dg + db*db <= tolSq) { matched = true; break; }
     }
     if (matched) {
       if (isMaterial) {
-        // Apply material gradient based on luminance
-        var r = data[i], g = data[i + 1], b = data[i + 2];
+        var r = data[i], g = data[i+1], b = data[i+2];
         var lum = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-        data[i]     = matTable[lum * 3];
-        data[i + 1] = matTable[lum * 3 + 1];
-        data[i + 2] = matTable[lum * 3 + 2];
+        data[i]   = matTable[lum * 3];
+        data[i+1] = matTable[lum * 3 + 1];
+        data[i+2] = matTable[lum * 3 + 2];
       } else {
-        // Flat color replacement — hard replace to ensure exact color
-        data[i]     = dstRgb[0];
-        data[i + 1] = dstRgb[1];
-        data[i + 2] = dstRgb[2];
+        data[i]   = dstRgb[0];
+        data[i+1] = dstRgb[1];
+        data[i+2] = dstRgb[2];
       }
     }
   }
   return new ImageData(data, srcData.width, srcData.height);
 }
 
-// ============================================================
-// Batch generation
-// ============================================================
+// ===== Batch Generation =====
 function generateBatch() {
   if (!imgLoaded || sourceColors.length === 0 || targetColors.length === 0) return;
 
-  // Count matched pixels
-  var tol = parseInt(document.getElementById('tolerance').value);
+  var tol = parseInt(el('tolerance').value);
   var tolSq = tol * tol * 3;
   var totalMatch = 0;
   var srcData = originalImageData.data;
@@ -1103,9 +960,9 @@ function generateBatch() {
     if (srcData[i + 3] < 128) continue;
     for (var s = 0; s < sourceColors.length; s++) {
       var dr = srcData[i] - sourceColors[s].r;
-      var dg = srcData[i + 1] - sourceColors[s].g;
-      var db = srcData[i + 2] - sourceColors[s].b;
-      if (dr * dr + dg * dg + db * db <= tolSq) { totalMatch++; break; }
+      var dg = srcData[i+1] - sourceColors[s].g;
+      var db = srcData[i+2] - sourceColors[s].b;
+      if (dr*dr + dg*dg + db*db <= tolSq) { totalMatch++; break; }
     }
   }
   if (totalMatch === 0) {
@@ -1113,24 +970,24 @@ function generateBatch() {
       showToast('请调整容差或重新选色', 'warn');
       return;
     }
-    document.getElementById('tolerance').value = 200;
-    var tv = document.getElementById('tolVal'); if (tv) tv.textContent = 200;
-    return generateBatch(); // retry
+    el('tolerance').value = 200;
+    var tv = el('tolVal'); if (tv) tv.textContent = 200;
+    updateSourceStats();
+    return generateBatch();
   }
 
   showLoading(true, '准备生成...');
-  document.getElementById('btnGenerate').disabled = true;
-  var gb = document.getElementById('genBar'); if (gb) gb.classList.add('show');
-  var gbf = document.getElementById('genBarFill'); if (gbf) gbf.style.width = '0%';
+  var bg = el('btnGenerate'); if (bg) bg.disabled = true;
+  var gb = el('genBar'); if (gb) gb.classList.add('show');
+  var gbf = el('genBarFill'); if (gbf) gbf.style.width = '0%';
 
-  // Clean up old blobs
   generatedBlobs.forEach(function(b) { if (b.url) URL.revokeObjectURL(b.url); });
   generatedBlobs = [];
-  document.getElementById('resultsGrid').innerHTML = '';
+  el('resultsGrid').innerHTML = '';
 
-  var keepAlpha = document.getElementById('toggleKeepAlpha').classList.contains('on');
+  var keepAlpha = el('toggleKeepAlpha').classList.contains('on');
   var prevPreview = previewEnabled;
-  if (prevPreview) { previewEnabled = false; }
+  previewEnabled = false;
 
   var tmpCanvas = document.createElement('canvas');
   tmpCanvas.width = originalImageData.width;
@@ -1143,13 +1000,13 @@ function generateBatch() {
   function next() {
     if (processed >= total) {
       showLoading(false);
-      document.getElementById('btnGenerate').disabled = false;
-      var bz = document.getElementById('btnZip'); if (bz) bz.disabled = false;
-      document.getElementById('resultsCard').style.display = 'block';
-      var rb = document.getElementById('resultBadge'); if (rb) rb.textContent = generatedBlobs.length + ' 张';
-      var gb2 = document.getElementById('genBar'); if (gb2) gb2.classList.remove('show');
+      if (bg) bg.disabled = false;
+      var bz = el('btnZip'); if (bz) bz.disabled = false;
+      el('resultsCard').style.display = 'block';
+      var rb = el('resultBadge'); if (rb) rb.textContent = generatedBlobs.length + ' 张';
+      var gb2 = el('genBar'); if (gb2) gb2.classList.remove('show');
       showToast('✅ 成功生成 ' + generatedBlobs.length + ' 张图片', 'success');
-      document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+      el('resultsCard').scrollIntoView({ behavior: 'smooth' });
       previewEnabled = prevPreview;
       drawPreview();
       return;
@@ -1163,8 +1020,8 @@ function generateBatch() {
       generatedBlobs.push({ name: name, hex: t.hex, type: t.type, material: t.material, blob: blob, url: url });
       renderResultCard(generatedBlobs.length - 1);
       processed++;
-      var lt = document.getElementById('loadingText'); if (lt) lt.textContent = '生成中 ' + processed + '/' + total + '...';
-      var gbf2 = document.getElementById('genBarFill'); if (gbf2) gbf2.style.width = Math.round(processed / total * 100) + '%';
+      var lt = el('loadingText'); if (lt) lt.textContent = '生成中 ' + processed + '/' + total + '...';
+      var gbf2 = el('genBarFill'); if (gbf2) gbf2.style.width = Math.round(processed / total * 100) + '%';
       setTimeout(next, 10);
     }, 'image/png');
   }
@@ -1173,27 +1030,25 @@ function generateBatch() {
 
 function renderResultCard(idx) {
   var b = generatedBlobs[idx];
-  var grid = document.getElementById('resultsGrid');
+  var grid = el('resultsGrid');
   var card = document.createElement('div');
   card.className = 'result-card';
 
-  var swatchStyle = 'background:' + b.hex;
-  var typeLabel = '纯色';
+  var swStyle = 'background:' + b.hex;
   if (b.type === 'material') {
-    typeLabel = '材质';
-    var matDef = materialDefs.find(function(m) { return m.key === b.material; });
-    if (matDef) {
-      var stops = matDef.stops.map(function(s) {
+    var md = materialDefs.find(function(m) { return m.key === b.material; });
+    if (md) {
+      var stops = md.stops.map(function(s) {
         return 'rgb(' + Math.round(s.c[0]) + ',' + Math.round(s.c[1]) + ',' + Math.round(s.c[2]) + ') ' + Math.round(s.p * 100) + '%';
       }).join(', ');
-      swatchStyle = 'background:linear-gradient(135deg,' + stops + ')';
+      swStyle = 'background:linear-gradient(135deg,' + stops + ')';
     }
   }
 
   card.innerHTML =
     '<img src="' + b.url + '" alt="' + b.name + '">' +
     '<div class="result-info">' +
-      '<div class="result-name"><span class="result-swatch" style="' + swatchStyle + '"></span>' + b.name + '</div>' +
+      '<div class="result-name"><span class="result-swatch" style="' + swStyle + '"></span>' + b.name + '</div>' +
       '<div style="font-size:9px;color:var(--text2);font-family:monospace">' +
         (b.type === 'material' ? '材质·' + b.material : b.hex.toUpperCase()) +
       '</div>' +
@@ -1237,40 +1092,9 @@ function downloadAllZip() {
   });
 }
 
-// ============================================================
-// Utilities
-// ============================================================
-function hexToRgb(hex) {
-  hex = hex.replace('#', '');
-  if (hex.length !== 6) return [0, 0, 0];
-  return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
-}
-function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(function(v) { return v.toString(16).padStart(2, '0'); }).join('').toUpperCase();
-}
-function showLoading(show, text) {
-  var ld = document.getElementById('loading'); if (ld) ld.classList.toggle('show', show);
-  if (text) { var lt = document.getElementById('loadingText'); if (lt) lt.textContent = text; }
-}
-var toastTimer;
-function showToast(msg, type) {
-  try {
-    var t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.className = 'toast show' + (type ? ' ' + type : '');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function() { t.classList.remove('show'); }, 3000);
-  } catch(err) { cfLog('CRASH showToast: ' + err.message); }
-}
-
-// Sync custom hex input
-document.getElementById('customHex').addEventListener('input', function() {
-  var v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    document.getElementById('customColor').value = v;
-  }
-});
+// ===== Init =====
+buildCommonColors();
+buildMaterialGrid();
 </script>
 </body>
 </html>
