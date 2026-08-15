@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ColorForge Pro v6.0 - 整体色调映射</title>
+<title>ColorForge Pro v7.0 - 高质量整体改色</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
@@ -66,7 +66,8 @@ body {
 }
 .header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
 .header .ver { font-size: 11px; opacity: .7; font-weight: 400; }
-.card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); }
+.card { background: var(--surface); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.card:last-child { margin-bottom: 0; }
 .card h3 {
   font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--text);
   display: flex; align-items: center; gap: 6px;
@@ -85,11 +86,6 @@ body {
 .btn-success { background: var(--success); }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-full { width: 100%; justify-content: center; }
-.toggle { display: inline-block; width: 36px; height: 20px; background: #d1d5db; border-radius: 10px; position: relative; cursor: pointer; transition: background .2s; }
-.toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: left .2s; }
-.toggle.on { background: var(--success); }
-.toggle.on::after { left: 18px; }
-
 .upload-zone {
   border: 2px dashed var(--border); border-radius: 10px; padding: 30px 20px;
   text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc;
@@ -243,24 +239,24 @@ body {
       <div class="mode-panel">
         <div class="mode-label">选择如何把目标色应用到图片上</div>
         <div class="mode-options">
-          <button class="btn btn-ghost active" data-mode="color" onclick="setMode('color')">保留亮度</button>
-          <button class="btn btn-ghost" data-mode="hue" onclick="setMode('hue')">仅改色相</button>
-          <button class="btn btn-ghost" data-mode="overlay" onclick="setMode('overlay')">柔光叠加</button>
+          <button class="btn btn-ghost active" data-mode="color" onclick="setMode('color')">换色 (Color)</button>
+          <button class="btn btn-ghost" data-mode="hue" onclick="setMode('hue')">只改色相</button>
+          <button class="btn btn-ghost" data-mode="tint" onclick="setMode('tint')">染色叠加</button>
         </div>
       </div>
       <div class="mode-panel">
-        <div class="mode-label">高级：亮度混合强度（避免过曝/死黑）</div>
+        <div class="mode-label">效果强度（0 = 原图，100 = 全目标色）</div>
         <div class="slider-row">
           <label>强度</label>
-          <input type="range" id="mapIntensity" min="0" max="100" value="85">
-          <span class="val" id="mapIntensityVal">85%</span>
+          <input type="range" id="mapIntensity" min="0" max="100" value="100">
+          <span class="val" id="mapIntensityVal">100%</span>
         </div>
       </div>
     </div>
 
     <div id="detectCard" class="card hidden">
       <h3>🎯 色域识别 <span class="badge" id="domainCount">0</span></h3>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px">点击色域可保留原色（反向蒙版）。什么都不选 = 全图生效</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:8px">点击色域可保护原色（反向蒙版）。不选 = 全图生效</div>
       <div class="domain-list" id="domainList"></div>
       <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" onclick="clearProtectedDomains()">清空保留</button>
@@ -287,12 +283,12 @@ body {
       </div>
 
       <div class="tab-pane hidden" data-pane="theme">
-        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">整体色调偏移（保留细节）</div>
+        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">整体色调偏移</div>
         <div class="theme-grid" id="themeGrid"></div>
       </div>
 
       <div class="tab-pane hidden" data-pane="material">
-        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">金属/材质渐变映射</div>
+        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px">金属/材质（按亮度映射，保留立体感）</div>
         <div class="theme-grid" id="materialGrid"></div>
       </div>
 
@@ -323,7 +319,7 @@ body {
 
   <main class="main">
     <div class="header">
-      <h1>🎨 ColorForge Pro <span class="ver">v6.0</span></h1>
+      <h1>🎨 ColorForge Pro <span class="ver">v7.0</span></h1>
       <div style="font-size:11px;opacity:.8">整体色调映射 · 保留纹理 · 高保真改色</div>
     </div>
 
@@ -360,26 +356,27 @@ body {
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
 // ============================================================
 // GLOBAL STATE
 // ============================================================
 let imgLoaded = false;
-let originalImageData = null;
+let originalImage = null;      // original Image object
+let originalImageData = null;  // ImageData for pixel processing
+let canvasW = 0, canvasH = 0;
 let targetColors = [];
 let generatedBlobs = [];
-let mode = 'color'; // 'color' | 'hue' | 'overlay'
-let mapIntensity = 0.85;
-let protectedDomains = new Set(); // domain indices to protect
+let mode = 'color';            // 'color' | 'hue' | 'tint'
+let mapIntensity = 1.0;
+let protectedDomains = new Set();
 let sourceDomains = [];
 let toastTimer = null;
 
 const canvas = document.getElementById('srcCanvas');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-// ============================================================
-// HELPERS
-// ============================================================
 const $ = (id) => document.getElementById(id);
 
 function rgbToHex(r, g, b) {
@@ -432,6 +429,7 @@ function hslToRgb(h, s, l) {
     b: Math.round(hue2rgb(p, q, h - 1/3) * 255)
   };
 }
+
 function showToast(msg, type = '') {
   const t = $('toast'); if (!t) return;
   t.textContent = msg;
@@ -462,8 +460,10 @@ function loadImage(file) {
       let w = img.width, h = img.height;
       if (w > maxW || h > maxH) { const s = Math.min(maxW / w, maxH / h); w = Math.round(w * s); h = Math.round(h * s); }
       canvas.width = w; canvas.height = h;
+      canvasW = w; canvasH = h;
       ctx.drawImage(img, 0, 0, w, h);
       originalImageData = ctx.getImageData(0, 0, w, h);
+      originalImage = img;
       imgLoaded = true;
 
       targetColors = [];
@@ -484,8 +484,8 @@ function loadImage(file) {
       $('resultsCard').classList.add('hidden');
       $('canvasToolbar').classList.remove('hidden');
 
-      renderPreview();
       detectColorDomains();
+      renderPreview();
       updateTargetUI();
       updateGenButton();
       showToast(`图片加载成功 ${w}×${h}`, 'success');
@@ -497,7 +497,7 @@ function loadImage(file) {
 }
 
 // ============================================================
-// COLOR DOMAIN DETECTION (for protection mask)
+// COLOR DOMAIN DETECTION
 // ============================================================
 function detectColorDomains() {
   if (!originalImageData) return;
@@ -591,7 +591,7 @@ function renderDomains() {
     cell.onclick = () => toggleProtectedDomain(d.idx);
     list.appendChild(cell);
   });
-  $('domainCount').textContent = sourceDomains.length;
+  const dc = $('domainCount'); if (dc) dc.textContent = sourceDomains.length;
   updateDomainSelection();
 }
 
@@ -615,133 +615,187 @@ function updateDomainSelection() {
 function redetectDomains() { detectColorDomains(); showToast('已重新识别色域'); }
 
 // ============================================================
-// COLOR MAPPING CORE (preserve luminosity/details)
+// RENDERING CORE
 // ============================================================
-function applyColorMapping(outputData, targetHexOrFn, kind = 'solid') {
-  if (!originalImageData) return;
-  const W = originalImageData.width, H = originalImageData.height;
-  const data = originalImageData.data;
-  const n = W * H;
 
-  // Prepare target color accessors
-  let getTarget;
-  if (kind === 'gradient' && typeof targetHexOrFn === 'function') {
-    getTarget = targetHexOrFn;
-  } else if (kind === 'hue-shift') {
-    // targetHexOrFn is {h: shiftDeg, s: percent, l: percent}
-    const shift = targetHexOrFn.h || 0;
-    const satMul = 1 + (targetHexOrFn.s || 0) / 100;
-    const lightAdd = targetHexOrFn.l || 0;
-    getTarget = (r, g, b, luma) => {
-      const hsl = rgbToHsl(r, g, b);
-      const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      const gray = max - min < 15 || max < 30;
-      const newH = gray ? hsl.h : (hsl.h + shift + 360) % 360;
-      const newS = Math.min(100, hsl.s * satMul);
-      const newL = Math.max(0, Math.min(100, hsl.l + lightAdd));
-      return hslToRgb(newH, newS, newL);
-    };
-  } else {
-    const rgb = hexToRgb(targetHexOrFn);
-    if (!rgb) return;
-    const targetHsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    getTarget = (r, g, b, luma) => {
-      if (mode === 'color') {
-        // Preserve original luminosity, replace hue & saturation
-        return hslToRgb(targetHsl.h, targetHsl.s, Math.max(0, Math.min(100, luma)));
-      } else if (mode === 'hue') {
-        // Preserve original saturation & luminosity, replace hue
-        const hsl = rgbToHsl(r, g, b);
-        return hslToRgb(targetHsl.h, hsl.s, hsl.l);
-      } else { // overlay-like soft light
-        return {
-          r: Math.round(r + (rgb.r - r) * mapIntensity),
-          g: Math.round(g + (rgb.g - g) * mapIntensity),
-          b: Math.round(b + (rgb.b - b) * mapIntensity)
-        };
-      }
-    };
+// Check if pixel is in protected domain (HSV-like hue distance)
+function isProtected(r, g, b) {
+  if (protectedDomains.size === 0) return false;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  if (max - min < 15 || max < 30) return false;
+  const hsl = rgbToHsl(r, g, b);
+  for (let idx of protectedDomains) {
+    const d = sourceDomains[idx]; if (!d) continue;
+    let dh = hsl.h - d.centerHue;
+    if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+    if (Math.abs(dh) < 30) return true;
   }
+  return false;
+}
+
+// Draw original image to a temp canvas and return its context
+function drawOriginalToTemp(tmpCanvas) {
+  tmpCanvas.width = canvasW;
+  tmpCanvas.height = canvasH;
+  const tctx = tmpCanvas.getContext('2d');
+  tctx.drawImage(originalImage, 0, 0, canvasW, canvasH);
+  return tctx;
+}
+
+// High-quality color mapping using Canvas composite operations (Photoshop Color mode)
+function renderColorMapped(targetColor, tmpCanvas) {
+  const tctx = tmpCanvas.getContext('2d');
+  // tmpCanvas already has original image drawn
+  if (protectedDomains.size > 0) {
+    // For protected domains, we need pixel-level mask: render original to a separate layer then composite
+    // Simpler: do pixel-level processing for protected mask, then composite color on top
+    return renderPixelMapped(targetColor, tmpCanvas, false);
+  }
+
+  const intensity = mapIntensity;
+  if (intensity <= 0) return tmpCanvas; // keep original
+
+  if (intensity >= 0.999) {
+    // Full strength: one composite pass
+    tctx.globalCompositeOperation = mode === 'hue' ? 'hue' : 'color';
+    tctx.fillStyle = targetColor;
+    tctx.fillRect(0, 0, canvasW, canvasH);
+    tctx.globalCompositeOperation = 'source-over';
+  } else {
+    // Partial intensity: draw target color on offscreen canvas, then blend with original using globalAlpha
+    const off = document.createElement('canvas');
+    off.width = canvasW; off.height = canvasH;
+    const octx = off.getContext('2d');
+    octx.drawImage(tmpCanvas, 0, 0);
+    octx.globalCompositeOperation = mode === 'hue' ? 'hue' : 'color';
+    octx.fillStyle = targetColor;
+    octx.fillRect(0, 0, canvasW, canvasH);
+
+    tctx.globalAlpha = intensity;
+    tctx.drawImage(off, 0, 0);
+    tctx.globalAlpha = 1.0;
+  }
+  return tmpCanvas;
+}
+
+// Pixel-level HSL mapping for gradient materials and protected mask
+function renderPixelMapped(target, tmpCanvas, isGradient = false) {
+  const tctx = tmpCanvas.getContext('2d');
+  const imgData = tctx.getImageData(0, 0, canvasW, canvasH);
+  const data = imgData.data;
+  const n = canvasW * canvasH;
+  const intensity = mapIntensity;
 
   for (let i = 0; i < n; i++) {
     const off = i * 4;
     const r = data[off], g = data[off+1], b = data[off+2], a = data[off+3];
-    if (a < 128) { outputData[off+3] = a; continue; }
+    if (a < 128) continue;
 
-    // Protection mask: skip pixels in protected domains
-    if (protectedDomains.size > 0) {
-      const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      if (max - min >= 15 && max >= 30) {
-        const hsl = rgbToHsl(r, g, b);
-        let protectedHere = false;
-        for (let idx of protectedDomains) {
-          const d = sourceDomains[idx]; if (!d) continue;
-          let dh = hsl.h - d.centerHue;
-          if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
-          if (Math.abs(dh) < 25) { protectedHere = true; break; }
-        }
-        if (protectedHere) {
-          outputData[off] = r; outputData[off+1] = g; outputData[off+2] = b; outputData[off+3] = a;
-          continue;
-        }
+    if (isProtected(r, g, b)) continue;
+
+    const hsl = rgbToHsl(r, g, b);
+    let tr, tg, tb;
+    if (isGradient && typeof target === 'function') {
+      const c = target(r, g, b, hsl.l);
+      tr = c.r; tg = c.g; tb = c.b;
+    } else {
+      const rgb = hexToRgb(target);
+      const thsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      if (mode === 'color') {
+        // Replace hue/sat, keep original lightness
+        const out = hslToRgb(thsl.h, thsl.s, hsl.l);
+        tr = out.r; tg = out.g; tb = out.b;
+      } else if (mode === 'hue') {
+        // Replace hue only
+        const out = hslToRgb(thsl.h, hsl.s, hsl.l);
+        tr = out.r; tg = out.g; tb = out.b;
+      } else {
+        // tint: simple overlay blend
+        tr = Math.round(r + (rgb.r - r) * intensity);
+        tg = Math.round(g + (rgb.g - g) * intensity);
+        tb = Math.round(b + (rgb.b - b) * intensity);
       }
     }
 
-    const luma = rgbToHsl(r, g, b).l;
-    const t = getTarget(r, g, b, luma);
-    const out = mode === 'overlay' ? t : blendPixel(r, g, b, t.r, t.g, t.b, mapIntensity);
-    outputData[off] = out.r;
-    outputData[off+1] = out.g;
-    outputData[off+2] = out.b;
-    outputData[off+3] = a;
+    if (mode !== 'tint') {
+      data[off] = Math.round(r + (tr - r) * intensity);
+      data[off+1] = Math.round(g + (tg - g) * intensity);
+      data[off+2] = Math.round(b + (tb - b) * intensity);
+    } else {
+      data[off] = tr; data[off+1] = tg; data[off+2] = tb;
+    }
   }
-}
-
-// Better blending: mix original and target, preserving some local contrast
-function blendPixel(r, g, b, tr, tg, tb, strength) {
-  if (mode === 'color') {
-    // color mode already does luminosity preservation; use strength to crossfade
-    return {
-      r: Math.round(r + (tr - r) * strength),
-      g: Math.round(g + (tg - g) * strength),
-      b: Math.round(b + (tb - b) * strength)
-    };
-  } else if (mode === 'hue') {
-    return {
-      r: Math.round(r + (tr - r) * strength),
-      g: Math.round(g + (tg - g) * strength),
-      b: Math.round(b + (tb - b) * strength)
-    };
-  } else {
-    return { r: tr, g: tg, b: tb };
-  }
+  tctx.putImageData(imgData, 0, 0);
+  return tmpCanvas;
 }
 
 function renderPreview() {
-  if (!imgLoaded || !originalImageData) return;
-  // For preview we use the LAST target color as live preview, or none
+  if (!imgLoaded || !originalImage) return;
   if (targetColors.length === 0) {
-    ctx.putImageData(originalImageData, 0, 0);
+    ctx.drawImage(originalImage, 0, 0, canvasW, canvasH);
     return;
   }
   const tgt = targetColors[targetColors.length - 1];
-  const out = new Uint8ClampedArray(originalImageData.data);
-  if (tgt.kind === 'hue-shift') {
-    applyColorMapping(out, { h: tgt.hueShift, s: tgt.satAdjust, l: tgt.lightAdjust }, 'hue-shift');
-  } else if (tgt.kind === 'gradient') {
-    applyColorMapping(out, makeGradientFn(tgt.stops), 'gradient');
+  applyTargetToCanvas(tgt, canvas);
+}
+
+function applyTargetToCanvas(tgt, outCanvas) {
+  const octx = outCanvas.getContext('2d');
+  octx.clearRect(0, 0, outCanvas.width, outCanvas.height);
+  octx.drawImage(originalImage, 0, 0, canvasW, canvasH);
+
+  if (tgt.kind === 'gradient') {
+    const tmp = document.createElement('canvas');
+    tmp.width = canvasW; tmp.height = canvasH;
+    const tctx = tmp.getContext('2d');
+    tctx.drawImage(originalImage, 0, 0, canvasW, canvasH);
+    renderPixelMapped(makeGradientFn(tgt.stops), tmp, true);
+    octx.drawImage(tmp, 0, 0);
+  } else if (tgt.kind === 'hue-shift') {
+    // Hue shift: rotate all hues
+    const tmp = document.createElement('canvas');
+    tmp.width = canvasW; tmp.height = canvasH;
+    const tctx = tmp.getContext('2d');
+    tctx.drawImage(originalImage, 0, 0, canvasW, canvasH);
+    applyHueShift(tgt.hueShift, tgt.satAdjust, tgt.lightAdjust, tmp);
+    octx.drawImage(tmp, 0, 0);
   } else {
-    applyColorMapping(out, tgt.hex, 'solid');
+    renderColorMapped(tgt.hex, outCanvas);
   }
-  ctx.putImageData(new ImageData(out, originalImageData.width, originalImageData.height), 0, 0);
+}
+
+function applyHueShift(shiftDeg, satAdjust, lightAdjust, tmpCanvas) {
+  const tctx = tmpCanvas.getContext('2d');
+  const imgData = tctx.getImageData(0, 0, canvasW, canvasH);
+  const data = imgData.data;
+  const n = canvasW * canvasH;
+  const satMul = 1 + (satAdjust || 0) / 100;
+  const intensity = mapIntensity;
+
+  for (let i = 0; i < n; i++) {
+    const off = i * 4;
+    const r = data[off], g = data[off+1], b = data[off+2], a = data[off+3];
+    if (a < 128) continue;
+    if (isProtected(r, g, b)) continue;
+
+    const hsl = rgbToHsl(r, g, b);
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const gray = max - min < 15 || max < 30;
+    const newH = gray ? hsl.h : (hsl.h + shiftDeg + 360) % 360;
+    const newS = Math.min(100, hsl.s * satMul);
+    const newL = Math.max(0, Math.min(100, hsl.l + (lightAdjust || 0)));
+    const out = hslToRgb(newH, newS, newL);
+
+    data[off] = Math.round(r + (out.r - r) * intensity);
+    data[off+1] = Math.round(g + (out.g - g) * intensity);
+    data[off+2] = Math.round(b + (out.b - b) * intensity);
+  }
+  tctx.putImageData(imgData, 0, 0);
 }
 
 function makeGradientFn(stops) {
-  // stops: array of {hex, pos} sorted
   return (r, g, b, luma) => {
-    // Map original luminosity to gradient position
     const pos = Math.max(0, Math.min(1, luma / 100));
-    // Find segment
     let s0 = stops[0], s1 = stops[stops.length - 1];
     for (let i = 0; i < stops.length - 1; i++) {
       if (pos >= stops[i].pos && pos <= stops[i+1].pos) { s0 = stops[i]; s1 = stops[i+1]; break; }
@@ -845,7 +899,7 @@ function renderCommonPalette() {
 function renderThemes() {
   const grid = $('themeGrid'); if (!grid) return;
   grid.innerHTML = '';
-  HUE_THEMES.forEach((t, idx) => {
+  HUE_THEMES.forEach(t => {
     const card = document.createElement('div');
     card.className = 'theme-card';
     card.innerHTML = `<div class="preview" style="background:${t.preview}"></div>${t.name}`;
@@ -946,7 +1000,6 @@ async function generateBatch() {
   generatedBlobs = [];
   $('resultsGrid').innerHTML = '';
 
-  const W = originalImageData.width, H = originalImageData.height;
   const total = targetColors.length;
 
   for (let i = 0; i < total; i++) {
@@ -954,19 +1007,10 @@ async function generateBatch() {
     $('loadingText').textContent = `生成中 ${i + 1}/${total}...`;
 
     const tgt = targetColors[i];
-    const out = new Uint8ClampedArray(originalImageData.data);
-
-    if (tgt.kind === 'hue-shift') {
-      applyColorMapping(out, { h: tgt.hueShift, s: tgt.satAdjust, l: tgt.lightAdjust }, 'hue-shift');
-    } else if (tgt.kind === 'gradient') {
-      applyColorMapping(out, makeGradientFn(tgt.stops), 'gradient');
-    } else {
-      applyColorMapping(out, tgt.hex, 'solid');
-    }
-
     const tmp = document.createElement('canvas');
-    tmp.width = W; tmp.height = H;
-    tmp.getContext('2d').putImageData(new ImageData(out, W, H), 0, 0);
+    tmp.width = canvasW; tmp.height = canvasH;
+    applyTargetToCanvas(tgt, tmp);
+
     const blob = await new Promise(res => tmp.toBlob(res, 'image/png'));
     const url = URL.createObjectURL(blob);
     const name = (tgt.name || tgt.hex).replace(/[\\/:*?"<>|]/g, '_');
@@ -1023,13 +1067,14 @@ async function downloadZip() {
 // CANVAS TOOLBAR
 // ============================================================
 function resetImage() {
-  if (!originalImageData) return;
+  if (!originalImage) return;
   targetColors = [];
   protectedDomains.clear();
   updateDomainSelection();
   updateTargetUI();
   updateGenButton();
   renderPreview();
+  $('resultsCard').classList.add('hidden');
   showToast('已重置');
 }
 function downloadCurrent() {
@@ -1062,11 +1107,6 @@ $('customColor').addEventListener('input', (e) => { $('customHex').value = e.tar
 renderCommonPalette();
 renderThemes();
 renderMaterials();
-
-const jszipScript = document.createElement('script');
-jszipScript.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
-jszipScript.onerror = () => { const s = document.createElement('script'); s.src = 'https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js'; document.head.appendChild(s); };
-document.head.appendChild(jszipScript);
 </script>
 
 </body>
