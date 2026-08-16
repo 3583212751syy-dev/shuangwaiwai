@@ -516,7 +516,7 @@ input[type=range].sat-slider { background: linear-gradient(to right, #808080, #f
   <div class="logo">
     <span>🎨</span>
     <span>ColorForge Pro</span>
-    <span class="badge">v9.2 · 全局 + 单色</span>
+    <span class="badge">v9.3 · 全局 + 单色</span>
   </div>
   <div class="topbar-actions">
     <button class="btn" onclick="resetAll()">🔄 重置全部</button>
@@ -771,7 +771,21 @@ var PRESETS = [
   { name: '黑白',   hue: 0,   sat: -100, light: 0,   contrast: 20, color: '#374151', targetHex: '' },
   { name: '高对比', hue: 0,   sat: 0,    light: 0,   contrast: 40, color: '#000000', targetHex: '' },
   { name: '褪色',   hue: 0,   sat: -40,  light: 10,  contrast: -20,color: '#94a3b8', targetHex: '' },
-  { name: '冷峻',   hue: 0,   sat: -10,  light: -5,  contrast: 15, color: '#475569', targetHex: '#475569', intensity: 60, protect: 90 }
+  { name: '冷峻',   hue: 0,   sat: -10,  light: -5,  contrast: 15, color: '#475569', targetHex: '#475569', intensity: 60, protect: 90 },
+  { name: '猩红',   hue: 0,   sat: 5,    light: 0,   contrast: 5,  color: '#e63946', targetHex: '#e63946', intensity: 90, protect: 85 },
+  { name: '珊瑚',   hue: 0,   sat: 5,    light: 5,   contrast: 0,  color: '#ff7f50', targetHex: '#ff7f50', intensity: 85, protect: 85 },
+  { name: '朱橙',   hue: 0,   sat: 5,    light: 0,   contrast: 5,  color: '#ff5722', targetHex: '#ff5722', intensity: 88, protect: 85 },
+  { name: '焦糖',   hue: 0,   sat: 0,    light: -5,  contrast: 10, color: '#a05a2c', targetHex: '#a05a2c', intensity: 80, protect: 88 },
+  { name: '姜黄',   hue: 0,   sat: 5,    light: 5,   contrast: 0,  color: '#c8a200', targetHex: '#c8a200', intensity: 85, protect: 85 },
+  { name: '青柠',   hue: 0,   sat: 10,   light: 5,   contrast: 0,  color: '#a3e635', targetHex: '#a3e635', intensity: 85, protect: 85 },
+  { name: '苹果绿', hue: 0,   sat: 5,    light: 0,   contrast: 0,  color: '#4cd137', targetHex: '#4cd137', intensity: 88, protect: 85 },
+  { name: '翡翠',   hue: 0,   sat: 0,    light: -5,  contrast: 10, color: '#00a86b', targetHex: '#00a86b', intensity: 85, protect: 88 },
+  { name: '孔雀',   hue: 0,   sat: 5,    light: -5,  contrast: 10, color: '#008080', targetHex: '#008080', intensity: 85, protect: 88 },
+  { name: '天蓝',   hue: 0,   sat: 0,    light: 5,   contrast: 0,  color: '#38bdf8', targetHex: '#38bdf8', intensity: 85, protect: 85 },
+  { name: '靛蓝',   hue: 0,   sat: 5,    light: -5,  contrast: 10, color: '#4f46e5', targetHex: '#4f46e5', intensity: 88, protect: 85 },
+  { name: '薰衣草', hue: 0,   sat: 0,    light: 10,  contrast: 0,  color: '#a78bfa', targetHex: '#a78bfa', intensity: 80, protect: 88 },
+  { name: '洋红',   hue: 0,   sat: 5,    light: 0,   contrast: 5,  color: '#d81b60', targetHex: '#d81b60', intensity: 88, protect: 85 },
+  { name: '大地棕', hue: 0,   sat: 0,    light: -10, contrast: 15, color: '#8b5e3c', targetHex: '#8b5e3c', intensity: 75, protect: 90 }
 ];
 
 var COMMON_TARGETS = [
