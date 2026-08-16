@@ -516,7 +516,7 @@ input[type=range].sat-slider { background: linear-gradient(to right, #808080, #f
   <div class="logo">
     <span>🎨</span>
     <span>ColorForge Pro</span>
-    <span class="badge">v9.0 · 全局 + 单色</span>
+    <span class="badge">v9.2 · 全局 + 单色</span>
   </div>
   <div class="topbar-actions">
     <button class="btn" onclick="resetAll()">🔄 重置全部</button>
@@ -994,12 +994,13 @@ function applyHslAdjust(src, p) {
   var contrastOffset = 128 * (1 - contrast);
 
   var targetMode = p.targetHex && typeof p.targetHex === 'string' && p.targetHex.length > 0;
-  var targetHsl = targetMode ? rgbToHsl(hexToRgb(p.targetHex)[0], hexToRgb(p.targetHex)[1], hexToRgb(p.targetHex)[2]) : null;
+  var targetRgb = targetMode ? hexToRgb(p.targetHex) : null;
+  var targetHsl = targetMode ? rgbToHsl(targetRgb[0], targetRgb[1], targetRgb[2]) : null;
   var targetHue = targetMode ? targetHsl[0] : 0;
   var targetSat = targetMode ? targetHsl[1] : 0;
   var targetLight = targetMode ? targetHsl[2] : 0;
   var intensity = clamp((p.intensity == null ? 100 : p.intensity) / 100, 0, 1);
-  var protect = clamp((p.protect == null ? 60 : p.protect) / 100, 0, 1);
+  var protect = clamp((p.protect == null ? 80 : p.protect) / 100, 0, 1);
 
   for (var i = 0; i < srcData.length; i += 4) {
     var r = srcData[i], g = srcData[i + 1], b = srcData[i + 2], a = srcData[i + 3];
@@ -1012,32 +1013,40 @@ function applyHslAdjust(src, p) {
     var hsl = rgbToHsl(r, g, b);
 
     if (targetMode) {
-      // 目标色柔和映射：保留原图亮度纹理，色相/饱和度向目标色靠拢
-      // 越接近白/黑/灰的像素，越受 protect 参数保护
-      var satNeutral = 1 - hsl[1];
-      var lightNeutral = 1 - Math.abs(hsl[2] - 0.5) * 2;
-      var neutral = Math.max(satNeutral, lightNeutral * 0.9);
+      // 目标色直接映射：结果图主色 = 目标色，同时保留光影纹理
+      // 保护纯白 / 纯黑 / 灰色，避免高光/暗部被染色
+      // 只在饱和度极低、极暗、极亮时触发保护，避免把淡彩色也保护了
+      var gray = clamp((0.12 - hsl[1]) / 0.12, 0, 1);
+      var dark = clamp(1 - hsl[2] * 25, 0, 1);
+      var light = clamp((hsl[2] - 0.96) * 25, 0, 1);
+      var neutral = Math.max(gray, dark, light);
       var protection = clamp(neutral * protect, 0, 1);
-      var localIntensity = intensity * Math.pow(Math.max(0, 1 - protection), 2);
+      var strength = clamp(intensity * (1 - protection), 0, 1);
 
-      // 色相：最短路径转向目标色相 + 微调
-      var nh = hueLerp(hsl[0], targetHue, localIntensity) + hueShift;
-      nh = nh - Math.floor(nh);
+      if (strength <= 0) {
+        out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
+      } else {
+        // 色相直接取目标色 + 用户色相微调
+        var nh = targetHue + hueShift;
+        nh = nh - Math.floor(nh);
 
-      // 饱和度：向目标饱和度靠拢，但保留原图一定比例；中性像素几乎不变
-      var ns = hsl[1] * (1 - localIntensity) + targetSat * localIntensity;
-      ns = clamp(ns * satMult, 0, 1);
+        // 饱和度：目标色为底，保留原图 25% 纹理，避免死色
+        var ns = targetSat * (0.25 + 0.75 * hsl[1]);
+        ns = clamp(ns * satMult, 0, 1);
 
-      // 亮度：基本保留原图亮度，允许 light 滑块调整
-      var nl = clamp(hsl[2] + lightShift, 0, 1);
+        // 亮度：以原图亮度为主，轻微向目标色亮度靠拢，保证目标色真实
+        var nl = clamp(hsl[2] + lightShift, 0, 1);
+        var lightBias = clamp(strength * 0.35, 0, 1);
+        nl = nl * (1 - lightBias) + targetLight * lightBias;
+        nl = clamp(nl, 0, 1);
 
-      // 目标色的固有亮度只轻微影响非中性区域，避免整体发黑
-      var lightMix = clamp(localIntensity * 0.25 * (1 - protection), 0, 1);
-      nl = nl * (1 - lightMix) + targetLight * nl * lightMix;
-      nl = clamp(nl, 0, 1);
-
-      var rgb = hslToRgb(nh, ns, nl);
-      out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
+        var mapped = hslToRgb(nh, ns, nl);
+        var keep = 1 - strength;
+        out[i] = Math.round(r * keep + mapped[0] * strength);
+        out[i + 1] = Math.round(g * keep + mapped[1] * strength);
+        out[i + 2] = Math.round(b * keep + mapped[2] * strength);
+        out[i + 3] = a;
+      }
     } else {
       var nh = hsl[0] + hueShift;
       if (nh > 1) nh -= 1;
