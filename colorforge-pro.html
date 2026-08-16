@@ -547,10 +547,34 @@ input[type=range].sat-slider { background: linear-gradient(to right, #808080, #f
     <!-- 全局调色 -->
     <div class="mode-section active" id="secGlobal">
       <div class="ps-panel">
-        <div class="panel-title">🎚️ PS 风格全图调色</div>
+        <div class="panel-title">🎯 目标色调映射</div>
+        <div class="slider-group">
+          <div class="slider-row" style="align-items:center;margin-bottom:10px;">
+            <label>目标色</label>
+            <input type="color" id="targetColor" value="#10b981" style="width:48px;height:28px;border:none;background:none;padding:0;cursor:pointer;flex:none;">
+            <span id="targetHexLabel" style="font-family:monospace;font-size:12px;color:var(--text-light);flex:1;text-align:center;">#10b981</span>
+            <button class="reset-btn" onclick="clearTargetColor()" title="清除目标色">✕</button>
+          </div>
+          <div class="slider-row">
+            <label>着色强度</label>
+            <input type="range" id="intensity" min="0" max="100" value="100" step="1">
+            <span class="val" id="intensityVal">100</span>
+            <button class="reset-btn" onclick="resetSlider('intensity')" title="重置">↺</button>
+          </div>
+          <div class="slider-row">
+            <label>保护中性</label>
+            <input type="range" id="protect" min="0" max="100" value="80" step="1">
+            <span class="val" id="protectVal">80</span>
+            <button class="reset-btn" onclick="resetSlider('protect')" title="重置">↺</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ps-panel" style="margin-top:12px;background:linear-gradient(135deg,#f0f3ff 0%,#faf5ff 100%);">
+        <div class="panel-title">🎚️ PS 风格微调</div>
         <div class="slider-group">
           <div class="slider-row">
-            <label>色相 Hue</label>
+            <label>色相偏移</label>
             <input type="range" id="hue" class="hue-slider" min="-180" max="180" value="0" step="1">
             <span class="val" id="hueVal">0°</span>
             <button class="reset-btn" onclick="resetSlider('hue')" title="重置">↺</button>
@@ -724,7 +748,7 @@ var batchThemes = [];
 var activePresetName = null;
 
 var MODE = 'global';
-var params = { hue: 0, sat: 0, light: 0, contrast: 0 };
+var params = { hue: 0, sat: 0, light: 0, contrast: 0, targetHex: '', intensity: 100, protect: 80 };
 
 // 局部改色
 var localPairs = [];
@@ -732,22 +756,22 @@ var activePairId = null;
 var nextPairId = 1;
 
 var PRESETS = [
-  { name: '原图',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#888888' },
-  { name: '暖红',   hue: -30, sat: 30,   light: 5,   contrast: 10, color: '#ef4444' },
-  { name: '橙黄',   hue: -50, sat: 40,   light: 10,  contrast: 5,  color: '#f59e0b' },
-  { name: '金秋',   hue: -45, sat: 20,   light: 5,   contrast: 15, color: '#d97706' },
-  { name: '翠绿',   hue: 90,  sat: 30,   light: 0,   contrast: 5,  color: '#10b981' },
-  { name: '森林',   hue: 120, sat: 20,   light: -10, contrast: 15, color: '#166534' },
-  { name: '青蓝',   hue: 150, sat: 40,   light: 0,   contrast: 10, color: '#06b6d4' },
-  { name: '深海',   hue: 170, sat: 30,   light: -15, contrast: 20, color: '#1e3a8a' },
-  { name: '宝蓝',   hue: 180, sat: 30,   light: 0,   contrast: 5,  color: '#3b82f6' },
-  { name: '紫罗兰', hue: 220, sat: 30,   light: 5,   contrast: 10, color: '#8b5cf6' },
-  { name: '玫瑰粉', hue: -100,sat: 20,   light: 10,  contrast: 5,  color: '#ec4899' },
-  { name: '复古',   hue: -20, sat: -20,  light: -5,  contrast: 20, color: '#a16207' },
-  { name: '黑白',   hue: 0,   sat: -100, light: 0,   contrast: 20, color: '#374151' },
-  { name: '高对比', hue: 0,   sat: 10,   light: 0,   contrast: 40, color: '#000000' },
-  { name: '褪色',   hue: 0,   sat: -40,  light: 10,  contrast: -20,color: '#94a3b8' },
-  { name: '冷峻',   hue: 30,  sat: -10,  light: -5,  contrast: 15, color: '#475569' }
+  { name: '原图',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#888888', targetHex: '' },
+  { name: '暖红',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#ef4444', targetHex: '#ef4444', intensity: 85, protect: 85 },
+  { name: '橙黄',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#f59e0b', targetHex: '#f59e0b', intensity: 85, protect: 85 },
+  { name: '金秋',   hue: 0,   sat: 0,    light: 5,   contrast: 10, color: '#d97706', targetHex: '#d97706', intensity: 75, protect: 88 },
+  { name: '翠绿',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#10b981', targetHex: '#10b981', intensity: 90, protect: 88 },
+  { name: '森林',   hue: 0,   sat: 0,    light: -10, contrast: 15, color: '#166534', targetHex: '#166534', intensity: 80, protect: 88 },
+  { name: '青蓝',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#06b6d4', targetHex: '#06b6d4', intensity: 85, protect: 85 },
+  { name: '深海',   hue: 0,   sat: 0,    light: -15, contrast: 20, color: '#1e3a8a', targetHex: '#1e3a8a', intensity: 70, protect: 90 },
+  { name: '宝蓝',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#3b82f6', targetHex: '#3b82f6', intensity: 85, protect: 85 },
+  { name: '紫罗兰', hue: 0,   sat: 0,    light: 5,   contrast: 10, color: '#8b5cf6', targetHex: '#8b5cf6', intensity: 85, protect: 85 },
+  { name: '玫瑰粉', hue: 0,   sat: 0,    light: 10,  contrast: 5,  color: '#ec4899', targetHex: '#ec4899', intensity: 80, protect: 88 },
+  { name: '复古',   hue: 0,   sat: -20,  light: -5,  contrast: 20, color: '#a16207', targetHex: '#a16207', intensity: 70, protect: 90 },
+  { name: '黑白',   hue: 0,   sat: -100, light: 0,   contrast: 20, color: '#374151', targetHex: '' },
+  { name: '高对比', hue: 0,   sat: 0,    light: 0,   contrast: 40, color: '#000000', targetHex: '' },
+  { name: '褪色',   hue: 0,   sat: -40,  light: 10,  contrast: -20,color: '#94a3b8', targetHex: '' },
+  { name: '冷峻',   hue: 0,   sat: -10,  light: -5,  contrast: 15, color: '#475569', targetHex: '#475569', intensity: 60, protect: 90 }
 ];
 
 var COMMON_TARGETS = [
@@ -815,7 +839,7 @@ window.addEventListener('DOMContentLoaded', function () {
   });
 
   // 滑块
-  ['hue', 'sat', 'light', 'contrast'].forEach(function (k) {
+  ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect'].forEach(function (k) {
     el(k).addEventListener('input', function () {
       var v = parseFloat(this.value);
       params[k] = v;
@@ -824,6 +848,15 @@ window.addEventListener('DOMContentLoaded', function () {
       renderPresets();
       if (MODE === 'global' && imgLoaded) { renderPreview(); }
     });
+  });
+
+  // 目标色
+  el('targetColor').addEventListener('input', function () {
+    params.targetHex = this.value;
+    el('targetHexLabel').textContent = this.value;
+    activePresetName = null;
+    renderPresets();
+    if (MODE === 'global' && imgLoaded) { renderPreview(); }
   });
 
   // 画布取色（局部模式）
@@ -947,35 +980,83 @@ function hslToRgb(h, s, l) {
 }
 
 // ============================================================
-// 全局调色（PS 风格）
+// 全局调色（PS 风格 + 目标色柔和映射）
 // ============================================================
 function applyHslAdjust(src, p) {
   var w = src.width, h = src.height;
   var srcData = src.data;
   var out = new Uint8ClampedArray(srcData.length);
+
   var hueShift = p.hue / 360;
   var satMult = 1 + p.sat / 100;
   var lightShift = p.light / 200;
   var contrast = 1 + p.contrast / 100;
   var contrastOffset = 128 * (1 - contrast);
 
+  var targetMode = p.targetHex && typeof p.targetHex === 'string' && p.targetHex.length > 0;
+  var targetHsl = targetMode ? rgbToHsl(hexToRgb(p.targetHex)[0], hexToRgb(p.targetHex)[1], hexToRgb(p.targetHex)[2]) : null;
+  var targetHue = targetMode ? targetHsl[0] : 0;
+  var targetSat = targetMode ? targetHsl[1] : 0;
+  var targetLight = targetMode ? targetHsl[2] : 0;
+  var intensity = clamp((p.intensity == null ? 100 : p.intensity) / 100, 0, 1);
+  var protect = clamp((p.protect == null ? 60 : p.protect) / 100, 0, 1);
+
   for (var i = 0; i < srcData.length; i += 4) {
     var r = srcData[i], g = srcData[i + 1], b = srcData[i + 2], a = srcData[i + 3];
+
     r = r * contrast + contrastOffset;
     g = g * contrast + contrastOffset;
     b = b * contrast + contrastOffset;
-    var hsl = rgbToHsl(
-      clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)
-    );
-    var nh = hsl[0] + hueShift;
-    if (nh > 1) nh -= 1;
-    if (nh < 0) nh += 1;
-    var ns = clamp(hsl[1] * satMult, 0, 1);
-    var nl = clamp(hsl[2] + lightShift, 0, 1);
-    var rgb = hslToRgb(nh, ns, nl);
-    out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
+    r = clamp(r, 0, 255); g = clamp(g, 0, 255); b = clamp(b, 0, 255);
+
+    var hsl = rgbToHsl(r, g, b);
+
+    if (targetMode) {
+      // 目标色柔和映射：保留原图亮度纹理，色相/饱和度向目标色靠拢
+      // 越接近白/黑/灰的像素，越受 protect 参数保护
+      var satNeutral = 1 - hsl[1];
+      var lightNeutral = 1 - Math.abs(hsl[2] - 0.5) * 2;
+      var neutral = Math.max(satNeutral, lightNeutral * 0.9);
+      var protection = clamp(neutral * protect, 0, 1);
+      var localIntensity = intensity * Math.pow(Math.max(0, 1 - protection), 2);
+
+      // 色相：最短路径转向目标色相 + 微调
+      var nh = hueLerp(hsl[0], targetHue, localIntensity) + hueShift;
+      nh = nh - Math.floor(nh);
+
+      // 饱和度：向目标饱和度靠拢，但保留原图一定比例；中性像素几乎不变
+      var ns = hsl[1] * (1 - localIntensity) + targetSat * localIntensity;
+      ns = clamp(ns * satMult, 0, 1);
+
+      // 亮度：基本保留原图亮度，允许 light 滑块调整
+      var nl = clamp(hsl[2] + lightShift, 0, 1);
+
+      // 目标色的固有亮度只轻微影响非中性区域，避免整体发黑
+      var lightMix = clamp(localIntensity * 0.25 * (1 - protection), 0, 1);
+      nl = nl * (1 - lightMix) + targetLight * nl * lightMix;
+      nl = clamp(nl, 0, 1);
+
+      var rgb = hslToRgb(nh, ns, nl);
+      out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
+    } else {
+      var nh = hsl[0] + hueShift;
+      if (nh > 1) nh -= 1;
+      if (nh < 0) nh += 1;
+      var ns = clamp(hsl[1] * satMult, 0, 1);
+      var nl = clamp(hsl[2] + lightShift, 0, 1);
+      var rgb = hslToRgb(nh, ns, nl);
+      out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
+    }
   }
   return new ImageData(out, w, h);
+}
+
+function hueLerp(a, b, t) {
+  var d = b - a;
+  if (d > 0.5) d -= 1;
+  if (d < -0.5) d += 1;
+  var v = a + d * t;
+  return v - Math.floor(v);
 }
 
 // ============================================================
@@ -1078,9 +1159,20 @@ function renderPreview() {
 // 滑块 / 重置
 // ============================================================
 function resetSlider(name) {
-  params[name] = 0;
-  el(name).value = 0;
-  el(name + 'Val').textContent = '0' + (name === 'hue' ? '°' : '');
+  var defaults = { hue: 0, sat: 0, light: 0, contrast: 0, intensity: 100, protect: 80 };
+  var v = defaults[name] == null ? 0 : defaults[name];
+  params[name] = v;
+  el(name).value = v;
+  el(name + 'Val').textContent = v + (name === 'hue' ? '°' : '');
+  activePresetName = null;
+  renderPresets();
+  if (MODE === 'global' && imgLoaded) renderPreview();
+}
+
+function clearTargetColor() {
+  params.targetHex = '';
+  el('targetColor').value = '#10b981';
+  el('targetHexLabel').textContent = '无';
   activePresetName = null;
   renderPresets();
   if (MODE === 'global' && imgLoaded) renderPreview();
@@ -1088,7 +1180,8 @@ function resetSlider(name) {
 
 function resetAll() {
   if (MODE === 'global') {
-    ['hue', 'sat', 'light', 'contrast'].forEach(resetSlider);
+    ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect'].forEach(resetSlider);
+    clearTargetColor();
     showToast('已重置全部参数', 'success');
   } else {
     initLocalDefault();
@@ -1120,14 +1213,23 @@ function renderPresets() {
 function applyPreset(p) {
   activePresetName = p.name;
   params.hue = p.hue; params.sat = p.sat; params.light = p.light; params.contrast = p.contrast;
+  params.targetHex = p.targetHex || '';
+  params.intensity = p.intensity == null ? 100 : p.intensity;
+  params.protect = p.protect == null ? 60 : p.protect;
   el('hue').value = p.hue;
   el('sat').value = p.sat;
   el('light').value = p.light;
   el('contrast').value = p.contrast;
+  el('intensity').value = params.intensity;
+  el('protect').value = params.protect;
+  el('targetColor').value = params.targetHex || '#10b981';
+  el('targetHexLabel').textContent = params.targetHex || '无';
   el('hueVal').textContent = p.hue + '°';
   el('satVal').textContent = p.sat;
   el('lightVal').textContent = p.light;
   el('contrastVal').textContent = p.contrast;
+  el('intensityVal').textContent = params.intensity;
+  el('protectVal').textContent = params.protect;
   renderPresets();
   if (MODE !== 'global') switchMode('global');
   if (imgLoaded) { renderPreview(); renderAllPreviews(); }
@@ -1470,7 +1572,8 @@ function addCurrentToBatch() {
   var name = activePresetName || ('自定义_' + (batchThemes.length + 1));
   batchThemes.push({
     name: name,
-    hue: params.hue, sat: params.sat, light: params.light, contrast: params.contrast
+    hue: params.hue, sat: params.sat, light: params.light, contrast: params.contrast,
+    targetHex: params.targetHex, intensity: params.intensity, protect: params.protect
   });
   renderBatchChips();
   showToast('已加入: ' + name, 'success');
@@ -1480,7 +1583,10 @@ function addAllThemes() {
   PRESETS.forEach(function (p) {
     if (p.name === '原图') return;
     if (batchThemes.some(function (b) { return b.name === p.name; })) return;
-    batchThemes.push({ name: p.name, hue: p.hue, sat: p.sat, light: p.light, contrast: p.contrast });
+    batchThemes.push({
+      name: p.name, hue: p.hue, sat: p.sat, light: p.light, contrast: p.contrast,
+      targetHex: p.targetHex, intensity: p.intensity, protect: p.protect
+    });
   });
   renderBatchChips();
   showToast('已加入 ' + (PRESETS.length - 1) + ' 个预设', 'success');
@@ -1503,8 +1609,9 @@ function renderBatchChips() {
     var chip = document.createElement('span');
     chip.className = 'chip';
     chip.style.borderColor = '#f5d0fe';
+    var label = t.targetHex ? (t.name + ' ' + t.targetHex) : (t.name + ' h=' + t.hue);
     chip.innerHTML =
-      '<span>' + t.name + ' (h=' + t.hue + ')</span>' +
+      '<span>' + label + '</span>' +
       '<span class="x" onclick="removeBatch(' + idx + ')">✕</span>';
     wrap.appendChild(chip);
   });
