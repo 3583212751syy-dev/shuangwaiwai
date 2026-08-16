@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ColorForge Pro v8.0 · PS风格调色</title>
+<title>ColorForge Pro v9.0 · 全局调色 + 单色替换</title>
 <style>
 :root {
   --primary: #6366f1;
@@ -102,6 +102,34 @@ body {
   font-weight: 500;
 }
 
+/* ========== 模式切换 ========== */
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.mode-tab {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+  font-weight: 600;
+  transition: all .15s;
+  color: var(--text);
+}
+.mode-tab:hover { border-color: var(--primary-light); }
+.mode-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.mode-section { display: none; }
+.mode-section.active { display: block; }
+
 /* ========== 上传区 ========== */
 .upload-zone {
   border: 2px dashed var(--border);
@@ -185,15 +213,12 @@ body {
 }
 .slider-row .reset-btn:hover { color: var(--primary); }
 
-/* 色相用彩虹渐变背景 */
 input[type=range].hue-slider {
   background: linear-gradient(to right,
     hsl(0,80%,50%), hsl(60,80%,50%), hsl(120,80%,50%),
     hsl(180,80%,50%), hsl(240,80%,50%), hsl(300,80%,50%), hsl(360,80%,50%));
 }
-input[type=range].sat-slider {
-  background: linear-gradient(to right, #808080, #ff0000);
-}
+input[type=range].sat-slider { background: linear-gradient(to right, #808080, #ff0000); }
 
 /* ========== 预设主题 ========== */
 .theme-grid {
@@ -213,14 +238,8 @@ input[type=range].sat-slider {
   font-weight: 500;
   color: var(--text);
 }
-.theme-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-.theme-card.selected {
-  border-color: var(--primary);
-  background: #f0f3ff;
-}
+.theme-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.theme-card.selected { border-color: var(--primary); background: #f0f3ff; }
 .theme-card .preview {
   width: 100%;
   height: 28px;
@@ -228,6 +247,94 @@ input[type=range].sat-slider {
   margin-bottom: 4px;
   border: 1px solid rgba(0,0,0,.08);
 }
+
+/* ========== 局部改色 ========== */
+.local-panel {
+  background: linear-gradient(135deg, #fefce8 0%, #f0fdfa 100%);
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 12px;
+}
+.local-panel .panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #a16207;
+  margin-bottom: 8px;
+}
+.local-hint {
+  font-size: 11px;
+  color: var(--text-light);
+  background: white;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+  line-height: 1.7;
+}
+.palette-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.palette-suggest .sw {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.1);
+  cursor: pointer;
+}
+.palette-suggest .sw:hover { transform: scale(1.1); }
+
+.local-pair {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.local-pair.active { border-color: var(--primary); }
+.pair-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.pair-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,.15);
+  flex: none;
+  background: #eee;
+}
+.pair-title { flex: 1; font-size: 12px; font-weight: 600; }
+.pair-sub { font-size: 10px; color: var(--text-light); font-weight: 400; }
+.pair-x {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.pair-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+.pair-row label { font-size: 11px; color: var(--text-light); min-width: 46px; }
+.pair-row input[type=color] {
+  width: 34px; height: 24px; border: none; background: none; padding: 0; cursor: pointer;
+}
+.pair-row input[type=range] {
+  flex: 1; height: 3px; -webkit-appearance: none; background: #e5e7eb; border-radius: 2px;
+}
+.pair-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 13px; height: 13px; background: var(--primary); border-radius: 50%; cursor: pointer;
+}
+.pair-row .num { font-size: 10px; font-family: monospace; min-width: 26px; text-align: right; color: var(--primary); }
 
 /* ========== 主预览区 ========== */
 .main {
@@ -237,7 +344,6 @@ input[type=range].sat-slider {
   flex-direction: column;
   gap: 12px;
 }
-
 .preview-card {
   background: var(--surface);
   border-radius: 12px;
@@ -246,6 +352,7 @@ input[type=range].sat-slider {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 420px;
 }
 .preview-header {
   display: flex;
@@ -259,7 +366,6 @@ input[type=range].sat-slider {
   color: var(--text-light);
   font-family: monospace;
 }
-
 .canvas-wrap {
   flex: 1;
   background: #f3f4f6;
@@ -275,79 +381,65 @@ input[type=range].sat-slider {
     linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 16px 16px;
   background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-  min-height: 400px;
+  min-height: 300px;
   position: relative;
 }
 .canvas-wrap canvas {
   max-width: 100%;
-  max-height: 70vh;
+  max-height: 60vh;
   border-radius: 6px;
   display: block;
   box-shadow: 0 4px 12px rgba(0,0,0,.1);
 }
-.canvas-empty {
-  text-align: center;
-  color: var(--text-light);
-  padding: 60px 20px;
-}
+.canvas-wrap canvas.pick { cursor: crosshair; }
+.canvas-empty { text-align: center; color: var(--text-light); padding: 60px 20px; }
 .canvas-empty .icon { font-size: 64px; margin-bottom: 12px; }
 .canvas-empty h4 { font-size: 16px; margin-bottom: 6px; color: var(--text); }
 .canvas-empty p { font-size: 12px; }
-
 .canvas-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-  align-items: center;
+  display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center;
 }
+
+/* ========== 全部预览 ========== */
+.all-preview-card { background: var(--surface); border-radius: 12px; padding: 14px; box-shadow: var(--shadow); }
+.all-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.thumb {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: center;
+  font-size: 11px;
+}
+.thumb:hover { border-color: var(--primary-light); transform: translateY(-2px); }
+.thumb.selected { border-color: var(--primary); }
+.thumb canvas { width: 100%; display: block; }
+.thumb .tname { padding: 3px 2px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thumb .tswatch { display:inline-block; width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:3px;border:1px solid rgba(0,0,0,.1); }
 
 /* ========== 按钮 ========== */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 8px 14px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: var(--surface); color: var(--text);
+  cursor: pointer; transition: all .15s; font-family: inherit;
 }
 .btn:hover { background: #f9fafb; border-color: var(--primary-light); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-.btn-primary:hover {
-  background: var(--primary-dark);
-  border-color: var(--primary-dark);
-}
-.btn-success {
-  background: var(--success);
-  color: white;
-  border-color: var(--success);
-}
-.btn-ghost {
-  background: transparent;
-  border-color: transparent;
-}
+.btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; border-color: var(--success); }
+.btn-ghost { background: transparent; border-color: transparent; }
 .btn-ghost:hover { background: #f1f5f9; }
-.btn-danger {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-.btn-danger:hover {
-  background: var(--danger);
-  color: white;
-}
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: white; }
 .btn-full { width: 100%; }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
 
@@ -359,85 +451,47 @@ input[type=range].sat-slider {
   padding: 16px;
 }
 .batch-section .section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: #86198f;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  font-size: 13px; font-weight: 600; color: #86198f;
+  margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
 }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 12px; border: 1px solid;
+  font-size: 11px; background: white; color: #86198f;
+}
+.chip .x { cursor: pointer; font-weight: 700; }
 
 /* ========== 结果网格 ========== */
 .results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
-  margin-top: 10px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px; margin-top: 10px;
 }
-.result-card {
-  background: white;
-  border-radius: 8px;
-  padding: 6px;
-  border: 1px solid var(--border);
-}
-.result-card img {
-  width: 100%;
-  border-radius: 4px;
-  display: block;
-  margin-bottom: 4px;
-  aspect-ratio: 1;
-  object-fit: cover;
-}
-.result-card .info {
-  font-size: 11px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.result-card { background: white; border-radius: 8px; padding: 6px; border: 1px solid var(--border); }
+.result-card img { width: 100%; border-radius: 4px; display: block; margin-bottom: 4px; aspect-ratio: 1; object-fit: cover; }
+.result-card .info { font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
 .result-card .swatch {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  border: 1px solid rgba(0,0,0,.1);
-  vertical-align: middle;
-  margin-right: 4px;
+  display: inline-block; width: 14px; height: 14px; border-radius: 4px;
+  border: 1px solid rgba(0,0,0,.1); vertical-align: middle; margin-right: 4px;
 }
 
-/* ========== Toast ========== */
+/* ========== Toast / Loading ========== */
 .toast {
-  position: fixed;
-  top: 80px;
-  right: 16px;
-  background: #1f2937;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  box-shadow: var(--shadow-lg);
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all .25s;
-  pointer-events: none;
-  z-index: 9999;
-  max-width: 320px;
+  position: fixed; top: 80px; right: 16px; background: #1f2937; color: white;
+  padding: 10px 16px; border-radius: 8px; font-size: 13px;
+  box-shadow: var(--shadow-lg); opacity: 0; transform: translateY(-20px);
+  transition: all .25s; pointer-events: none; z-index: 9999; max-width: 320px;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.success { background: var(--success); }
 .toast.error { background: var(--danger); }
 .toast.warn { background: var(--warning); }
 
-/* ========== Loading ========== */
 .loading-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none;
   align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px);
 }
 .loading-overlay.show { display: flex; }
-.loading-box {
-  background: white; padding: 24px 32px; border-radius: 12px;
-  text-align: center; box-shadow: var(--shadow-lg); min-width: 280px;
-}
+.loading-box { background: white; padding: 24px 32px; border-radius: 12px; text-align: center; box-shadow: var(--shadow-lg); min-width: 280px; }
 .loading-box .spin {
   width: 36px; height: 36px; border: 3px solid #e5e7eb;
   border-top-color: var(--primary); border-radius: 50%;
@@ -445,13 +499,8 @@ input[type=range].sat-slider {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-box .text { font-size: 13px; color: var(--text); }
-.progress-bar {
-  width: 240px; height: 4px; background: #e5e7eb;
-  border-radius: 2px; margin-top: 12px; overflow: hidden;
-}
-.progress-fill {
-  height: 100%; background: var(--primary); width: 0; transition: width .2s;
-}
+.progress-bar { width: 240px; height: 4px; background: #e5e7eb; border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--primary); width: 0; transition: width .2s; }
 
 .hidden { display: none !important; }
 
@@ -467,7 +516,7 @@ input[type=range].sat-slider {
   <div class="logo">
     <span>🎨</span>
     <span>ColorForge Pro</span>
-    <span class="badge">v8.0 · PS风格</span>
+    <span class="badge">v9.0 · 全局 + 单色</span>
   </div>
   <div class="topbar-actions">
     <button class="btn" onclick="resetAll()">🔄 重置全部</button>
@@ -489,58 +538,90 @@ input[type=range].sat-slider {
       <input type="file" id="fileInput" accept="image/*" style="display:none">
     </div>
 
-    <!-- PS 风格调色滑块 -->
-    <div class="ps-panel">
-      <div class="panel-title">🎚️ PS 风格调色 (Ctrl+U)</div>
+    <!-- 模式切换 -->
+    <div class="mode-tabs">
+      <div class="mode-tab active" id="tabGlobal" onclick="switchMode('global')">🌐 全图调色</div>
+      <div class="mode-tab" id="tabLocal" onclick="switchMode('local')">🎯 单色替换</div>
+    </div>
 
-      <div class="slider-group">
-        <div class="slider-row">
-          <label>色相 Hue</label>
-          <input type="range" id="hue" class="hue-slider" min="-180" max="180" value="0" step="1">
-          <span class="val" id="hueVal">0°</span>
-          <button class="reset-btn" onclick="resetSlider('hue')" title="重置">↺</button>
+    <!-- 全局调色 -->
+    <div class="mode-section active" id="secGlobal">
+      <div class="ps-panel">
+        <div class="panel-title">🎚️ PS 风格全图调色</div>
+        <div class="slider-group">
+          <div class="slider-row">
+            <label>色相 Hue</label>
+            <input type="range" id="hue" class="hue-slider" min="-180" max="180" value="0" step="1">
+            <span class="val" id="hueVal">0°</span>
+            <button class="reset-btn" onclick="resetSlider('hue')" title="重置">↺</button>
+          </div>
+          <div class="slider-row">
+            <label>饱和 Sat</label>
+            <input type="range" id="sat" class="sat-slider" min="-100" max="100" value="0" step="1">
+            <span class="val" id="satVal">0</span>
+            <button class="reset-btn" onclick="resetSlider('sat')" title="重置">↺</button>
+          </div>
+          <div class="slider-row">
+            <label>亮度 Light</label>
+            <input type="range" id="light" min="-100" max="100" value="0" step="1">
+            <span class="val" id="lightVal">0</span>
+            <button class="reset-btn" onclick="resetSlider('light')" title="重置">↺</button>
+          </div>
+          <div class="slider-row">
+            <label>对比 Cont</label>
+            <input type="range" id="contrast" min="-100" max="100" value="0" step="1">
+            <span class="val" id="contrastVal">0</span>
+            <button class="reset-btn" onclick="resetSlider('contrast')" title="重置">↺</button>
+          </div>
         </div>
-        <div class="slider-row">
-          <label>饱和 Sat</label>
-          <input type="range" id="sat" class="sat-slider" min="-100" max="100" value="0" step="1">
-          <span class="val" id="satVal">0</span>
-          <button class="reset-btn" onclick="resetSlider('sat')" title="重置">↺</button>
+      </div>
+
+      <div class="card">
+        <h3>🎯 预设主题 <button class="btn btn-sm btn-ghost" onclick="resetTheme()">清空</button></h3>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div style="margin-top:10px; display:flex; gap:4px;">
+          <button class="btn btn-sm" onclick="addCurrentToBatch()">➕ 加入批量</button>
+          <button class="btn btn-sm btn-primary" onclick="addAllThemes()">⚡ 全部加入</button>
         </div>
-        <div class="slider-row">
-          <label>亮度 Light</label>
-          <input type="range" id="light" min="-100" max="100" value="0" step="1">
-          <span class="val" id="lightVal">0</span>
-          <button class="reset-btn" onclick="resetSlider('light')" title="重置">↺</button>
+      </div>
+
+      <div class="batch-section">
+        <div class="section-title">
+          <span>📦 批量生成 <span class="badge" id="batchBadge" style="background:#86198f">0</span></span>
+          <button class="btn btn-sm btn-ghost" onclick="clearBatch()">清空</button>
         </div>
-        <div class="slider-row">
-          <label>对比 Cont</label>
-          <input type="range" id="contrast" min="-100" max="100" value="0" step="1">
-          <span class="val" id="contrastVal">0</span>
-          <button class="reset-btn" onclick="resetSlider('contrast')" title="重置">↺</button>
+        <div id="batchChips" style="min-height:32px;display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:rgba(255,255,255,.6);border-radius:8px;margin-bottom:10px;">
+          <div style="font-size:11px;color:#86198f;width:100%;text-align:center;padding:4px;">还没添加主题</div>
         </div>
+        <button class="btn btn-primary btn-full" onclick="generateBatch()">🚀 批量生成全部主题</button>
       </div>
     </div>
 
-    <!-- 预设主题 -->
-    <div class="card">
-      <h3>🎯 预设主题 <button class="btn btn-sm btn-ghost" onclick="resetTheme()">清空</button></h3>
-      <div class="theme-grid" id="themeGrid"></div>
-      <div style="margin-top:10px; display:flex; gap:4px;">
-        <button class="btn btn-sm" onclick="addCurrentToBatch()">➕ 加入批量</button>
-        <button class="btn btn-sm btn-primary" onclick="addAllThemes()">⚡ 全部加入</button>
-      </div>
-    </div>
+    <!-- 单色替换 -->
+    <div class="mode-section" id="secLocal">
+      <div class="local-panel">
+        <div class="panel-title">🎯 单色替换（保纹理）</div>
+        <div class="local-hint">
+          ① 点击右侧图片上的颜色 → 采集源色<br>
+          ② 选择目标色（下方 30 常用色 / 自定义）<br>
+          ③ 调容差/羽化 → 只替换所选色，保留光影纹理
+        </div>
 
-    <!-- 批量生成 -->
-    <div class="batch-section">
-      <div class="section-title">
-        <span>📦 批量生成 <span class="badge" id="batchBadge" style="background:#86198f">0</span></span>
-        <button class="btn btn-sm btn-ghost" onclick="clearBatch()">清空</button>
+        <div class="palette-suggest" id="paletteSuggest"></div>
+
+        <div id="localPairs"></div>
+
+        <div style="display:flex;gap:4px;margin-top:6px;">
+          <button class="btn btn-sm" onclick="addPair()">➕ 加一组</button>
+          <button class="btn btn-sm btn-danger" onclick="clearLocalPairs()">🗑 清空</button>
+        </div>
       </div>
-      <div id="batchChips" style="min-height:32px;display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:rgba(255,255,255,.6);border-radius:8px;margin-bottom:10px;">
-        <div style="font-size:11px;color:#86198f;width:100%;text-align:center;padding:4px;">还没添加主题</div>
+
+      <div class="card">
+        <h3>🌈 常用目标色（30）</h3>
+        <div class="palette-suggest" id="commonTargets" style="margin-bottom:0"></div>
+        <div style="font-size:10px;color:var(--text-light);margin-top:8px;">点击目标色 → 应用到当前选中组；右侧「全部预览」会生成 30 色效果</div>
       </div>
-      <button class="btn btn-primary btn-full" onclick="generateBatch()">🚀 批量生成全部主题</button>
     </div>
 
   </aside>
@@ -550,14 +631,14 @@ input[type=range].sat-slider {
 
     <div class="preview-card">
       <div class="preview-header">
-        <h3>👁️ 实时预览</h3>
+        <h3 id="previewTitle">👁️ 实时预览 · 全图调色</h3>
         <span class="meta" id="imgInfo">未上传图片</span>
       </div>
       <div class="canvas-wrap" id="canvasWrap">
         <div class="canvas-empty" id="emptyState">
           <div class="icon">🖼️</div>
-          <h4>上传图片开始调色</h4>
-          <p>左侧调整色相/饱和度/亮度/对比度<br>或点击下方预设主题一键应用</p>
+          <h4>上传图片开始改色</h4>
+          <p>全图调色 / 单色替换 两种模式自由切换<br>上传后自动生成全部效果预览</p>
         </div>
         <canvas id="srcCanvas" style="display:none"></canvas>
       </div>
@@ -565,9 +646,18 @@ input[type=range].sat-slider {
         <button class="btn" onclick="zoomFit()">📐 适应窗口</button>
         <button class="btn" onclick="zoom100()">🔍 100%</button>
         <span style="flex:1"></span>
-        <span style="font-size:11px;color:var(--text-light);">
-          💡 拖动滑块实时预览
-        </span>
+        <span style="font-size:11px;color:var(--text-light);" id="canvasHint">💡 拖动左侧滑块实时预览</span>
+      </div>
+    </div>
+
+    <!-- 全部预览 -->
+    <div class="all-preview-card">
+      <div class="preview-header" style="margin-bottom:6px;">
+        <h3>🖼️ 全部预览 <span class="meta" id="allPreviewMeta"></span></h3>
+        <button class="btn btn-sm" onclick="renderAllPreviews(true)">🔄 刷新</button>
+      </div>
+      <div class="all-preview-grid" id="allPreviewGrid">
+        <div style="grid-column:1/-1;font-size:12px;color:var(--text-light);text-align:center;padding:20px;">上传图片后自动生成全部预览</div>
       </div>
     </div>
 
@@ -575,7 +665,7 @@ input[type=range].sat-slider {
     <div class="card" id="resultsCard" style="display:none">
       <h3>📦 生成结果 <span class="badge" id="resultBadge">0 张</span></h3>
       <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button class="btn btn-sm btn-success" onclick="downloadZip()">📦 ZIP打包下载</button>
+        <button class="btn btn-sm btn-success" id="btnDownloadZip" onclick="downloadZip()">📦 ZIP打包下载</button>
         <button class="btn btn-sm" onclick="downloadAll()">📥 全部单独下载</button>
       </div>
       <div class="results-grid" id="resultsGrid"></div>
@@ -593,151 +683,228 @@ input[type=range].sat-slider {
   </div>
 </div>
 
+<!-- 本地第三方库（colorforge-libs/vendor） -->
+<script src="colorforge-libs/vendor/jszip.min.js"
+        onerror="var s=document.createElement('script');s.src='https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js';document.head.appendChild(s);"></script>
+<script src="colorforge-libs/vendor/chroma.min.js"
+        onerror="var s=document.createElement('script');s.src='https://cdn.bootcdn.net/ajax/libs/chroma-js/2.4.2/chroma.min.js';document.head.appendChild(s);"></script>
+<script src="colorforge-libs/vendor/color-thief.min.js"
+        onerror="var s=document.createElement('script');s.src='https://cdn.bootcdn.net/ajax/libs/color-thief/2.6.0/color-thief.umd.min.js';document.head.appendChild(s);"></script>
+
 <script>
+// ============================================================
+// 工具
+// ============================================================
+function el(id) { return document.getElementById(id); }
+function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+function smoothstep(e0, e1, x) {
+  var t = clamp((x - e0) / (e1 - e0 || 1e-6), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+function hueDistance(a, b) { var d = Math.abs(a - b); return d > 0.5 ? 1 - d : d; }
+function rgbToHex(rgb) {
+  function h(v) { var s = clamp(Math.round(v), 0, 255).toString(16); return s.length < 2 ? '0' + s : s; }
+  return '#' + h(rgb[0]) + h(rgb[1]) + h(rgb[2]);
+}
+function hexToRgb(hex) {
+  var m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
+  return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)] : [255, 0, 0];
+}
+
 // ============================================================
 // 全局状态
 // ============================================================
-var canvas, ctx;
-var originalImage = null;          // 原图 Image 对象
-var originalImageData = null;      // 原图像素数据快照
-var currentImageData = null;       // 当前显示的像素数据
+var canvas, ctx, originalCanvas;
+var originalImage = null;
+var originalImageData = null;
+var currentImageData = null;
 var imgLoaded = false;
-var generatedBlobs = [];           // 批量生成的结果 [{name, blob, url}]
-var batchThemes = [];              // 批量主题 [{name, hue, sat, light, contrast}]
-var activePresetName = null;       // 当前选中的预设名
+var generatedBlobs = [];
+var batchThemes = [];
+var activePresetName = null;
 
-// PS 调色参数
-var params = {
-  hue: 0,        // -180 ~ 180
-  sat: 0,        // -100 ~ 100
-  light: 0,      // -100 ~ 100
-  contrast: 0    // -100 ~ 100
-};
+var MODE = 'global';
+var params = { hue: 0, sat: 0, light: 0, contrast: 0 };
 
-// 预设主题 (基于 HSL 偏移值)
+// 局部改色
+var localPairs = [];
+var activePairId = null;
+var nextPairId = 1;
+
 var PRESETS = [
-  { name: '原图',      hue: 0,   sat: 0,    light: 0,    contrast: 0,    color: '#888' },
-  { name: '暖红',      hue: -30, sat: 30,   light: 5,    contrast: 10,   color: '#ef4444' },
-  { name: '橙黄',      hue: -50, sat: 40,   light: 10,   contrast: 5,    color: '#f59e0b' },
-  { name: '金秋',      hue: -45, sat: 20,   light: 5,    contrast: 15,   color: '#d97706' },
-  { name: '翠绿',      hue: 90,  sat: 30,   light: 0,    contrast: 5,    color: '#10b981' },
-  { name: '森林',      hue: 120, sat: 20,   light: -10,  contrast: 15,   color: '#166534' },
-  { name: '青蓝',      hue: 150, sat: 40,   light: 0,    contrast: 10,   color: '#06b6d4' },
-  { name: '深海',      hue: 170, sat: 30,   light: -15,  contrast: 20,   color: '#1e3a8a' },
-  { name: '宝蓝',      hue: 180, sat: 30,   light: 0,    contrast: 5,    color: '#3b82f6' },
-  { name: '紫罗兰',    hue: 220, sat: 30,   light: 5,    contrast: 10,   color: '#8b5cf6' },
-  { name: '玫瑰粉',    hue: -100,sat: 20,   light: 10,   contrast: 5,    color: '#ec4899' },
-  { name: '复古',      hue: -20, sat: -20,  light: -5,   contrast: 20,   color: '#a16207' },
-  { name: '黑白',      hue: 0,   sat: -100, light: 0,    contrast: 20,   color: '#374151' },
-  { name: '高对比',    hue: 0,   sat: 10,   light: 0,    contrast: 40,   color: '#000' },
-  { name: '褪色',      hue: 0,   sat: -40,  light: 10,   contrast: -20,  color: '#94a3b8' },
-  { name: '冷峻',      hue: 30,  sat: -10,  light: -5,   contrast: 15,   color: '#475569' }
+  { name: '原图',   hue: 0,   sat: 0,    light: 0,   contrast: 0,  color: '#888888' },
+  { name: '暖红',   hue: -30, sat: 30,   light: 5,   contrast: 10, color: '#ef4444' },
+  { name: '橙黄',   hue: -50, sat: 40,   light: 10,  contrast: 5,  color: '#f59e0b' },
+  { name: '金秋',   hue: -45, sat: 20,   light: 5,   contrast: 15, color: '#d97706' },
+  { name: '翠绿',   hue: 90,  sat: 30,   light: 0,   contrast: 5,  color: '#10b981' },
+  { name: '森林',   hue: 120, sat: 20,   light: -10, contrast: 15, color: '#166534' },
+  { name: '青蓝',   hue: 150, sat: 40,   light: 0,   contrast: 10, color: '#06b6d4' },
+  { name: '深海',   hue: 170, sat: 30,   light: -15, contrast: 20, color: '#1e3a8a' },
+  { name: '宝蓝',   hue: 180, sat: 30,   light: 0,   contrast: 5,  color: '#3b82f6' },
+  { name: '紫罗兰', hue: 220, sat: 30,   light: 5,   contrast: 10, color: '#8b5cf6' },
+  { name: '玫瑰粉', hue: -100,sat: 20,   light: 10,  contrast: 5,  color: '#ec4899' },
+  { name: '复古',   hue: -20, sat: -20,  light: -5,  contrast: 20, color: '#a16207' },
+  { name: '黑白',   hue: 0,   sat: -100, light: 0,   contrast: 20, color: '#374151' },
+  { name: '高对比', hue: 0,   sat: 10,   light: 0,   contrast: 40, color: '#000000' },
+  { name: '褪色',   hue: 0,   sat: -40,  light: 10,  contrast: -20,color: '#94a3b8' },
+  { name: '冷峻',   hue: 30,  sat: -10,  light: -5,  contrast: 15, color: '#475569' }
+];
+
+var COMMON_TARGETS = [
+  { name: '正红',     hex: '#ff0000' },
+  { name: '橙红',     hex: '#ff4500' },
+  { name: '橙色',     hex: '#ff8c00' },
+  { name: '琥珀',     hex: '#ffbf00' },
+  { name: '金黄',     hex: '#ffd700' },
+  { name: '柠檬黄',   hex: '#fff44f' },
+  { name: '草绿',     hex: '#7cfc00' },
+  { name: '翠绿',     hex: '#00c853' },
+  { name: '松绿',     hex: '#0f9d58' },
+  { name: '薄荷',     hex: '#98ff98' },
+  { name: '青色',     hex: '#00bcd4' },
+  { name: '天蓝',     hex: '#2196f3' },
+  { name: '宝蓝',     hex: '#304ffe' },
+  { name: '海军蓝',   hex: '#001f3f' },
+  { name: '紫罗兰',   hex: '#9c27b0' },
+  { name: '薰衣草',   hex: '#e6e6fa' },
+  { name: '玫红',     hex: '#e91e63' },
+  { name: '粉色',     hex: '#ff80ab' },
+  { name: '珊瑚',     hex: '#ff7f50' },
+  { name: '番茄',     hex: '#ff6347' },
+  { name: '棕色',     hex: '#795548' },
+  { name: '巧克力',   hex: '#d2691e' },
+  { name: '肤色',     hex: '#ffccbc' },
+  { name: '橄榄',     hex: '#808000' },
+  { name: '金色',     hex: '#f5c542' },
+  { name: '银色',     hex: '#c0c0c0' },
+  { name: '铜色',     hex: '#b87333' },
+  { name: '深灰',     hex: '#424242' },
+  { name: '浅灰',     hex: '#bdbdbd' },
+  { name: '黑色',     hex: '#1a1a1a' }
 ];
 
 // ============================================================
 // 初始化
 // ============================================================
-window.addEventListener('DOMContentLoaded', function() {
-  canvas = document.getElementById('srcCanvas');
+window.addEventListener('DOMContentLoaded', function () {
+  canvas = el('srcCanvas');
   ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-  // 上传
-  document.getElementById('uploadZone').addEventListener('click', function() {
-    document.getElementById('fileInput').click();
-  });
-  document.getElementById('fileInput').addEventListener('change', function(e) {
+  el('uploadZone').addEventListener('click', function () { el('fileInput').click(); });
+  el('fileInput').addEventListener('change', function (e) {
     if (e.target.files && e.target.files[0]) loadImage(e.target.files[0]);
   });
 
-  // 拖拽上传
-  var dropZone = document.getElementById('uploadZone');
-  ['dragenter','dragover'].forEach(function(ev) {
-    dropZone.addEventListener(ev, function(e) {
+  var dropZone = el('uploadZone');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) {
       e.preventDefault(); e.stopPropagation();
       dropZone.style.borderColor = 'var(--primary)';
       dropZone.style.background = '#eef2ff';
     });
   });
-  ['dragleave','drop'].forEach(function(ev) {
-    dropZone.addEventListener(ev, function(e) {
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) {
       e.preventDefault(); e.stopPropagation();
       dropZone.style.borderColor = '';
       dropZone.style.background = '';
     });
   });
-  dropZone.addEventListener('drop', function(e) {
+  dropZone.addEventListener('drop', function (e) {
     if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
   });
 
-  // 滑块监听
-  ['hue','sat','light','contrast'].forEach(function(k) {
-    var slider = document.getElementById(k);
-    slider.addEventListener('input', function() {
+  // 滑块
+  ['hue', 'sat', 'light', 'contrast'].forEach(function (k) {
+    el(k).addEventListener('input', function () {
       var v = parseFloat(this.value);
       params[k] = v;
-      var label = k === 'hue' ? '°' : '';
-      document.getElementById(k + 'Val').textContent = v + label;
-      activePresetName = null;       // 手动调时取消预设高亮
+      el(k + 'Val').textContent = v + (k === 'hue' ? '°' : '');
+      activePresetName = null;
       renderPresets();
-      if (imgLoaded) renderPreview();
+      if (MODE === 'global' && imgLoaded) { renderPreview(); }
     });
   });
 
-  // 渲染预设按钮
-  renderPresets();
+  // 画布取色（局部模式）
+  canvas.addEventListener('click', function (e) {
+    if (MODE !== 'local' || !imgLoaded) return;
+    var rect = canvas.getBoundingClientRect();
+    var x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width));
+    var y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height));
+    x = clamp(x, 0, canvas.width - 1);
+    y = clamp(y, 0, canvas.height - 1);
+    var idx = (y * canvas.width + x) * 4;
+    var d = originalImageData.data;
+    pickSourceColor([d[idx], d[idx + 1], d[idx + 2]]);
+  });
+  canvas.addEventListener('touchstart', function (e) {
+    if (MODE !== 'local' || !imgLoaded || !e.touches[0]) return;
+    var t = e.touches[0];
+    var rect = canvas.getBoundingClientRect();
+    var x = Math.floor((t.clientX - rect.left) * (canvas.width / rect.width));
+    var y = Math.floor((t.clientY - rect.top) * (canvas.height / rect.height));
+    x = clamp(x, 0, canvas.width - 1);
+    y = clamp(y, 0, canvas.height - 1);
+    var idx = (y * canvas.width + x) * 4;
+    var d = originalImageData.data;
+    pickSourceColor([d[idx], d[idx + 1], d[idx + 2]]);
+  }, { passive: true });
 
-  // 启动 banner toast
-  showToast('👋 上传图片开始调色', 'success');
+  renderPresets();
+  renderCommonTargets();
+  switchMode('global');
+  showToast('👋 上传图片开始改色', 'success');
 });
 
 // ============================================================
 // 图片加载
 // ============================================================
 function loadImage(file) {
-  if (!file || !file.type.startsWith('image/')) {
+  if (!file || !file.type || file.type.indexOf('image/') !== 0) {
     showToast('请上传图片文件', 'error');
     return;
   }
   var reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     var img = new Image();
-    img.onload = function() {
+    img.onload = function () {
       originalImage = img;
-      // 限制最大尺寸
       var maxW = 1600, maxH = 1600;
       var w = img.width, h = img.height;
       if (w > maxW || h > maxH) {
         var s = Math.min(maxW / w, maxH / h);
         w = Math.round(w * s); h = Math.round(h * s);
       }
+      originalCanvas = document.createElement('canvas');
+      originalCanvas.width = w;
+      originalCanvas.height = h;
+      var octx = originalCanvas.getContext('2d', { willReadFrequently: true });
+      octx.drawImage(img, 0, 0, w, h);
+      originalImageData = octx.getImageData(0, 0, w, h);
+
       canvas.width = w;
       canvas.height = h;
-      ctx.filter = 'none';
-      ctx.drawImage(img, 0, 0, w, h);
-      originalImageData = ctx.getImageData(0, 0, w, h);
-      currentImageData = new ImageData(
-        new Uint8ClampedArray(originalImageData.data),
-        originalImageData.width,
-        originalImageData.height
-      );
-      imgLoaded = true;
-      // UI 更新
-      document.getElementById('emptyState').style.display = 'none';
       canvas.style.display = 'block';
-      document.getElementById('imgInfo').textContent =
+      el('emptyState').style.display = 'none';
+      el('imgInfo').textContent =
         img.width + 'x' + img.height + (w !== img.width ? ' (压缩到 ' + w + 'x' + h + ')' : '');
-      // 首次渲染
+      imgLoaded = true;
+
+      initLocalDefault();
+      renderPaletteSuggest();
       renderPreview();
+      renderAllPreviews();
       showToast('✅ 图片已加载 (' + w + 'x' + h + ')', 'success');
     };
-    img.onerror = function() { showToast('图片加载失败', 'error'); };
+    img.onerror = function () { showToast('图片加载失败', 'error'); };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
 // ============================================================
-// PS 风格调色算法 (RGB → HSL → 调整 → RGB)
+// 色彩空间
 // ============================================================
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
@@ -751,6 +918,7 @@ function rgbToHsl(r, g, b) {
       case r: h = (g - b) / d + (g < b ? 6 : 0); break;
       case g: h = (b - r) / d + 2; break;
       case b: h = (r - g) / d + 4; break;
+      default: h = 0;
     }
     h /= 6;
   }
@@ -761,128 +929,208 @@ function hslToRgb(h, s, l) {
   var r, g, b;
   if (s === 0) { r = g = b = l; }
   else {
-    var hue2rgb = function(p, q, t) {
+    var hue2rgb = function (p, q, t) {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
       return p;
     };
     var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     var p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1/3);
+    r = hue2rgb(p, q, h + 1 / 3);
     g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1/3);
+    b = hue2rgb(p, q, h - 1 / 3);
   }
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 
+// ============================================================
+// 全局调色（PS 风格）
+// ============================================================
 function applyHslAdjust(src, p) {
   var w = src.width, h = src.height;
   var srcData = src.data;
   var out = new Uint8ClampedArray(srcData.length);
-  var hueShift = p.hue / 360;        // -0.5 ~ 0.5
-  var satMult = 1 + p.sat / 100;     // 0 ~ 2
-  var lightShift = p.light / 200;    // -0.5 ~ 0.5
-  var contrast = 1 + p.contrast / 100; // 0 ~ 2
+  var hueShift = p.hue / 360;
+  var satMult = 1 + p.sat / 100;
+  var lightShift = p.light / 200;
+  var contrast = 1 + p.contrast / 100;
   var contrastOffset = 128 * (1 - contrast);
 
   for (var i = 0; i < srcData.length; i += 4) {
-    var r = srcData[i], g = srcData[i+1], b = srcData[i+2], a = srcData[i+3];
-
-    // 对比度
+    var r = srcData[i], g = srcData[i + 1], b = srcData[i + 2], a = srcData[i + 3];
     r = r * contrast + contrastOffset;
     g = g * contrast + contrastOffset;
     b = b * contrast + contrastOffset;
-
-    // 转 HSL 调色相和饱和度
     var hsl = rgbToHsl(
-      Math.min(255, Math.max(0, r)),
-      Math.min(255, Math.max(0, g)),
-      Math.min(255, Math.max(0, b))
+      clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)
     );
-
-    // 色相偏移 (走最短路径)
     var nh = hsl[0] + hueShift;
     if (nh > 1) nh -= 1;
     if (nh < 0) nh += 1;
-
-    // 饱和度
-    var ns = Math.min(1, Math.max(0, hsl[1] * satMult));
-
-    // 亮度
-    var nl = Math.min(1, Math.max(0, hsl[2] + lightShift));
-
+    var ns = clamp(hsl[1] * satMult, 0, 1);
+    var nl = clamp(hsl[2] + lightShift, 0, 1);
     var rgb = hslToRgb(nh, ns, nl);
-    out[i] = rgb[0]; out[i+1] = rgb[1]; out[i+2] = rgb[2]; out[i+3] = a;
+    out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
   }
   return new ImageData(out, w, h);
 }
 
 // ============================================================
-// 实时预览渲染
+// 单色替换（保纹理 / 平滑过渡）
+// distance = RGB欧氏*0.5 + 色相差*0.25 + 明度差*0.15 + 饱和差*0.1
+// weight  = 1 - smoothstep(tolerance, tolerance+feather, distance)
+// ============================================================
+function applyLocalReplace(src, pairs) {
+  var w = src.width, h = src.height;
+  var srcData = src.data;
+  var out = new Uint8ClampedArray(srcData.length);
+  out.set(srcData);                       // 未命中像素保持原图
+  var bestW = new Float32Array(w * h);
+
+  var list = (pairs || []).filter(function (p) { return p && p.sourceRgb; });
+  if (list.length === 0) {
+    return new ImageData(out, w, h);
+  }
+
+  for (var pi = 0; pi < list.length; pi++) {
+    var s = list[pi].sourceRgb;
+    var t = list[pi].targetRgb || hexToRgb(list[pi].targetHex || '#ff0000');
+    var sh = rgbToHsl(s[0], s[1], s[2]);
+    var th = rgbToHsl(t[0], t[1], t[2]);
+    var tol = clamp(list[pi].tolerance / 200, 0, 1);
+    var feather = clamp(list[pi].feather / 100, 0.005, 1);
+    var edge1 = tol + feather;
+    var dHue = th[0] - sh[0];
+    var satScale = sh[1] > 0.001 ? th[1] / sh[1] : 1;
+    var lightScale = sh[2] > 0.001 ? th[2] / sh[2] : 1;
+
+    for (var i = 0; i < srcData.length; i += 4) {
+      var r = srcData[i], g = srcData[i + 1], b = srcData[i + 2];
+      var dr = (r - s[0]) / 255, dg = (g - s[1]) / 255, db = (b - s[2]) / 255;
+      var dRGB = Math.sqrt(dr * dr + dg * dg + db * db) / 1.7320508;
+      if (dRGB > edge1) continue;
+
+      var hsl = rgbToHsl(r, g, b);
+      var dh = hueDistance(hsl[0], sh[0]) / 0.5;
+      var dSat = Math.abs(hsl[1] - sh[1]);
+      var dLight = Math.abs(hsl[2] - sh[2]);
+      var distance = dRGB * 0.5 + dh * 0.25 + dLight * 0.15 + dSat * 0.1;
+      if (distance > edge1) continue;
+
+      var wt = 1 - smoothstep(tol, edge1, distance);
+      if (wt <= 0) continue;
+
+      var pix = i / 4;
+      if (wt <= bestW[pix]) continue;
+      bestW[pix] = wt;
+
+      var nh = hsl[0] + dHue;
+      nh = nh - Math.floor(nh);
+      var ns = clamp(hsl[1] * satScale, 0, 1);
+      var nl = clamp(hsl[2] * lightScale, 0, 1);
+      var mapped = hslToRgb(nh, ns, nl);
+
+      var keep = 1 - wt;
+      out[i] = Math.round(r * keep + mapped[0] * wt);
+      out[i + 1] = Math.round(g * keep + mapped[1] * wt);
+      out[i + 2] = Math.round(b * keep + mapped[2] * wt);
+      out[i + 3] = srcData[i + 3];
+    }
+  }
+  return new ImageData(out, w, h);
+}
+
+// ============================================================
+// 模式切换
+// ============================================================
+function switchMode(m) {
+  MODE = m;
+  var isGlobal = m === 'global';
+  el('tabGlobal').className = 'mode-tab' + (isGlobal ? ' active' : '');
+  el('tabLocal').className = 'mode-tab' + (!isGlobal ? ' active' : '');
+  el('secGlobal').className = 'mode-section' + (isGlobal ? ' active' : '');
+  el('secLocal').className = 'mode-section' + (!isGlobal ? ' active' : '');
+  el('previewTitle').textContent = isGlobal ? '👁️ 实时预览 · 全图调色' : '👁️ 实时预览 · 单色替换';
+  el('canvasHint').textContent = isGlobal
+    ? '💡 拖动左侧滑块实时预览'
+    : '💡 点击图片任意位置采集源色（取色模式）';
+  canvas.className = isGlobal ? '' : 'pick';
+  if (imgLoaded) { renderPreview(); renderAllPreviews(); }
+}
+
+// ============================================================
+// 预览渲染
 // ============================================================
 function renderPreview() {
   if (!imgLoaded || !originalImageData) return;
-  currentImageData = applyHslAdjust(originalImageData, params);
+  if (MODE === 'global') {
+    currentImageData = applyHslAdjust(originalImageData, params);
+  } else {
+    currentImageData = applyLocalReplace(originalImageData, localPairs);
+  }
   ctx.putImageData(currentImageData, 0, 0);
 }
 
 // ============================================================
-// 滑块重置
+// 滑块 / 重置
 // ============================================================
 function resetSlider(name) {
   params[name] = 0;
-  var slider = document.getElementById(name);
-  slider.value = 0;
-  document.getElementById(name + 'Val').textContent = '0' + (name === 'hue' ? '°' : '');
+  el(name).value = 0;
+  el(name + 'Val').textContent = '0' + (name === 'hue' ? '°' : '');
   activePresetName = null;
   renderPresets();
-  if (imgLoaded) renderPreview();
+  if (MODE === 'global' && imgLoaded) renderPreview();
 }
 
 function resetAll() {
-  ['hue','sat','light','contrast'].forEach(resetSlider);
-  showToast('已重置全部参数', 'success');
+  if (MODE === 'global') {
+    ['hue', 'sat', 'light', 'contrast'].forEach(resetSlider);
+    showToast('已重置全部参数', 'success');
+  } else {
+    initLocalDefault();
+    renderPreview();
+    renderAllPreviews();
+    showToast('已清空单色替换', 'success');
+  }
 }
 
 // ============================================================
-// 预设主题渲染
+// 预设主题
 // ============================================================
 function renderPresets() {
-  var grid = document.getElementById('themeGrid');
+  var grid = el('themeGrid');
+  if (!grid) return;
   grid.innerHTML = '';
-  PRESETS.forEach(function(p) {
+  PRESETS.forEach(function (p) {
     var card = document.createElement('div');
     card.className = 'theme-card' + (activePresetName === p.name ? ' selected' : '');
-    var previewStyle = 'background:' + p.color;
     card.innerHTML =
-      '<div class="preview" style="' + previewStyle + '"></div>' +
+      '<div class="preview" style="background:' + p.color + '"></div>' +
       '<div>' + p.name + '</div>';
-    card.title = 'hue=' + p.hue + '° sat=' + p.sat + ' light=' + p.light + ' contrast=' + p.contrast;
-    card.onclick = function() { applyPreset(p); };
+    card.title = 'hue=' + p.hue + ' sat=' + p.sat + ' light=' + p.light + ' contrast=' + p.contrast;
+    card.onclick = function () { applyPreset(p); };
     grid.appendChild(card);
   });
 }
 
 function applyPreset(p) {
   activePresetName = p.name;
-  params.hue = p.hue;
-  params.sat = p.sat;
-  params.light = p.light;
-  params.contrast = p.contrast;
-  // 同步滑块
-  document.getElementById('hue').value = p.hue;
-  document.getElementById('sat').value = p.sat;
-  document.getElementById('light').value = p.light;
-  document.getElementById('contrast').value = p.contrast;
-  document.getElementById('hueVal').textContent = p.hue + '°';
-  document.getElementById('satVal').textContent = p.sat;
-  document.getElementById('lightVal').textContent = p.light;
-  document.getElementById('contrastVal').textContent = p.contrast;
+  params.hue = p.hue; params.sat = p.sat; params.light = p.light; params.contrast = p.contrast;
+  el('hue').value = p.hue;
+  el('sat').value = p.sat;
+  el('light').value = p.light;
+  el('contrast').value = p.contrast;
+  el('hueVal').textContent = p.hue + '°';
+  el('satVal').textContent = p.sat;
+  el('lightVal').textContent = p.light;
+  el('contrastVal').textContent = p.contrast;
   renderPresets();
-  if (imgLoaded) renderPreview();
+  if (MODE !== 'global') switchMode('global');
+  if (imgLoaded) { renderPreview(); renderAllPreviews(); }
   else showToast('请先上传图片', 'warn');
 }
 
@@ -892,7 +1140,331 @@ function resetTheme() {
 }
 
 // ============================================================
-// 批量生成
+// 主色识别（ColorThief）
+// ============================================================
+function extractPalette() {
+  if (!imgLoaded || !originalImage) return [];
+  try {
+    if (typeof ColorThief === 'undefined') return [];
+    var ct = new ColorThief();
+    var pal = ct.getPalette(originalImage, 8) || [];
+    return pal.filter(function (c) { return c && c.length === 3; });
+  } catch (e) { return []; }
+}
+
+function renderPaletteSuggest() {
+  var wrap = el('paletteSuggest');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!imgLoaded) return;
+  var pal = extractPalette();
+  if (!pal.length) {
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--text-light)">主色识别不可用，可直接点击图片取色</span>';
+    return;
+  }
+  pal.forEach(function (c) {
+    var sw = document.createElement('div');
+    sw.className = 'sw';
+    sw.style.background = rgbToHex(c);
+    sw.title = '源色 ' + rgbToHex(c);
+    sw.onclick = function (e) {
+      e.stopPropagation();
+      pickSourceColor(c);
+    };
+    wrap.appendChild(sw);
+  });
+}
+
+// ============================================================
+// 局部改色组
+// ============================================================
+function createPair(sourceRgb) {
+  return {
+    id: nextPairId++,
+    sourceRgb: sourceRgb || null,
+    targetHex: '#ff0000',
+    targetRgb: [255, 0, 0],
+    tolerance: 50,
+    feather: 30
+  };
+}
+
+function initLocalDefault() {
+  localPairs = [createPair(null)];
+  activePairId = localPairs[0].id;
+  renderLocalPairs();
+}
+
+function getActivePair() {
+  for (var i = 0; i < localPairs.length; i++) {
+    if (localPairs[i].id === activePairId) return localPairs[i];
+  }
+  return localPairs[0] || null;
+}
+
+function addPair() {
+  var p = createPair(null);
+  localPairs.push(p);
+  activePairId = p.id;
+  renderLocalPairs();
+  showToast('已添加改色组 ' + localPairs.length + '，点击图片取源色', 'success');
+}
+
+function removePair(id) {
+  localPairs = localPairs.filter(function (p) { return p.id !== id; });
+  if (!localPairs.length) initLocalDefault();
+  if (activePairId === id) activePairId = localPairs[0].id;
+  renderLocalPairs();
+  if (MODE === 'local' && imgLoaded) { renderPreview(); renderAllPreviews(); }
+}
+
+function clearLocalPairs() {
+  initLocalDefault();
+  if (MODE === 'local' && imgLoaded) { renderPreview(); renderAllPreviews(); }
+  showToast('已清空全部改色组', 'success');
+}
+
+function pickSourceColor(rgb) {
+  var p = getActivePair();
+  if (!p) { addPair(); p = getActivePair(); }
+  p.sourceRgb = rgb;
+  renderLocalPairs();
+  if (MODE === 'local' && imgLoaded) { renderPreview(); renderAllPreviews(); }
+  showToast('已采集源色 ' + rgbToHex(rgb), 'success');
+}
+
+function setTargetForActive(hex) {
+  var p = getActivePair();
+  if (!p) return;
+  p.targetHex = hex;
+  p.targetRgb = hexToRgb(hex);
+  renderLocalPairs();
+  if (MODE === 'local' && imgLoaded) { renderPreview(); renderAllPreviews(); }
+  showToast('目标色已设为 ' + hex, 'success');
+}
+
+function renderLocalPairs() {
+  var wrap = el('localPairs');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (!localPairs.length) {
+    wrap.innerHTML = '<div style="font-size:11px;color:var(--text-light);padding:6px;">暂无改色组</div>';
+    return;
+  }
+  localPairs.forEach(function (p, i) {
+    var row = document.createElement('div');
+    row.className = 'local-pair' + (p.id === activePairId ? ' active' : '');
+
+    var head = document.createElement('div');
+    head.className = 'pair-head';
+    var sw = document.createElement('div');
+    sw.className = 'pair-swatch';
+    sw.style.background = p.sourceRgb ? rgbToHex(p.sourceRgb) : 'repeating-linear-gradient(45deg,#eee,#eee 4px,#ccc 4px,#ccc 8px)';
+    var title = document.createElement('div');
+    title.className = 'pair-title';
+    title.innerHTML = '组 ' + (i + 1) +
+      '<div class="pair-sub">源色：' + (p.sourceRgb ? rgbToHex(p.sourceRgb) : '未采集（点击图片）') + '</div>';
+    var del = document.createElement('button');
+    del.className = 'pair-x';
+    del.textContent = '✕';
+    del.title = '删除';
+    del.onclick = function (e) { e.stopPropagation(); removePair(p.id); };
+    head.appendChild(sw); head.appendChild(title); head.appendChild(del);
+    head.style.cursor = 'pointer';
+    head.onclick = function (e) {
+      if (e.target === del) return;
+      activePairId = p.id;
+      renderLocalPairs();
+    };
+    row.appendChild(head);
+
+    // 目标色
+    var trow = document.createElement('div');
+    trow.className = 'pair-row';
+    trow.innerHTML = '<label>目标色</label>';
+    var tin = document.createElement('input');
+    tin.type = 'color';
+    tin.value = p.targetHex;
+    tin.oninput = function (e) {
+      e.stopPropagation();
+      p.targetHex = this.value;
+      p.targetRgb = hexToRgb(this.value);
+      if (MODE === 'local' && imgLoaded) renderPreview();
+    };
+    trow.appendChild(tin);
+    var thex = document.createElement('span');
+    thex.className = 'num';
+    thex.textContent = p.targetHex;
+    tin.onchange = function (e) {
+      e.stopPropagation();
+      thex.textContent = p.targetHex;
+      if (MODE === 'local' && imgLoaded) renderAllPreviews();
+    };
+    trow.appendChild(thex);
+    row.appendChild(trow);
+
+    // 容差
+    var tolrow = document.createElement('div');
+    tolrow.className = 'pair-row';
+    tolrow.innerHTML = '<label>容差</label>';
+    var tol = document.createElement('input');
+    tol.type = 'range';
+    tol.min = 0; tol.max = 200; tol.value = p.tolerance;
+    var tolv = document.createElement('span');
+    tolv.className = 'num';
+    tolv.textContent = p.tolerance;
+    tol.oninput = function (e) {
+      e.stopPropagation();
+      p.tolerance = parseInt(this.value, 10);
+      tolv.textContent = p.tolerance;
+      if (MODE === 'local' && imgLoaded) renderPreview();
+    };
+    tol.onchange = function (e) {
+      e.stopPropagation();
+      if (MODE === 'local' && imgLoaded) renderAllPreviews();
+    };
+    tolrow.appendChild(tol); tolrow.appendChild(tolv);
+    row.appendChild(tolrow);
+
+    // 羽化
+    var ferow = document.createElement('div');
+    ferow.className = 'pair-row';
+    ferow.innerHTML = '<label>羽化</label>';
+    var fe = document.createElement('input');
+    fe.type = 'range';
+    fe.min = 0; fe.max = 100; fe.value = p.feather;
+    var fev = document.createElement('span');
+    fev.className = 'num';
+    fev.textContent = p.feather;
+    fe.oninput = function (e) {
+      e.stopPropagation();
+      p.feather = parseInt(this.value, 10);
+      fev.textContent = p.feather;
+      if (MODE === 'local' && imgLoaded) renderPreview();
+    };
+    fe.onchange = function (e) {
+      e.stopPropagation();
+      if (MODE === 'local' && imgLoaded) renderAllPreviews();
+    };
+    ferow.appendChild(fe); ferow.appendChild(fev);
+    row.appendChild(ferow);
+
+    wrap.appendChild(row);
+  });
+}
+
+function renderCommonTargets() {
+  var wrap = el('commonTargets');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  COMMON_TARGETS.forEach(function (tc) {
+    var sw = document.createElement('div');
+    sw.className = 'sw';
+    sw.style.background = tc.hex;
+    sw.title = tc.name + ' ' + tc.hex;
+    sw.onclick = function (e) {
+      e.stopPropagation();
+      if (MODE !== 'local') switchMode('local');
+      setTargetForActive(tc.hex);
+    };
+    wrap.appendChild(sw);
+  });
+}
+
+// ============================================================
+// 缩略图（降采样）
+// ============================================================
+function getDownsampledImageData(maxW) {
+  if (!imgLoaded || !originalCanvas) return null;
+  var srcW = originalCanvas.width, srcH = originalCanvas.height;
+  var scale = Math.min(1, maxW / Math.max(srcW, srcH));
+  var w = Math.max(1, Math.round(srcW * scale));
+  var h = Math.max(1, Math.round(srcH * scale));
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  var cx = c.getContext('2d', { willReadFrequently: true });
+  cx.imageSmoothingEnabled = true;
+  cx.drawImage(originalCanvas, 0, 0, w, h);
+  return cx.getImageData(0, 0, w, h);
+}
+
+function makeThumb(imageData, label, color, onclick) {
+  var card = document.createElement('div');
+  card.className = 'thumb';
+  var c = document.createElement('canvas');
+  c.width = imageData.width;
+  c.height = imageData.height;
+  c.getContext('2d').putImageData(imageData, 0, 0);
+  card.appendChild(c);
+  var name = document.createElement('div');
+  name.className = 'tname';
+  if (color) {
+    var dot = document.createElement('span');
+    dot.className = 'tswatch';
+    dot.style.background = color;
+    name.appendChild(dot);
+  }
+  name.appendChild(document.createTextNode(label));
+  card.appendChild(name);
+  if (onclick) card.onclick = onclick;
+  return card;
+}
+
+// ============================================================
+// 全部预览
+// ============================================================
+function renderAllPreviews(force) {
+  var grid = el('allPreviewGrid');
+  var meta = el('allPreviewMeta');
+  if (!grid) return;
+  if (!imgLoaded) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text-light);text-align:center;padding:20px;">上传图片后自动生成全部预览</div>';
+    if (meta) meta.textContent = '';
+    return;
+  }
+  grid.innerHTML = '';
+
+  if (MODE === 'global') {
+    if (meta) meta.textContent = PRESETS.length + ' 个预设主题';
+    var small = getDownsampledImageData(180);
+    PRESETS.forEach(function (p) {
+      var out = applyHslAdjust(small, p);
+      var card = makeThumb(out, p.name, p.color, function () {
+        applyPreset(p);
+      });
+      if (activePresetName === p.name) card.classList.add('selected');
+      grid.appendChild(card);
+    });
+  } else {
+    var active = getActivePair();
+    if (!active || !active.sourceRgb) {
+      grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text-light);text-align:center;padding:20px;">先在图片上点一下采集源色，再生成 30 色预览</div>';
+      if (meta) meta.textContent = '待采集源色';
+      return;
+    }
+    if (meta) meta.textContent = COMMON_TARGETS.length + ' 个目标色';
+    var small2 = getDownsampledImageData(200);
+    COMMON_TARGETS.forEach(function (tc) {
+      var pair = {
+        id: active.id,
+        sourceRgb: active.sourceRgb,
+        targetHex: tc.hex,
+        targetRgb: hexToRgb(tc.hex),
+        tolerance: active.tolerance,
+        feather: active.feather
+      };
+      var out = applyLocalReplace(small2, [pair]);
+      var card = makeThumb(out, tc.name, tc.hex, function () {
+        setTargetForActive(tc.hex);
+      });
+      if (active.targetHex === tc.hex) card.classList.add('selected');
+      grid.appendChild(card);
+    });
+  }
+}
+
+// ============================================================
+// 批量生成（全图模式）
 // ============================================================
 function addCurrentToBatch() {
   var name = activePresetName || ('自定义_' + (batchThemes.length + 1));
@@ -905,16 +1477,13 @@ function addCurrentToBatch() {
 }
 
 function addAllThemes() {
-  PRESETS.forEach(function(p) {
-    if (p.name === '原图') return;        // 跳过原图
-    if (batchThemes.some(function(b) { return b.name === p.name; })) return;
-    batchThemes.push({
-      name: p.name,
-      hue: p.hue, sat: p.sat, light: p.light, contrast: p.contrast
-    });
+  PRESETS.forEach(function (p) {
+    if (p.name === '原图') return;
+    if (batchThemes.some(function (b) { return b.name === p.name; })) return;
+    batchThemes.push({ name: p.name, hue: p.hue, sat: p.sat, light: p.light, contrast: p.contrast });
   });
   renderBatchChips();
-  showToast('已加入 ' + PRESETS.length + ' 个预设', 'success');
+  showToast('已加入 ' + (PRESETS.length - 1) + ' 个预设', 'success');
 }
 
 function clearBatch() {
@@ -923,17 +1492,16 @@ function clearBatch() {
 }
 
 function renderBatchChips() {
-  var wrap = document.getElementById('batchChips');
-  document.getElementById('batchBadge').textContent = batchThemes.length;
+  var wrap = el('batchChips');
+  el('batchBadge').textContent = batchThemes.length;
   if (batchThemes.length === 0) {
     wrap.innerHTML = '<div style="font-size:11px;color:#86198f;width:100%;text-align:center;padding:4px;">还没添加主题</div>';
     return;
   }
   wrap.innerHTML = '';
-  batchThemes.forEach(function(t, idx) {
+  batchThemes.forEach(function (t, idx) {
     var chip = document.createElement('span');
     chip.className = 'chip';
-    chip.style.background = 'white';
     chip.style.borderColor = '#f5d0fe';
     chip.innerHTML =
       '<span>' + t.name + ' (h=' + t.hue + ')</span>' +
@@ -947,44 +1515,36 @@ function removeBatch(idx) {
   renderBatchChips();
 }
 
-// ============================================================
-// 批量生成执行
-// ============================================================
 function generateBatch() {
   if (!imgLoaded) { showToast('请先上传图片', 'warn'); return; }
   if (batchThemes.length === 0) { showToast('请先添加主题', 'warn'); return; }
   if (typeof JSZip === 'undefined') {
-    // JSZip 不可用，逐个下载
     showToast('JSZip 不可用,逐个下载', 'warn');
-    batchThemes.forEach(function(t, i) {
-      setTimeout(function() { generateOne(t, true); }, i * 300);
+    batchThemes.forEach(function (t, i) {
+      setTimeout(function () { generateOne(t, true); }, i * 300);
     });
     return;
   }
 
   showLoading(true, '生成中...');
   var btn = document.querySelector('.batch-section .btn-primary');
-  btn.disabled = true;
+  if (btn) btn.disabled = true;
 
-  // 清理旧结果
-  generatedBlobs.forEach(function(b) { if (b.url) URL.revokeObjectURL(b.url); });
+  generatedBlobs.forEach(function (b) { if (b.url) URL.revokeObjectURL(b.url); });
   generatedBlobs = [];
-  document.getElementById('resultsGrid').innerHTML = '';
-  document.getElementById('resultsCard').style.display = 'none';
+  el('resultsGrid').innerHTML = '';
+  el('resultsCard').style.display = 'none';
 
   var processed = 0;
   var total = batchThemes.length;
 
   function next() {
-    if (processed >= total) {
-      finishBatch();
-      return;
-    }
+    if (processed >= total) { finishBatch(); return; }
     var t = batchThemes[processed];
-    generateOne(t, false, function() {
+    generateOne(t, false, function () {
       processed++;
-      document.getElementById('loadingText').textContent = '生成中 ' + processed + '/' + total + '...';
-      document.getElementById('progressFill').style.width = Math.round(processed / total * 100) + '%';
+      el('loadingText').textContent = '生成中 ' + processed + '/' + total + '...';
+      el('progressFill').style.width = Math.round(processed / total * 100) + '%';
       setTimeout(next, 50);
     });
   }
@@ -997,17 +1557,15 @@ function generateOne(theme, autoDownload, cb) {
   c.height = originalImageData.height;
   var cx = c.getContext('2d');
   cx.putImageData(applyHslAdjust(originalImageData, theme), 0, 0);
-  c.toBlob(function(blob) {
+  c.toBlob(function (blob) {
     var url = URL.createObjectURL(blob);
     var item = { name: theme.name, blob: blob, url: url, dataUrl: null };
-    // 转 dataURL 用于打包
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       item.dataUrl = e.target.result;
       if (!autoDownload) {
         addResultCard(item, theme);
       } else {
-        // 直接下载
         var a = document.createElement('a');
         a.href = url;
         a.download = 'colorforge_' + theme.name + '.png';
@@ -1020,43 +1578,45 @@ function generateOne(theme, autoDownload, cb) {
 }
 
 function addResultCard(item, theme) {
-  var grid = document.getElementById('resultsGrid');
+  var grid = el('resultsGrid');
   var card = document.createElement('div');
   card.className = 'result-card';
-  var previewColor = PRESETS.find(function(p) { return p.name === theme.name; });
-  var swatchColor = previewColor ? previewColor.color : '#ccc';
+  var preset = PRESETS.find(function (p) { return p.name === theme.name; });
+  var swatchColor = preset ? preset.color : '#ccc';
   card.innerHTML =
     '<img src="' + item.url + '" alt="' + theme.name + '">' +
     '<div class="info">' +
-      '<span><span class="swatch" style="background:' + swatchColor + '"></span>' + theme.name + '</span>' +
-      '<a href="' + item.url + '" download="colorforge_' + theme.name + '.png" style="color:var(--primary);text-decoration:none;font-weight:600">⬇</a>' +
+    '<span><span class="swatch" style="background:' + swatchColor + '"></span>' + theme.name + '</span>' +
+    '<a href="' + item.url + '" download="colorforge_' + theme.name + '.png" style="color:var(--primary);text-decoration:none;font-weight:600">⬇</a>' +
     '</div>';
   grid.appendChild(card);
   generatedBlobs.push(item);
-  document.getElementById('resultsCard').style.display = 'block';
-  document.getElementById('resultBadge').textContent = generatedBlobs.length + ' 张';
+  el('resultsCard').style.display = 'block';
+  el('resultBadge').textContent = generatedBlobs.length + ' 张';
 }
 
 function finishBatch() {
   showLoading(false);
-  document.querySelector('.batch-section .btn-primary').disabled = false;
-  document.getElementById('btnDownloadZip').disabled = false;
-  document.getElementById('resultsCard').style.display = 'block';
-  document.getElementById('resultBadge').textContent = generatedBlobs.length + ' 张';
+  var btn = document.querySelector('.batch-section .btn-primary');
+  if (btn) btn.disabled = false;
+  var zipBtn = el('btnDownloadZip');
+  if (zipBtn) zipBtn.disabled = false;
+  el('resultsCard').style.display = 'block';
+  el('resultBadge').textContent = generatedBlobs.length + ' 张';
   showToast('✅ 成功生成 ' + generatedBlobs.length + ' 张图片', 'success');
-  document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+  el('resultsCard').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============================================================
-// 下载功能
+// 下载
 // ============================================================
 function downloadCurrent() {
   if (!imgLoaded) { showToast('请先上传图片', 'warn'); return; }
-  canvas.toBlob(function(blob) {
+  canvas.toBlob(function (blob) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'colorforge_current.png';
+    a.download = 'colorforge_' + MODE + '_' + Date.now() + '.png';
     a.click();
     URL.revokeObjectURL(url);
     showToast('已下载当前预览', 'success');
@@ -1074,15 +1634,15 @@ function downloadZip() {
   var zip = new JSZip();
   var folder = zip.folder('ColorForge_Export');
   var count = 0;
-  generatedBlobs.forEach(function(item) {
+  generatedBlobs.forEach(function (item) {
     if (item.dataUrl) {
       var base64 = item.dataUrl.split(',')[1];
       folder.file('colorforge_' + item.name + '.png', base64, { base64: true });
       count++;
     }
   });
-  setTimeout(function() {
-    zip.generateAsync({ type: 'blob' }).then(function(blob) {
+  setTimeout(function () {
+    zip.generateAsync({ type: 'blob' }).then(function (blob) {
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
@@ -1097,8 +1657,8 @@ function downloadZip() {
 
 function downloadAll() {
   if (generatedBlobs.length === 0) { showToast('没有生成结果', 'warn'); return; }
-  generatedBlobs.forEach(function(item, i) {
-    setTimeout(function() {
+  generatedBlobs.forEach(function (item, i) {
+    setTimeout(function () {
       var a = document.createElement('a');
       a.href = item.url;
       a.download = 'colorforge_' + item.name + '.png';
@@ -1109,39 +1669,33 @@ function downloadAll() {
 }
 
 // ============================================================
-// 缩放
+// 缩放 / Toast / Loading
 // ============================================================
 function zoomFit() {
   canvas.style.maxWidth = '100%';
-  canvas.style.maxHeight = '70vh';
+  canvas.style.maxHeight = '60vh';
 }
 function zoom100() {
   canvas.style.maxWidth = 'none';
   canvas.style.maxHeight = 'none';
 }
 
-// ============================================================
-// Toast / Loading 工具
-// ============================================================
 var toastTimer = null;
 function showToast(msg, type) {
-  var t = document.getElementById('toast');
+  var t = el('toast');
+  if (!t) return;
   t.textContent = msg;
   t.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2500);
 }
 
 function showLoading(show, text) {
-  var ov = document.getElementById('loading');
+  var ov = el('loading');
   ov.classList.toggle('show', show);
-  if (text) document.getElementById('loadingText').textContent = text;
-  if (!show) document.getElementById('progressFill').style.width = '0%';
+  if (text) el('loadingText').textContent = text;
+  if (!show) el('progressFill').style.width = '0%';
 }
 </script>
-
-<!-- JSZip CDN (双源容错) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-        onerror="var s=document.createElement('script');s.src='https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js';document.head.appendChild(s);"></script>
 </body>
 </html>
