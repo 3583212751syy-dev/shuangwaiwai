@@ -1,0 +1,31 @@
+# 图裂变 image-fission —— 应用层依赖（不含 ComfyUI 自身依赖）
+# 安装：在 image-fission/venv 内  pip install -r src/requirements.txt
+# 注意：torch/torchvision 已在 P0 单独从 pytorch CUDA 源安装，不要再从此处装 CPU 版。
+
+fastapi>=0.110
+uvicorn[standard]>=0.29
+celery>=5.3
+redis>=5.0
+flower>=2.0
+pydantic>=2.6
+python-multipart>=0.0.9
+
+# ComfyUI 通信
+requests>=2.31
+websocket-client>=1.7
+
+# 图像处理
+pillow>=10.2
+numpy>=1.26
+opencv-python-headless>=4.9
+
+# 质量专项
+scikit-image>=0.22
+# PaddleOCR（乱码文字）按需安装：paddlepaddle + paddleocr
+# Q-Align 单独 venv 隔离（见 src/quality/qalign/）
+
+# 前端画廊（MVP 用 gradio 快速出，后续换 ardot 定制）
+gradio>=4.30
+
+# 工具
+tqdm>=4.66

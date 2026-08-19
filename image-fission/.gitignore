@@ -1,0 +1,36 @@
+# === 图裂变 image-fission 忽略规则 ===
+# 大体积 / 易变 / 临时物不入库
+
+# Python 虚拟环境
+venv/
+.venv/
+
+# ComfyUI 本体（vendored，单独 clone，不入库）
+ComfyUI/
+
+# 下载的模型权重（GB 级）
+ComfyUI/models/
+models_extra/
+**/*.safetensors
+**/*.ckpt
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.bin
+**/antelopev2/
+
+# 运行时产物
+jobs/
+outputs/
+*.log
+.download/
+
+# 缓存
+.cache/
+**/.cache/
+__pycache__/
+*.pyc
+
+# 操作系统
+Thumbs.db
+Desktop.ini

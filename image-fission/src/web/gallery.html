@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图裂变 image-fission</title>
+<style>
+  body{font-family:system-ui,"Microsoft YaHei",sans-serif;margin:0;background:#0f1115;color:#e6e6e6}
+  header{padding:16px 24px;background:#171a21;border-bottom:1px solid #2a2f3a}
+  h1{font-size:18px;margin:0}
+  .wrap{padding:24px;max-width:1200px;margin:0 auto}
+  .card{background:#171a21;border:1px solid #2a2f3a;border-radius:10px;padding:18px;margin-bottom:20px}
+  label{display:block;margin:10px 0 4px;font-size:13px;color:#9aa4b2}
+  input[type=range]{width:100%}
+  .val{float:right;color:#4ea1ff;font-weight:600}
+  textarea,select,input[type=file]{width:100%;box-sizing:border-box;background:#0f1115;color:#e6e6e6;border:1px solid #2a2f3a;border-radius:6px;padding:8px}
+  button{margin-top:14px;background:#4ea1ff;color:#001;border:none;padding:10px 18px;border-radius:6px;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:12px}
+  .grid img{width:100%;border-radius:8px;border:1px solid #2a2f3a;display:block}
+  .status{font-size:13px;color:#9aa4b2;margin-top:8px}
+  .orig{width:240px;border-radius:8px;border:1px solid #2a2f3a;margin-bottom:10px}
+  .row{display:flex;gap:24px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header><h1>图裂变 image-fission · 自托管图裂变 MVP</h1></header>
+<div class="wrap">
+  <div class="card">
+    <label>上传原图（商品实拍/插画/照片均可）</label>
+    <input type="file" id="orig">
+    <label>裂变模式</label>
+    <select id="mode">
+      <option value="mode1">模式1 换景换风格</option>
+      <option value="mode2">模式2 内容重绘</option>
+    </select>
+    <label>与原图相似度 <span class="val" id="v_sim">0.6</span></label>
+    <input type="range" id="similarity" min="0" max="1" step="0.05" value="0.6">
+    <label>风格强度 <span class="val" id="v_sty">0.7</span></label>
+    <input type="range" id="style_strength" min="0" max="1" step="0.05" value="0.7">
+    <label>重绘幅度(模式2) <span class="val" id="v_red">0.55</span></label>
+    <input type="range" id="redraw_amount" min="0" max="1" step="0.05" value="0.55">
+    <label>风格提示词</label>
+    <textarea id="style_prompt" rows="2">studio lighting, high quality product photo</textarea>
+    <button id="go">开始裂变（100批×4张）</button>
+    <div class="status" id="status"></div>
+  </div>
+  <div class="card" id="result" style="display:none">
+    <div class="row">
+      <div><div style="font-size:13px;color:#9aa4b2">原图</div><img class="orig" id="origPrev"></div>
+      <div style="flex:1"><div style="font-size:13px;color:#9aa4b2">裂变产物（整体对照）</div>
+        <div class="grid" id="grid"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+['similarity','style_strength','redraw_amount'].forEach(k=>{
+  $(k).oninput=()=>{$('v_'+k.slice(0,3)).textContent=$(k).value;};
+});
+$('go').onclick=async()=>{
+  const fd=new FormData();
+  fd.append('original',$('orig').files[0]);
+  fd.append('mode',$('mode').value);
+  fd.append('similarity',$('similarity').value);
+  fd.append('style_strength',$('style_strength').value);
+  fd.append('redraw_amount',$('redraw_amount').value);
+  fd.append('style_prompt',$('style_prompt').value);
+  $('status').textContent='提交中…';$('go').disabled=true;
+  const r=await fetch('/job/start',{method:'POST',body:fd});
+  const j=await r.json();
+  poll(j.job_id);
+};
+async function poll(id){
+  const t=setInterval(async()=>{
+    const r=await fetch('/job/'+id);const j=await r.json();
+    $('status').textContent='状态：'+j.status+(j.meta?('，通过 '+j.meta.passed_batches+'/'+j.meta.batches+' 批，用时 '+j.meta.elapsed_sec+'s'):'');
+    if(j.status==='done'||j.status==='error'){
+      clearInterval(t);$('go').disabled=false;
+      if(j.status==='error'){$('status').textContent='错误：'+j.error;return;}
+      const g=await fetch('/gallery/'+id);const m=await g.json();
+      $('origPrev').src=m.meta.original.startsWith('E:')?'':'';
+      $('result').style.display='block';
+      $('grid').innerHTML=m.images.map(u=>`<img src="${u}" loading="lazy">`).join('');
+    }
+  },3000);
+}
+</script>
+</body>
+</html>
