@@ -602,6 +602,12 @@ input[type=range].sat-slider { background: linear-gradient(to right, #808080, #f
             <span class="val" id="protectVal">80</span>
             <button class="reset-btn" onclick="resetSlider('protect')" title="重置">↺</button>
           </div>
+          <div class="slider-row">
+            <label>清晰度</label>
+            <input type="range" id="clarity" min="0" max="100" value="0" step="1">
+            <span class="val" id="clarityVal">0</span>
+            <button class="reset-btn" onclick="resetSlider('clarity')" title="重置">↺</button>
+          </div>
         </div>
       </div>
 
@@ -778,6 +784,7 @@ var originalImage = null;
 var originalImageData = null;
 var currentImageData = null;
 var imgLoaded = false;
+var lumDetailCache = null; // 清晰度增强用：每像素亮度高频细节（Float32Array）
 var generatedBlobs = [];
 var batchThemes = [];
 var activePresetName = null;
@@ -787,7 +794,7 @@ var params = {
   hue: 0, sat: 0, light: 0, contrast: 0,
   targetHex: '', intensity: 100, protect: 80,
   gradeMode: 'cinematic',  // natural | cinematic
-  shadowHex: '', highlightHex: '', vibrance: 30
+  shadowHex: '', highlightHex: '', vibrance: 30, clarity: 0
 };
 
 // 局部改色
@@ -893,7 +900,7 @@ window.addEventListener('DOMContentLoaded', function () {
   });
 
   // 滑块
-  ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect', 'vibrance'].forEach(function (k) {
+  ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect', 'vibrance', 'clarity'].forEach(function (k) {
     el(k).addEventListener('input', function () {
       var v = parseFloat(this.value);
       params[k] = v;
@@ -981,6 +988,7 @@ function loadImage(file) {
       var octx = originalCanvas.getContext('2d', { willReadFrequently: true });
       octx.drawImage(img, 0, 0, w, h);
       originalImageData = octx.getImageData(0, 0, w, h);
+      lumDetailCache = null; // 新图：清空清晰度细节缓存
 
       canvas.width = w;
       canvas.height = h;
@@ -1049,6 +1057,55 @@ function hslToRgb(h, s, l) {
 // 全局调色：自然映射 + 电影风格（渐变映射 + Soft-Light）
 // 参考：AlloyImage 曲线/可选颜色、grader-npm 3D LUT 颜色分级思路
 // ============================================================
+
+// --- 清晰度（clarity）辅助：亮度通道局部对比增强（unsharp 思路）---
+// 只动亮度细节、不碰色相/饱和度，因此改色相的同时可保留/提升清晰度。
+// detail = 原始亮度 - box-blur 低通亮度（高频纹理），缓存一次复用。
+function boxBlurLum(lum, w, h, r) {
+  var tmp = new Float32Array(w * h);
+  var out = new Float32Array(w * h);
+  var win = 2 * r + 1;
+  var x, y, acc;
+  // 水平
+  for (y = 0; y < h; y++) {
+    acc = 0;
+    var ry = y * w;
+    for (x = -r; x <= r; x++) acc += lum[ry + (x < 0 ? 0 : (x >= w ? w - 1 : x))];
+    for (x = 0; x < w; x++) {
+      tmp[ry + x] = acc / win;
+      var xout = x - r < 0 ? 0 : x - r;
+      var xin = x + r + 1 >= w ? w - 1 : x + r + 1;
+      acc += lum[ry + xin] - lum[ry + xout];
+    }
+  }
+  // 垂直
+  for (x = 0; x < w; x++) {
+    acc = 0;
+    for (y = -r; y <= r; y++) acc += tmp[(y < 0 ? 0 : (y >= h ? h - 1 : y)) * w + x];
+    for (y = 0; y < h; y++) {
+      out[y * w + x] = acc / win;
+      var yout = y - r < 0 ? 0 : y - r;
+      var yin = y + r + 1 >= h ? h - 1 : y + r + 1;
+      acc += tmp[yin * w + x] - tmp[yout * w + x];
+    }
+  }
+  return out;
+}
+
+function computeLumDetail(src) {
+  var w = src.width, h = src.height;
+  var d = src.data;
+  var lum = new Float32Array(w * h);
+  for (var i = 0, p = 0; i < d.length; i += 4, p++) {
+    // 感知亮度（与 rgbToHsl 的 l 一致：用 max+min/2 近似即可，这里用 ITU-R 保持稳定）
+    lum[p] = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+  }
+  var blur = boxBlurLum(lum, w, h, 3); // 半径3：提取中高频纹理
+  var detail = new Float32Array(w * h);
+  for (var j = 0; j < detail.length; j++) detail[j] = lum[j] - blur[j];
+  return detail;
+}
+
 function applyHslAdjust(src, p) {
   var w = src.width, h = src.height;
   var srcData = src.data;
@@ -1068,6 +1125,18 @@ function applyHslAdjust(src, p) {
   var vibrance = clamp((p.vibrance == null ? 0 : p.vibrance) / 100, 0, 1);
   var cinematic = targetMode && (p.gradeMode === 'cinematic');
 
+  // 清晰度（clarity）：亮度通道高频细节增强，不影响色相/饱和度映射
+  var clarity = clamp((p.clarity == null ? 0 : p.clarity) / 100, 0, 1);
+  var detailArr = null;
+  var clarityAmt = 0;
+  if (clarity > 0) {
+    if (!lumDetailCache || lumDetailCache.w !== w || lumDetailCache.h !== h) {
+      lumDetailCache = { w: w, h: h, data: computeLumDetail(src) };
+    }
+    detailArr = lumDetailCache.data;
+    clarityAmt = clarity * 1.6; // 放大系数，让滑块效果明显
+  }
+
   // 电影模式：根据目标色自动生成暗部/亮部，允许用户覆盖
   var shadowRgb = null, highlightRgb = null;
   if (cinematic) {
@@ -1086,6 +1155,7 @@ function applyHslAdjust(src, p) {
   }
 
   for (var i = 0; i < srcData.length; i += 4) {
+    var idx = i >> 2;
     var r = srcData[i], g = srcData[i + 1], b = srcData[i + 2], a = srcData[i + 3];
 
     r = r * contrast + contrastOffset;
@@ -1148,6 +1218,7 @@ function applyHslAdjust(src, p) {
         // 再次应用 satMult 与 lightShift（lightShift 已在 L 中体现）
         ns = clamp(ns * satMult, 0, 1);
         nl = clamp(nl, 0, 1);
+        if (detailArr) nl = clamp(nl + clarityAmt * detailArr[idx], 0, 1);
 
         var rgb = hslToRgb(nh, ns, nl);
         out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
@@ -1163,6 +1234,7 @@ function applyHslAdjust(src, p) {
         var lightBias = clamp(strength * 0.35, 0, 1);
         nl = nl * (1 - lightBias) + targetHsl[2] * lightBias;
         nl = clamp(nl, 0, 1);
+        if (detailArr) nl = clamp(nl + clarityAmt * detailArr[idx], 0, 1);
 
         var mapped = hslToRgb(nh, ns, nl);
         var keep = 1 - strength;
@@ -1177,6 +1249,7 @@ function applyHslAdjust(src, p) {
       if (nh < 0) nh += 1;
       var ns = clamp(hsl[1] * satMult, 0, 1);
       var nl = clamp(hsl[2] + lightShift, 0, 1);
+      if (detailArr) nl = clamp(nl + clarityAmt * detailArr[idx], 0, 1);
       var rgb = hslToRgb(nh, ns, nl);
       out[i] = rgb[0]; out[i + 1] = rgb[1]; out[i + 2] = rgb[2]; out[i + 3] = a;
     }
@@ -1311,7 +1384,7 @@ function renderPreview() {
 // 滑块 / 重置
 // ============================================================
 function resetSlider(name) {
-  var defaults = { hue: 0, sat: 0, light: 0, contrast: 0, intensity: 100, protect: 80, vibrance: 30 };
+  var defaults = { hue: 0, sat: 0, light: 0, contrast: 0, intensity: 100, protect: 80, vibrance: 30, clarity: 0 };
   var v = defaults[name] == null ? 0 : defaults[name];
   params[name] = v;
   el(name).value = v;
@@ -1357,7 +1430,7 @@ function clearHighlightColor() {
 
 function resetAll() {
   if (MODE === 'global') {
-    ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect', 'vibrance'].forEach(resetSlider);
+    ['hue', 'sat', 'light', 'contrast', 'intensity', 'protect', 'vibrance', 'clarity'].forEach(resetSlider);
     clearTargetColor();
     clearShadowColor();
     clearHighlightColor();
@@ -1397,6 +1470,7 @@ function applyPreset(p) {
   params.intensity = p.intensity == null ? 100 : p.intensity;
   params.protect = p.protect == null ? 60 : p.protect;
   params.vibrance = p.vibrance == null ? 30 : p.vibrance;
+  params.clarity = p.clarity == null ? 0 : p.clarity;
   params.gradeMode = p.gradeMode || 'cinematic';
   params.shadowHex = p.shadowHex || '';
   params.highlightHex = p.highlightHex || '';
@@ -1407,6 +1481,7 @@ function applyPreset(p) {
   el('intensity').value = params.intensity;
   el('protect').value = params.protect;
   el('vibrance').value = params.vibrance;
+  el('clarity').value = params.clarity;
   el('targetColor').value = params.targetHex || '#10b981';
   el('targetHexLabel').textContent = params.targetHex || '无';
   el('shadowColor').value = params.shadowHex || '#000000';
@@ -1420,6 +1495,7 @@ function applyPreset(p) {
   el('intensityVal').textContent = params.intensity;
   el('protectVal').textContent = params.protect;
   el('vibranceVal').textContent = params.vibrance;
+  el('clarityVal').textContent = params.clarity;
   setGradeMode(params.gradeMode);
   renderPresets();
   if (MODE !== 'global') switchMode('global');
