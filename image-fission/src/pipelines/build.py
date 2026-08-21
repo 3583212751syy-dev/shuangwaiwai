@@ -46,14 +46,22 @@ def _sampler_node(n, model_from, pos_from, neg_from, latent_from, params):
                          "seed": params.get("seed", 0),
                          "steps": params.get("steps", DEFAULTS["steps"]),
                          "cfg": params.get("cfg", DEFAULTS["cfg"]),
-                         "sampler_name": "euler",
-                         "scheduler": "normal",
+                        "sampler_name": "dpmpp_2m",
+                        "scheduler": "karras",
                          "denoise": params.get("denoise", 1.0),
                          "model": [str(model_from), 0],
                          "positive": [str(pos_from), 0],
                          "negative": [str(neg_from), 0],
                          "latent_image": [str(latent_from), 0],
                      }}}
+
+
+def _latent_upscale_by(n, samples_from, scale_by=1.5, method="nearest-exact"):
+    """LatentUpscaleBy：潜空间放大（hires fix 第一步），无需额外模型。"""
+    return {str(n): {"class_type": "LatentUpscaleBy",
+                     "inputs": {"samples": [str(samples_from), 0],
+                                "upscale_method": method,
+                                "scale_by": scale_by}}}
 
 
 def _vae_decode(n, samples_from, vae_from):
@@ -101,8 +109,15 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
                                   "height": params.get("height", DEFAULTS["height"]),
                                   "batch_size": params.get("batch_per_run", DEFAULTS["batch_per_run"])}}})
-    g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": 1.0}))
-    g.update(_vae_decode(9, 8, 1))                   # vae=(1,2)
+    # 第一轮采样（基础分辨率，denoise=1.0）
+    g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": 1.0,
+                                           "steps": params.get("steps_base", DEFAULTS["steps"])}))
+    # hires fix：潜空间放大 1.5x 后进行第二轮细化
+    g.update(_latent_upscale_by(11, 8, scale_by=params.get("hires_scale", 1.5)))
+    g.update(_sampler_node(12, 4, 5, 6, 11,
+                           {**params, "denoise": params.get("hires_denoise", 0.35),
+                            "steps": params.get("hires_steps", 20)}))
+    g.update(_vae_decode(9, 12, 1))                  # 解码放大后的 latent
     g.update(_save_node(10, 9, f"{job_id}/mode1"))
     return g
 
