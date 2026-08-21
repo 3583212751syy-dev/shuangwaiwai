@@ -123,23 +123,39 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
 
 
 def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
-    """内容重绘：img2img(重绘幅度 denoise) + IP-Adapter(保主体相似度)。"""
+    """内容重绘：img2img(重绘幅度 denoise) + IP-Adapter(保主体相似度)。
+    链路：LoadImage -> ImageScale(统一目标分辨率) -> VAEEncode -> 第一轮采样
+          -> LatentUpscaleBy(1.5x hires) -> 第二轮采样细化 -> VAEDecode -> Save。
+    """
     w = params.get("similarity", DEFAULTS["similarity"])
     denoise = params.get("redraw_amount", DEFAULTS["redraw_amount"])
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
+    width = params.get("width", DEFAULTS["width"])
+    height = params.get("height", DEFAULTS["height"])
     g = {}
     g.update(_checkpoint_node(1))
     g.update(_ipadapter_loader_node(2, 1))          # (2,0)MODEL (2,1)IPADAPTER
     g.update(_load_image_node(3, original_filename))
     g.update(_ipadapter_apply(4, 2, 2, 3, w))
     g.update(_clip_nodes(5, 6, 1, style, neg))
-    # img2img：原图 VAE 编码为初始 latent
-    g.update({str(7): {"class_type": "VAEEncode",
-                       "inputs": {"pixels": [str(3), 0], "vae": [str(1), 2]}}})
-    g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": denoise}))
-    g.update(_vae_decode(9, 8, 1))
-    g.update(_save_node(10, 9, f"{job_id}/mode2"))
+    # img2img 前先把输入统一缩放到目标分辨率（避免小图/超大图影响 latent）
+    g.update({str(7): {"class_type": "ImageScale",
+                       "inputs": {"image": [str(3), 0],
+                                  "upscale_method": "lanczos",
+                                  "width": width, "height": height,
+                                  "crop": "disabled"}}})
+    g.update({str(8): {"class_type": "VAEEncode",
+                       "inputs": {"pixels": [str(7), 0], "vae": [str(1), 2]}}})
+    # 第一轮采样（重绘幅度 denoise，主体由 IP-Adapter 锁定）
+    g.update(_sampler_node(9, 4, 5, 6, 8, {**params, "denoise": denoise}))
+    # hires fix：潜空间放大 1.5x 后第二轮细化
+    g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
+    g.update(_sampler_node(11, 4, 5, 6, 10,
+                           {**params, "denoise": params.get("hires_denoise", 0.40),
+                            "steps": params.get("hires_steps", 25)}))
+    g.update(_vae_decode(12, 11, 1))
+    g.update(_save_node(13, 12, f"{job_id}/mode2"))
     return g
 
 
