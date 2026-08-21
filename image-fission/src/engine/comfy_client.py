@@ -77,20 +77,57 @@ class ComfyClient:
             ws.close()
         return outputs
 
-    # ---- 高层：提交并等待，返回节点->图片bytes ----
+    # ---- 高层：提交并轮询 history 等待完成，返回节点->图片bytes列表 ----
     def run(self, prompt: dict, timeout: int = 1800) -> dict:
         """
         提交工作流并等待完成，返回 {node_id: [bytes, ...]}。
-        下载每个产出节点的最终图片。
+        采用 /history 轮询（比 WS 时序更稳，避免错过 executed 事件）。
+        """
+        import time
+        prompt_id = self.queue_prompt(prompt)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                h = requests.get(self.url + "/history",
+                                 params={"prompt_id": prompt_id},
+                                 timeout=30).json()
+            except Exception:
+                time.sleep(2)
+                continue
+            if prompt_id in h:
+                entry = h[prompt_id]
+                outputs = entry.get("outputs", {})
+                # 仅当该 prompt 真正产出再返回（避免空壳）
+                if outputs:
+                    result = {}
+                    for node_id, out in outputs.items():
+                        imgs = out.get("images", [])
+                        if imgs:
+                            result[node_id] = [
+                                self.get_image_bytes(
+                                    im["filename"], im.get("subfolder", ""),
+                                    im.get("type", "output"))
+                                for im in imgs
+                            ]
+                    if result:
+                        return result
+            time.sleep(2)
+        raise TimeoutError(f"prompt {prompt_id} 在 {timeout}s 内未完成")
+
+    # ---- 高层(WS 备用)：提交并监听，返回节点->图片bytes列表 ----
+    def run_ws(self, prompt: dict, timeout: int = 1800) -> dict:
+        """
+        提交工作流并等待完成（WS 方式），返回 {node_id: [bytes, ...]}。
         """
         prompt_id = self.queue_prompt(prompt)
         outputs = self.wait_for_images(COMFYUI_WS, self.client_id, prompt_id, timeout)
         result = {}
         for node_id, imgs in outputs.items():
-            # 仅取该节点最后一张（避免重试历史堆叠）
-            last = imgs[-1]
-            result[node_id] = self.get_image_bytes(
-                last["filename"], last.get("subfolder", ""), last.get("type", "output"))
+            result[node_id] = [
+                self.get_image_bytes(
+                    im["filename"], im.get("subfolder", ""), im.get("type", "output"))
+                for im in imgs
+            ]
         return result
 
     # ---- 系统状态 ----

@@ -42,8 +42,8 @@ YOLOWORLD_DIR = os.path.join(M, "ultralytics")
 SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors"          # CreativeML OpenRAIL-M，允许商用
 SDXL_REFINER = "sd_xl_refiner_1.0.safetensors"          # 可选
 SDXL_VAE = "sdxl_vae.safetensors"
-IPADAPTER_SDXL = "ip-adapter_sdxl_vit-h.safetensors"    # 相似度控制
-IPADAPTER_PLUS_SDXL = "ip-adapter-plus_sdxl_vit-h.safetensors"
+IPADAPTER_SDXL = "sdxl_models\\ip-adapter_sdxl_vit-h.safetensors"            # 基础版
+IPADAPTER_PLUS_SDXL = "sdxl_models\\ip-adapter-plus_sdxl_vit-h.safetensors"  # plus 版(更强参考保持)
 BIREFNET_MATTE = "BiRefNet-matting.safetensors"
 
 # ---------- 默认裂变参数（MVP 控件初值）----------

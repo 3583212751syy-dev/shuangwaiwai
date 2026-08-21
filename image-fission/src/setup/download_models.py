@@ -35,15 +35,27 @@ def main():
     # 2) SDXL VAE
     d(os.path.join(MODELS, "vae"),
       "stabilityai/sdxl-vae", "sdxl_vae.safetensors")
-    # 3) IP-Adapter (SDXL) —— 相似度控制 + 其图像编码器(clip-vit-h)
+    # 3) IP-Adapter (SDXL) —— 相似度控制
     ip = os.path.join(MODELS, "ipadapter")
     d(ip, "h94/IP-Adapter", "sdxl_models/ip-adapter_sdxl_vit-h.safetensors")
     d(ip, "h94/IP-Adapter", "sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors")
-    # 图像编码器：IPAdapter_plus 节点需要 clip-vision 权重。
-    # ComfyUI 的 load_clip_vision() 默认从 models/clip_vision/ 读取，故放此处。
+    # 图像编码器：IPAdapter_plus 的 unified loader 对 "PLUS" 预设按命名模式
+    # (ViT.H.14.*s32B.b79K | ipadapter.*sd15 | sd1.?5.*model) 自动查找 clip_vision。
+    # 必须放 clip_vision/ 根目录且文件名匹配 —— 用 sd1.5model.safetensors（dim 1280 的 ViT-H）。
+    # h94/IP-Adapter/sdxl_models/image_encoder/ 里的是 ViT-g(dim1664)，与本 plus 模型不匹配，别用。
     enc = os.path.join(MODELS, "clip_vision")
-    d(enc, "h94/IP-Adapter", "sdxl_models/image_encoder/model.safetensors")
-    d(enc, "h94/IP-Adapter", "sdxl_models/image_encoder/config.json")
+    d(enc, "h94/IP-Adapter", "models/image_encoder/model.safetensors")
+    d(enc, "h94/IP-Adapter", "models/image_encoder/config.json")
+    # 复制为匹配命名（覆盖任何历史误放的 ViT-g 文件）
+    src = os.path.join(enc, "models", "image_encoder", "model.safetensors")
+    dst = os.path.join(enc, "sd1.5model.safetensors")
+    if os.path.exists(src):
+        import shutil
+        shutil.copyfile(src, dst)
+        csrc = os.path.join(enc, "models", "image_encoder", "config.json")
+        if os.path.exists(csrc):
+            shutil.copyfile(csrc, os.path.join(enc, "sd1.5model.safetensors.config.json"))
+        print(f"[copy] 已复制 ViT-H 编码器为 {dst}")
     # 4) InsightFace antelopev2（人脸检测，侵权用）—— 直接下整包 zip 解压最稳
     ins_dir = os.path.join(MODELS, "insightface", "models", "antelopev2")
     os.makedirs(ins_dir, exist_ok=True)

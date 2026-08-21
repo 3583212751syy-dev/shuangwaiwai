@@ -20,3 +20,7 @@ node_modules/
 *.jpeg
 *.pth
 *.pt
+
+# Local/project metadata and nested repos
+.workbuddy/
+codex/

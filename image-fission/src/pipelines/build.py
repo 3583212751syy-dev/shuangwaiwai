@@ -7,8 +7,10 @@ ComfyUI 工作流构造器（API Format）。
 注：节点 class_type 以 cubiq/ComfyUI_IPAdapter_plus 为准；启动后可用
     ComfyClient 查询 /object_info 校验，如有出入再微调。
 """
-from config import (SDXL_CHECKPOINT, SDXL_VAE, IPADAPTER_SDXL,
-                    DEFAULTS)
+from config import (SDXL_CHECKPOINT, SDXL_VAE, DEFAULTS)
+
+# IP-Adapter 统一加载预设：plus 模型配 "PLUS (high strength)"，最契合 SDXL+plus
+IPADAPTER_PRESET = "PLUS (high strength)"
 
 
 def _checkpoint_node(n, ckpt=SDXL_CHECKPOINT):
@@ -16,11 +18,12 @@ def _checkpoint_node(n, ckpt=SDXL_CHECKPOINT):
                      "inputs": {"ckpt_name": ckpt}}}
 
 
-def _ipadapter_loader_node(n, model_name=IPADAPTER_SDXL, weight=0.6):
-    return {str(n): {"class_type": "IPAdapterModelLoader",
-                     "inputs": {"preset": "STANDARD (medium strength)",
-                                "model_name": model_name,
-                                "weight": weight}}}
+def _ipadapter_loader_node(n, model_from):
+    """IPAdapterUnifiedLoader：输入 checkpoint 的 MODEL，输出带 ipadapter 的
+    MODEL(0) 与 IPADAPTER(1) 对象（自动加载 clip_vision 编码器）。"""
+    return {str(n): {"class_type": "IPAdapterUnifiedLoader",
+                     "inputs": {"model": [str(model_from), 0],
+                                "preset": IPADAPTER_PRESET}}}
 
 
 def _load_image_node(n, filename):
@@ -31,9 +34,9 @@ def _load_image_node(n, filename):
 def _clip_nodes(n_pos, n_neg, clip_from, pos_text, neg_text):
     return {
         str(n_pos): {"class_type": "CLIPTextEncode",
-                     "inputs": {"text": pos_text, "clip": [str(clip_from), 0]}},
+                     "inputs": {"text": pos_text, "clip": [str(clip_from), 1]}},
         str(n_neg): {"class_type": "CLIPTextEncode",
-                     "inputs": {"text": neg_text, "clip": [str(clip_from), 0]}},
+                     "inputs": {"text": neg_text, "clip": [str(clip_from), 1]}},
     }
 
 
@@ -56,7 +59,7 @@ def _sampler_node(n, model_from, pos_from, neg_from, latent_from, params):
 def _vae_decode(n, samples_from, vae_from):
     return {str(n): {"class_type": "VAEDecode",
                      "inputs": {"samples": [str(samples_from), 0],
-                                "vae": [str(vae_from), 1]}}}
+                                "vae": [str(vae_from), 2]}}}
 
 
 def _save_node(n, images_from, prefix):
@@ -65,16 +68,21 @@ def _save_node(n, images_from, prefix):
                                 "filename_prefix": prefix}}}
 
 
-def _ipadapter_apply(n, model_from, ipadapter_from, image_from, weight,
-                     start_at=0.0, end_at=1.0):
-    return {str(n): {"class_type": "IPAdapter",
+def _ipadapter_apply(n, model_node, ipadapter_node, image_node, weight,
+                     start_at=0.0, end_at=1.0, weight_type="linear"):
+    """IPAdapterAdvanced：输入 unified loader 的 MODEL(输出0) 与 IPADAPTER(输出1)，
+    输出带参考图条件的 MODEL(0)。weight=与原图相似度滑杆。"""
+    return {str(n): {"class_type": "IPAdapterAdvanced",
                      "inputs": {
-                         "model": [str(model_from), 0],
-                         "ipadapter": [str(ipadapter_from), 0],
-                         "image": [str(image_from), 0],
+                         "model": [str(model_node), 0],
+                         "ipadapter": [str(ipadapter_node), 1],
+                         "image": [str(image_node), 0],
                          "weight": weight,
+                         "weight_type": weight_type,
+                         "combine_embeds": "average",
                          "start_at": start_at,
                          "end_at": end_at,
+                         "embeds_scaling": "V only",
                      }}}
 
 
@@ -85,16 +93,16 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_ipadapter_loader_node(2, weight=w))
+    g.update(_ipadapter_loader_node(2, 1))          # 输入 checkpoint MODEL → (2,0)MODEL (2,1)IPADAPTER
     g.update(_load_image_node(3, original_filename))
-    g.update(_ipadapter_apply(4, 1, 2, 3, w))
-    g.update(_clip_nodes(5, 6, 1, style, neg))
+    g.update(_ipadapter_apply(4, 2, 2, 3, w))       # model=(2,0) ipadapter=(2,1) image=(3,0)
+    g.update(_clip_nodes(5, 6, 1, style, neg))       # clip=(1,1)
     g.update({str(7): {"class_type": "EmptyLatentImage",
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
                                   "height": params.get("height", DEFAULTS["height"]),
                                   "batch_size": params.get("batch_per_run", DEFAULTS["batch_per_run"])}}})
     g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": 1.0}))
-    g.update(_vae_decode(9, 8, 1))
+    g.update(_vae_decode(9, 8, 1))                   # vae=(1,2)
     g.update(_save_node(10, 9, f"{job_id}/mode1"))
     return g
 
@@ -107,13 +115,13 @@ def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_ipadapter_loader_node(2, weight=w))
+    g.update(_ipadapter_loader_node(2, 1))          # (2,0)MODEL (2,1)IPADAPTER
     g.update(_load_image_node(3, original_filename))
-    g.update(_ipadapter_apply(4, 1, 2, 3, w))
+    g.update(_ipadapter_apply(4, 2, 2, 3, w))
     g.update(_clip_nodes(5, 6, 1, style, neg))
     # img2img：原图 VAE 编码为初始 latent
     g.update({str(7): {"class_type": "VAEEncode",
-                       "inputs": {"pixels": [str(3), 0], "vae": [str(1), 1]}}})
+                       "inputs": {"pixels": [str(3), 0], "vae": [str(1), 2]}}})
     g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": denoise}))
     g.update(_vae_decode(9, 8, 1))
     g.update(_save_node(10, 9, f"{job_id}/mode2"))
