@@ -39,9 +39,13 @@ BIREFNET_DIR = os.path.join(M, "BiRefNet")
 YOLOWORLD_DIR = os.path.join(M, "ultralytics")
 
 # 关键模型文件名（下载后请核对）
-SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors"          # CreativeML OpenRAIL-M，允许商用
+# 主力写实基底：Juggernaut XL v9（RunDiffusion，全球下载最多的 SDXL 写实模型，
+# 内置 RunDiffusion Photo v2，治 SDXL 塑料感；8G 显存可跑，CreativeML OpenRAIL-M 可商用）
+SDXL_CHECKPOINT = "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
+SDXL_BASE_FALLBACK = "sd_xl_base_1.0.safetensors"       # 旧通用底模（备用）
 SDXL_REFINER = "sd_xl_refiner_1.0.safetensors"          # 可选
 SDXL_VAE = "sdxl_vae.safetensors"
+SDXL_VAE_FP16_FIX = "sdxl-vae-fp16-fix.safetensors"     # 颜色更正的 VAE（可选升级）
 IPADAPTER_SDXL = "sdxl_models\\ip-adapter_sdxl_vit-h.safetensors"            # 基础版
 IPADAPTER_PLUS_SDXL = "sdxl_models\\ip-adapter-plus_sdxl_vit-h.safetensors"  # plus 版(更强参考保持)
 BIREFNET_MATTE = "BiRefNet-matting.safetensors"
@@ -54,9 +58,9 @@ DEFAULTS = {
     # 模式2：内容重绘
     "redraw_amount": 0.55,    # img2img denoise（重绘幅度 0~1）
     "keep_subject": True,     # 自动锁定主体（默认开）
-    # 通用
+    # 通用（Juggernaut XL 推荐 CFG 3-7，取 5 平衡写实与服从）
     "steps": 30,
-    "cfg": 7.0,
+    "cfg": 5.0,
     "width": 1024,
     "height": 1024,
     "batch_per_run": 4,       # 每批 4 张

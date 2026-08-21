@@ -15,37 +15,43 @@ SRC = os.path.dirname(os.path.abspath(__file__))
 if SRC not in sys.path:
     sys.path.insert(0, SRC)
 
-from config import JOBS_DIR, DEFAULTS
+from config import JOBS_DIR, DEFAULTS, SDXL_CHECKPOINT
 from pipelines.build import build_mode1
 from engine.comfy_client import ComfyClient
 
 SEED_SRC = r"E:\Desktop\双接口\image-fission\jobs\test_mode1\test_mode1_v2_0_node10_0.jpg"
 SEED_IN_INPUT = r"E:\Desktop\双接口\image-fission\ComfyUI\input\demo_seed.jpg"
-JOB_ID = "demo_fission"
+# 任务名可用 argv[1] 指定（如 demo_fission_v3），不覆盖旧结果
+JOB_ID = sys.argv[1] if len(sys.argv) > 1 else "demo_fission"
 OUT_DIR = os.path.join(JOBS_DIR, JOB_ID)
 
 STYLES = [
     (
         "暖阳窗边",
         "a premium tea product photo, warm afternoon sunlight streaming through a large window, "
-        "cozy wooden table, soft shadows, porcelain teacup, elegant lifestyle, commercial photography, "
-        "sharp focus, 8k, ultra detailed",
+        "cozy wooden table, soft shadows, porcelain teacup, elegant lifestyle, "
+        "hyperdetailed photography, shot on Canon EOS R5, 85mm f/1.4, shallow depth of field, "
+        "natural color, sharp focus, 8k, ultra detailed",
     ),
     (
         "暗调高级",
         "a luxury tea product photo, dark moody studio, black marble background, dramatic side lighting, "
-        "porcelain teacup, high-end commercial photography, cinematic, sharp focus, 8k, ultra detailed",
+        "porcelain teacup, high-end commercial photography, cinematic lighting, "
+        "hyperdetailed photography, shot on Canon EOS R5, 85mm f/1.4, shallow depth of field, "
+        "sharp focus, 8k, ultra detailed",
     ),
     (
         "山野自然",
         "a natural tea product photo, outdoor mountain meadow, fresh spring morning sunlight, "
         "green grass and wildflowers, porcelain teacup on a wooden tray, cinematic nature, "
-        "sharp focus, 8k, ultra detailed",
+        "hyperdetailed photography, shot on Canon EOS R5, 85mm f/1.4, shallow depth of field, "
+        "natural color, sharp focus, 8k, ultra detailed",
     ),
     (
         "杂志大理石",
         "an editorial magazine cover style tea product photo, minimalist white marble surface, "
         "soft pastel props, modern aesthetic, porcelain teacup, high fashion product photography, "
+        "hyperdetailed photography, shot on Canon EOS R5, 85mm f/1.4, shallow depth of field, "
         "sharp focus, 8k, ultra detailed",
     ),
 ]
@@ -53,17 +59,16 @@ STYLES = [
 BASE_PARAMS = {
     "similarity": 0.50,
     "negative_prompt": (
-        "low quality, blurry, deformed, watermark, text, extra fingers, "
-        "flat, illustration, vector, lowres, cartoon, posterized"
+        "low quality, blurry, deformed, watermark, text, extra fingers"
     ),
     "width": 1024,
     "height": 1024,
     "batch_per_run": 1,
-    "steps": 30,
-    "cfg": 7.0,
+    "steps": 32,
+    "cfg": 5.0,
     "hires_scale": 1.5,
-    "hires_denoise": 0.35,
-    "hires_steps": 20,
+    "hires_denoise": 0.40,
+    "hires_steps": 25,
 }
 
 
@@ -180,7 +185,7 @@ def _build_html(seed_path: str, results: list) -> str:
         </div>
     </div>
     <footer>
-        图裂变 image-fission · mode1 换景换风格 · similarity=0.5 · hires fix 1.5x
+        图裂变 image-fission · mode1 换景换风格 · 基底模型 {SDXL_CHECKPOINT} · similarity=0.5 · hires fix 1.5x
     </footer>
 </body>
 </html>"""
