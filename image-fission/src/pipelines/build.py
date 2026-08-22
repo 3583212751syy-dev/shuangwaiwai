@@ -80,6 +80,24 @@ def _save_node(n, images_from, prefix):
                                 "filename_prefix": prefix}}}
 
 
+def _usdu_only(n_start, decoded_image_node, upscale_model_name, save_n, save_prefix):
+    """真实放大链（精简版）：ImageUpscaleWithModel(2x) -> SaveImage。
+    替代 LatentUpscaleBy 的"潜空间插值放大"，治"不增加新细节"的根本问题。
+    不加细化 KSampler（真实超分本身已加细节，加了会拖慢 2-3 倍且容易改变原图）。
+    """
+    g = {}
+    n = n_start
+    g.update({str(n): {"class_type": "UpscaleModelLoader",
+                       "inputs": {"model_name": upscale_model_name}}})
+    n_up = n; n += 1
+    g.update({str(n): {"class_type": "ImageUpscaleWithModel",
+                       "inputs": {"upscale_model": [str(n_up), 0],
+                                  "image": [str(decoded_image_node), 0]}}})
+    n_img = n; n += 1
+    g.update(_save_node(save_n, n_img, save_prefix))
+    return g, n
+
+
 def _ipadapter_apply(n, model_node, ipadapter_node, image_node, weight,
                      start_at=0.0, end_at=1.0, weight_type="linear"):
     """IPAdapterAdvanced：输入 unified loader 的 MODEL(输出0) 与 IPADAPTER(输出1)，
@@ -132,11 +150,15 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
     lora_name = params.get("lora_name", "")
-    lora_strength = float(params.get("lora_strength", 0.85))
-    model_node, clip_node = _resolve_model_clip(lora_strength)
+    lora_strength = float(params["lora_strength"]) if "lora_strength" in params and params["lora_strength"] is not None else 0.0
+    if lora_name and lora_strength > 0:
+        model_node, clip_node = 2, 2
+    else:
+        model_node, clip_node = 1, 1
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
+    if lora_name and lora_strength > 0:
+        g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
     g.update(_ipadapter_loader_node(3, model_node))
     g.update(_load_image_node(4, original_filename))
     g.update(_ipadapter_apply(5, model_node, 3, 4, w))
@@ -145,14 +167,27 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
                                   "height": params.get("height", DEFAULTS["height"]),
                                   "batch_size": params.get("batch_per_run", DEFAULTS["batch_per_run"])}}})
-    g.update(_sampler_node(9, 5, 6, 7, 8, {**params, "denoise": 1.0,
-                                           "steps": params.get("steps_base", DEFAULTS["steps"])}))
-    g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
-    g.update(_sampler_node(11, 5, 6, 7, 10,
-                           {**params, "denoise": params.get("hires_denoise", 0.35),
-                            "steps": params.get("hires_steps", 20)}))
-    g.update(_vae_decode(12, 11, model_node))
-    g.update(_save_node(13, 12, f"{job_id}/mode1"))
+    # 流水线：KSampler 1 → [可选 USDU 真实放大] / [可选 LatentUpscale 潜空间]
+    # 默认开启 USDU（治"不增加新细节"的根本问题），关闭时回退到 LatentUpscale 1.5x
+    usdu_model = params.get("usdu_model", "4x_NMKD-Siax_200k.pth")
+    use_usdu = bool(usdu_model)
+    if use_usdu:
+        # USDU 路径：KSampler 1（30 步基础）→ VAE Decode → 真实 2x → Save
+        g.update(_sampler_node(9, 5, 6, 7, 8, {**params, "denoise": 1.0,
+                                               "steps": params.get("steps_base", DEFAULTS["steps"])}))
+        g.update(_vae_decode(10, 9, model_node))
+        usdu_nodes, _ = _usdu_only(11, 10, usdu_model, save_n=14, save_prefix=f"{job_id}/mode1")
+        g.update(usdu_nodes)
+    else:
+        # 旧路径：KSampler 1 → LatentUpscale 1.5x → KSampler 2 → Save
+        g.update(_sampler_node(9, 5, 6, 7, 8, {**params, "denoise": 1.0,
+                                               "steps": params.get("steps_base", DEFAULTS["steps"])}))
+        g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
+        g.update(_sampler_node(11, 5, 6, 7, 10,
+                               {**params, "denoise": params.get("hires_denoise", 0.35),
+                                "steps": params.get("hires_steps", 20)}))
+        g.update(_vae_decode(12, 11, model_node))
+        g.update(_save_node(13, 12, f"{job_id}/mode1"))
     return g
 
 
@@ -165,11 +200,15 @@ def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
     width = params.get("width", DEFAULTS["width"])
     height = params.get("height", DEFAULTS["height"])
     lora_name = params.get("lora_name", "")
-    lora_strength = float(params.get("lora_strength", 0.85))
-    model_node, clip_node = _resolve_model_clip(lora_strength)
+    lora_strength = float(params["lora_strength"]) if "lora_strength" in params and params["lora_strength"] is not None else 0.0
+    if lora_name and lora_strength > 0:
+        model_node, clip_node = 2, 2
+    else:
+        model_node, clip_node = 1, 1
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
+    if lora_name and lora_strength > 0:
+        g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
     g.update(_ipadapter_loader_node(3, model_node))
     g.update(_load_image_node(4, original_filename))
     g.update(_ipadapter_apply(5, model_node, 3, 4, w))
