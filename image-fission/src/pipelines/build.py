@@ -159,9 +159,57 @@ def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
     return g
 
 
+def build_bgswap(original_filename: str, params: dict, job_id: str) -> dict:
+    """背景替换（显式主体锁定）：BiRefNet 抠出主体蒙版 -> 反选为背景蒙版
+    -> SetLatentNoiseMask 只重绘背景区 -> KSampler 换新场景，主体像素级保留。
+    链路：LoadImage -> ImageScale -> BiRefNetRMBG -> InvertMask -> VAEEncode
+          -> SetLatentNoiseMask -> KSampler(denoise=1.0) -> VAEDecode -> Save。
+    """
+    scene = params.get("style_prompt", "a clean white studio background, soft light")
+    neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
+    width = params.get("width", DEFAULTS["width"])
+    height = params.get("height", DEFAULTS["height"])
+    model = params.get("matting_model", "BiRefNet-matting")
+    g = {}
+    g.update(_checkpoint_node(1))                            # (1,0)MODEL (1,1)CLIP (1,2)VAE
+    g.update(_load_image_node(2, original_filename))
+    g.update({str(3): {"class_type": "ImageScale",
+                       "inputs": {"image": [str(2), 0],
+                                  "upscale_method": "lanczos",
+                                  "width": width, "height": height,
+                                  "crop": "disabled"}}})
+    # BiRefNet 主体分割：输出 (4,0)IMAGE 抠图 (4,1)MASK 主体 (4,2)MASK_IMAGE
+    # 注意：该节点内部直接访问 params["background"]/["mask_blur"]/["mask_offset"]
+    #       /["invert_output"]，API 格式省略可选参数不会自动补默认值，必须全传。
+    g.update({str(4): {"class_type": "BiRefNetRMBG",
+                       "inputs": {"image": [str(3), 0],
+                                  "model": model,
+                                  "sensitivity": 1.0,
+                                  "mask_blur": 0,
+                                  "mask_offset": 0,
+                                  "invert_output": False,
+                                  "refine_foreground": False,
+                                  "background": "Alpha",
+                                  "background_color": "#222222"}}})
+    g.update({str(5): {"class_type": "InvertMask",
+                       "inputs": {"mask": [str(4), 1]}}})    # 背景蒙版
+    g.update(_clip_nodes(6, 7, 1, scene, neg))
+    g.update({str(8): {"class_type": "VAEEncode",
+                       "inputs": {"pixels": [str(3), 0], "vae": [str(1), 2]}}})
+    g.update({str(9): {"class_type": "SetLatentNoiseMask",
+                       "inputs": {"samples": [str(8), 0],
+                                  "mask": [str(5), 0]}}})
+    g.update(_sampler_node(10, 1, 6, 7, 9, {**params, "denoise": 1.0}))
+    g.update(_vae_decode(11, 10, 1))
+    g.update(_save_node(12, 11, f"{job_id}/bgswap"))
+    return g
+
+
 def build(mode: str, original_filename: str, params: dict, job_id: str) -> dict:
     if mode == "mode1":
         return build_mode1(original_filename, params, job_id)
     elif mode == "mode2":
         return build_mode2(original_filename, params, job_id)
+    elif mode == "bgswap":
+        return build_bgswap(original_filename, params, job_id)
     raise ValueError(f"未知模式: {mode}")
