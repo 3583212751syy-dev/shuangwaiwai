@@ -81,6 +81,8 @@ def main():
     p.add_argument("--cfg", type=float, default=5.0)
     p.add_argument("--width", type=int, default=768)
     p.add_argument("--height", type=int, default=1344)
+    p.add_argument("--lora", default=None, help="LoRA 文件名（ComfyUI/models/loras/ 下）")
+    p.add_argument("--lora-strength", type=float, default=0.85, help="LoRA 强度 0-1（默认 0.85）")
     args = p.parse_args()
 
     # 校验
@@ -132,6 +134,10 @@ def main():
         "hires_denoise": 0.40,
         "hires_steps": 25,
     }
+    if args.lora:
+        base_params["lora_name"] = args.lora
+        base_params["lora_strength"] = args.lora_strength
+        print(f"[lora] {args.lora} strength={args.lora_strength}")
     client = ComfyClient()
     results = []
     for i, (name, prompt) in enumerate(prompts, 1):

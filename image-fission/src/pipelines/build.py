@@ -7,13 +7,16 @@ ComfyUI 工作流构造器（API Format）。
 注：节点 class_type 以 cubiq/ComfyUI_IPAdapter_plus 为准；启动后可用
     ComfyClient 查询 /object_info 校验，如有出入再微调。
 """
-from config import (SDXL_CHECKPOINT, SDXL_VAE, DEFAULTS)
+from config import (SDXL_VAE, DEFAULTS)
+import config as _cfg
 
 # IP-Adapter 统一加载预设：plus 模型配 "PLUS (high strength)"，最契合 SDXL+plus
 IPADAPTER_PRESET = "PLUS (high strength)"
 
 
-def _checkpoint_node(n, ckpt=SDXL_CHECKPOINT):
+def _checkpoint_node(n, ckpt=None):
+    if ckpt is None:
+        ckpt = _cfg.SDXL_CHECKPOINT
     return {str(n): {"class_type": "CheckpointLoaderSimple",
                      "inputs": {"ckpt_name": ckpt}}}
 
@@ -65,9 +68,10 @@ def _latent_upscale_by(n, samples_from, scale_by=1.5, method="nearest-exact"):
 
 
 def _vae_decode(n, samples_from, vae_from):
+    # VAE 始终从 CheckpointLoader（节点 1）取，因为 LoRA 节点只输出 MODEL/CLIP 不带 VAE
     return {str(n): {"class_type": "VAEDecode",
                      "inputs": {"samples": [str(samples_from), 0],
-                                "vae": [str(vae_from), 2]}}}
+                                "vae": [str(1), 2]}}}
 
 
 def _save_node(n, images_from, prefix):
@@ -94,68 +98,96 @@ def _ipadapter_apply(n, model_node, ipadapter_node, image_node, weight,
                      }}}
 
 
+def _lora_loader_node(n, model_from, clip_from, lora_name, strength_model=0.85, strength_clip=0.85):
+    """LoRA loader — 必须在 checkpoint 之后、IPAdapter 之前（IPAdapter 需要 LoRA 后的 MODEL/CLIP）。
+    lora_name 为空字符串时返回空 dict（passthrough 行为，下游直接用 checkpoint 节点）。
+    model_from/clip_from 接受 (node_id, output_index) 元组或纯节点编号（默认用 0 号输出）。"""
+    def _ref(src, default_out=0):
+        if isinstance(src, tuple):
+            return [str(src[0]), src[1]]
+        return [str(src), default_out]
+    if not lora_name:
+        return {}
+    return {str(n): {"class_type": "LoraLoader",
+                     "inputs": {"model": _ref(model_from, 0),
+                                "clip": _ref(clip_from, 1),       # CLIP 永远用节点 1 的输出 1
+                                "lora_name": lora_name,
+                                "strength_model": strength_model,
+                                "strength_clip": strength_clip}}}
+
+
+def _resolve_model_clip(lora_strength):
+    """根据 lora 强度返回 (effective_model_node, effective_clip_node)。
+    0 = 不用 LoRA（用 checkpoint 节点 1），>0 = 用了 LoRA 节点 2。"""
+    if lora_strength and lora_strength > 0:
+        return 2, 2
+    return 1, 1
+
+
 def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
-    """换景换风格：保持与原图相似度(weight)，用 prompt 换场景/风格。"""
+    """换景换风格：保持与原图相似度(weight)，用 prompt 换场景/风格。
+    可选 LoRA：通过 params["lora_name"] + params["lora_strength"] 启用（默认 0.85）。
+    """
     w = params.get("similarity", DEFAULTS["similarity"])
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
+    lora_name = params.get("lora_name", "")
+    lora_strength = float(params.get("lora_strength", 0.85))
+    model_node, clip_node = _resolve_model_clip(lora_strength)
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_ipadapter_loader_node(2, 1))          # 输入 checkpoint MODEL → (2,0)MODEL (2,1)IPADAPTER
-    g.update(_load_image_node(3, original_filename))
-    g.update(_ipadapter_apply(4, 2, 2, 3, w))       # model=(2,0) ipadapter=(2,1) image=(3,0)
-    g.update(_clip_nodes(5, 6, 1, style, neg))       # clip=(1,1)
-    g.update({str(7): {"class_type": "EmptyLatentImage",
+    g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
+    g.update(_ipadapter_loader_node(3, model_node))
+    g.update(_load_image_node(4, original_filename))
+    g.update(_ipadapter_apply(5, model_node, 3, 4, w))
+    g.update(_clip_nodes(6, 7, clip_node, style, neg))
+    g.update({str(8): {"class_type": "EmptyLatentImage",
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
                                   "height": params.get("height", DEFAULTS["height"]),
                                   "batch_size": params.get("batch_per_run", DEFAULTS["batch_per_run"])}}})
-    # 第一轮采样（基础分辨率，denoise=1.0）
-    g.update(_sampler_node(8, 4, 5, 6, 7, {**params, "denoise": 1.0,
+    g.update(_sampler_node(9, 5, 6, 7, 8, {**params, "denoise": 1.0,
                                            "steps": params.get("steps_base", DEFAULTS["steps"])}))
-    # hires fix：潜空间放大 1.5x 后进行第二轮细化
-    g.update(_latent_upscale_by(11, 8, scale_by=params.get("hires_scale", 1.5)))
-    g.update(_sampler_node(12, 4, 5, 6, 11,
+    g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
+    g.update(_sampler_node(11, 5, 6, 7, 10,
                            {**params, "denoise": params.get("hires_denoise", 0.35),
                             "steps": params.get("hires_steps", 20)}))
-    g.update(_vae_decode(9, 12, 1))                  # 解码放大后的 latent
-    g.update(_save_node(10, 9, f"{job_id}/mode1"))
+    g.update(_vae_decode(12, 11, model_node))
+    g.update(_save_node(13, 12, f"{job_id}/mode1"))
     return g
 
 
 def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
-    """内容重绘：img2img(重绘幅度 denoise) + IP-Adapter(保主体相似度)。
-    链路：LoadImage -> ImageScale(统一目标分辨率) -> VAEEncode -> 第一轮采样
-          -> LatentUpscaleBy(1.5x hires) -> 第二轮采样细化 -> VAEDecode -> Save。
-    """
+    """内容重绘：img2img(重绘幅度 denoise) + IP-Adapter(保主体相似度)。"""
     w = params.get("similarity", DEFAULTS["similarity"])
     denoise = params.get("redraw_amount", DEFAULTS["redraw_amount"])
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
     width = params.get("width", DEFAULTS["width"])
     height = params.get("height", DEFAULTS["height"])
+    lora_name = params.get("lora_name", "")
+    lora_strength = float(params.get("lora_strength", 0.85))
+    model_node, clip_node = _resolve_model_clip(lora_strength)
     g = {}
     g.update(_checkpoint_node(1))
-    g.update(_ipadapter_loader_node(2, 1))          # (2,0)MODEL (2,1)IPADAPTER
-    g.update(_load_image_node(3, original_filename))
-    g.update(_ipadapter_apply(4, 2, 2, 3, w))
-    g.update(_clip_nodes(5, 6, 1, style, neg))
-    # img2img 前先把输入统一缩放到目标分辨率（避免小图/超大图影响 latent）
-    g.update({str(7): {"class_type": "ImageScale",
-                       "inputs": {"image": [str(3), 0],
+    g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
+    g.update(_ipadapter_loader_node(3, model_node))
+    g.update(_load_image_node(4, original_filename))
+    g.update(_ipadapter_apply(5, model_node, 3, 4, w))
+    g.update(_clip_nodes(6, 7, clip_node, style, neg))
+    g.update({str(8): {"class_type": "ImageScale",
+                       "inputs": {"image": [str(4), 0],
                                   "upscale_method": "lanczos",
                                   "width": width, "height": height,
                                   "crop": "disabled"}}})
-    g.update({str(8): {"class_type": "VAEEncode",
-                       "inputs": {"pixels": [str(7), 0], "vae": [str(1), 2]}}})
-    # 第一轮采样（重绘幅度 denoise，主体由 IP-Adapter 锁定）
-    g.update(_sampler_node(9, 4, 5, 6, 8, {**params, "denoise": denoise}))
-    # hires fix：潜空间放大 1.5x 后第二轮细化
-    g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
-    g.update(_sampler_node(11, 4, 5, 6, 10,
+    g.update({str(9): {"class_type": "VAEEncode",
+                       "inputs": {"pixels": [str(8), 0], "vae": [str(1), 2]}}})
+    g.update(_sampler_node(10, 5, 6, 7, 9, {**params, "denoise": denoise}))
+    g.update(_latent_upscale_by(11, 10, scale_by=params.get("hires_scale", 1.5)))
+    g.update(_sampler_node(12, 5, 6, 7, 11,
                            {**params, "denoise": params.get("hires_denoise", 0.40),
                             "steps": params.get("hires_steps", 25)}))
-    g.update(_vae_decode(12, 11, 1))
-    g.update(_save_node(13, 12, f"{job_id}/mode2"))
+    g.update(_vae_decode(13, 12, model_node))
+    g.update(_save_node(14, 13, f"{job_id}/mode2"))
     return g
 
 
