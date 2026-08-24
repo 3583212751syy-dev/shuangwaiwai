@@ -162,13 +162,16 @@ def _canny_node(n, image_from, low=100, high=200):
                                 "high_threshold": high}}}
 
 
-def _controlnet_apply(n, model_from, controlnet_from, image_from, strength,
+def _controlnet_apply(n, pos_from, neg_from, controlnet_from, image_from, strength,
                       start_percent=0.0, end_percent=0.9):
-    """ControlNetApplyAdvanced：把 Canny 线稿注入，锁住构图/布局。
-    start/end_percent 控制影响区间；strength 即构图参考强度滑杆。"""
+    """ControlNetApplyAdvanced：本机 ComfyUI 版本作用在 CONDITIONING 上（输入/输出都是
+    positive/negative CONDITIONING，不是 MODEL），因此插在 CLIP 与 KSampler 之间：
+      CLIP(6/7) → ControlNetApplyAdvanced(52) → KSampler positive/negative。
+    start/end_percent 控制影响区间；strength 即构图参考强度滑杆。输出 [n,0]=positive', [n,1]=negative'。"""
     return {str(n): {"class_type": "ControlNetApplyAdvanced",
                      "inputs": {
-                         "model": [str(model_from), 0],
+                         "positive": [str(pos_from), 0],
+                         "negative": [str(neg_from), 0],
                          "control_net": [str(controlnet_from), 0],
                          "image": [str(image_from), 0],
                          "strength": strength,
@@ -179,80 +182,98 @@ def _controlnet_apply(n, model_from, controlnet_from, image_from, strength,
 
 def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     """换景换风格：保持与原图相似度(weight)，用 prompt 换场景/风格。
-    可选 LoRA：通过 params["lora_name"] + params["lora_strength"] 启用（默认 0.85）。
+    可选 LoRA：
+      - params["lora_name"] + params["lora_strength"]  启用第一个 LoRA
+      - params["lora_name_2"] + params["lora_strength_2"] 启用第二个 LoRA（链在第一个之后）
     """
     w = params.get("similarity", DEFAULTS["similarity"])
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
-    lora_name = params.get("lora_name", "")
-    lora_strength = float(params["lora_strength"]) if "lora_strength" in params and params["lora_strength"] is not None else 0.0
-    if lora_name and lora_strength > 0:
-        model_node, clip_node = 2, 2
-    else:
-        model_node, clip_node = 1, 1
+
+    # ---- 双 LoRA 链式加载 ----
+    lora1_name = params.get("lora_name", "")
+    lora1_strength = float(params["lora_strength"]) if "lora_strength" in params and params["lora_strength"] is not None else 0.0
+    lora2_name = params.get("lora_name_2", "")
+    lora2_strength = float(params["lora_strength_2"]) if "lora_strength_2" in params and params["lora_strength_2"] is not None else 0.0
+
     g = {}
     g.update(_checkpoint_node(1))
-    if lora_name and lora_strength > 0:
-        g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
-    g.update(_ipadapter_loader_node(3, model_node))
-    g.update(_load_image_node(4, original_filename))
+    last_model, last_clip = 1, 1
+    if lora1_name and lora1_strength > 0:
+        g.update(_lora_loader_node(2, last_model, last_clip, lora1_name, lora1_strength, lora1_strength))
+        last_model, last_clip = 2, 2
+    if lora2_name and lora2_strength > 0:
+        g.update(_lora_loader_node(3, last_model, last_clip, lora2_name, lora2_strength, lora2_strength))
+        last_model, last_clip = 3, 3
+
+    # ---- IPAdapter 加载（必须在 LoRA 之后）----
+    g.update(_ipadapter_loader_node(4, last_model))
+    g.update(_load_image_node(5, original_filename))
+
     # IPAdapter（颜色/材质锁）
-    g.update(_ipadapter_apply(5, model_node, 3, 4, w,
+    g.update(_ipadapter_apply(6, last_model, 4, 5, w,
                              weight_type=params.get("ipadapter_weight_type", "linear"),
                              start_at=params.get("ipadapter_start", 0.0),
                              end_at=params.get("ipadapter_end", 1.0),
                              noise=params.get("ipadapter_noise", 0.0),
                              combine_embeds=params.get("ipadapter_combine", "average")))
-    # 双 IPAdapter：颜色锁（style transfer, 节点5） + 构图锁（composition, 节点6）
+
+    # 双 IPAdapter：颜色锁（style transfer, 节点6） + 构图锁（composition, 节点60）
     # 两者独立可控，对应 颜色/构图 滑杆；内容由 prompt 控制。无需额外显存。
-    model_pre_cn = 5
+    model_pre_cn = 6
     comp = float(params.get("composition_strength", 0.0) or 0.0)
     if comp > 0:
-        g.update(_ipadapter_apply(60, 5, 3, 4, comp,
+        g.update(_ipadapter_apply(60, 6, 4, 5, comp,
                                  weight_type="composition",
                                  start_at=0.0, end_at=0.9,
                                  noise=0.0, combine_embeds="average"))
         model_pre_cn = 60
-    # ControlNet Canny（更强构图锁）—— 可选；从原图提取线稿注入，锁住布局。
-    # 注意：ControlNet fp32 约 4.66GB，12GB 显存需转 fp16 或仅在高显存机器启用。
+
+    # ---- CLIP 编码（供 prompt 使用）----
+    g.update(_clip_nodes(7, 8, last_clip, style, neg))
+    samp_pos, samp_neg = 7, 8   # KSampler 默认直接取 CLIP 编码
+
+    # ---- ControlNet Canny（更强构图锁）—— 可选 ----
+    # 本机 ComfyUI 的 ControlNetApplyAdvanced 作用在 CONDITIONING 上（输出 CONDITIONING
+    # 而非 MODEL），因此插在 CLIP(7/8) 与 KSampler(10) 之间，model 仍走 IPAdapter 主线。
     model_for_sampler = model_pre_cn
     cn_name = params.get("controlnet_name", "")
     cn_strength = float(params.get("controlnet_strength", 0.0) or 0.0)
     if cn_name and cn_strength > 0:
-        g.update(_controlnet_loader_node(50, cn_name))
-        g.update(_canny_node(51, 4,
+        g.update(_controlnet_loader_node(70, cn_name))
+        g.update(_canny_node(71, 5,
                              low=params.get("controlnet_low_threshold", 100),
                              high=params.get("controlnet_high_threshold", 200)))
-        g.update(_controlnet_apply(52, model_pre_cn, 50, 51, cn_strength,
+        g.update(_controlnet_apply(72, 7, 8, 70, 71, cn_strength,
                                    start_percent=params.get("controlnet_start", 0.0),
                                    end_percent=params.get("controlnet_end", 0.9)))
-        model_for_sampler = 52
-    g.update(_clip_nodes(6, 7, clip_node, style, neg))
-    g.update({str(8): {"class_type": "EmptyLatentImage",
+        samp_pos, samp_neg = 72, 72   # 改用 ControlNet 输出的 positive/negative
+
+    g.update({str(9): {"class_type": "EmptyLatentImage",
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
                                   "height": params.get("height", DEFAULTS["height"]),
                                   "batch_size": params.get("batch_per_run", DEFAULTS["batch_per_run"])}}})
-    # 流水线：KSampler 1 → [可选 USDU 真实放大] / [可选 LatentUpscale 潜空间]
-    # 默认开启 USDU（治"不增加新细节"的根本问题），关闭时回退到 LatentUpscale 1.5x
+
+    # ---- KSampler + 放大 ----
     usdu_model = params.get("usdu_model", "4x_NMKD-Siax_200k.pth")
     use_usdu = bool(usdu_model)
     if use_usdu:
-        # USDU 路径：KSampler 1（30 步基础）→ VAE Decode → 真实 2x → Save
-        g.update(_sampler_node(9, model_for_sampler, 6, 7, 8, {**params, "denoise": 1.0,
+        # USDU 路径：KSampler 1 → VAE Decode → 真实 2x → Save
+        g.update(_sampler_node(10, model_for_sampler, samp_pos, samp_neg, 9, {**params, "denoise": 1.0,
                                                "steps": params.get("steps_base", DEFAULTS["steps"])}))
-        g.update(_vae_decode(10, 9, model_node))
-        usdu_nodes, _ = _usdu_only(11, 10, usdu_model, save_n=14, save_prefix=f"{job_id}/mode1")
+        g.update(_vae_decode(11, 10, last_model))
+        usdu_nodes, _ = _usdu_only(12, 11, usdu_model, save_n=15, save_prefix=f"{job_id}/mode1")
         g.update(usdu_nodes)
     else:
         # 旧路径：KSampler 1 → LatentUpscale 1.5x → KSampler 2 → Save
-        g.update(_sampler_node(9, model_for_sampler, 6, 7, 8, {**params, "denoise": 1.0,
+        g.update(_sampler_node(10, model_for_sampler, samp_pos, samp_neg, 9, {**params, "denoise": 1.0,
                                                "steps": params.get("steps_base", DEFAULTS["steps"])}))
-        g.update(_latent_upscale_by(10, 9, scale_by=params.get("hires_scale", 1.5)))
-        g.update(_sampler_node(11, model_for_sampler, 6, 7, 10,
+        g.update(_latent_upscale_by(11, 10, scale_by=params.get("hires_scale", 1.5)))
+        g.update(_sampler_node(12, model_for_sampler, samp_pos, samp_neg, 11,
                                {**params, "denoise": params.get("hires_denoise", 0.35),
                                 "steps": params.get("hires_steps", 20)}))
-        g.update(_vae_decode(12, 11, model_node))
-        g.update(_save_node(13, 12, f"{job_id}/mode1"))
+        g.update(_vae_decode(13, 12, last_model))
+        g.update(_save_node(14, 13, f"{job_id}/mode1"))
     return g
 
 
