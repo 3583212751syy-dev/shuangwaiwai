@@ -151,10 +151,10 @@ def _resolve_model_clip(lora_strength):
 
 def _controlnet_loader_node(n, control_name):
     return {str(n): {"class_type": "ControlNetLoader",
-                     "inputs": {"control_name": control_name}}}
+                     "inputs": {"control_net_name": control_name}}}
 
 
-def _canny_node(n, image_from, low=100, high=200):
+def _canny_node(n, image_from, low=0.4, high=0.8):
     """原生 Canny 边缘提取：从原图得到线稿，作为 ControlNet 构图控制图。"""
     return {str(n): {"class_type": "Canny",
                      "inputs": {"image": [str(image_from), 0],

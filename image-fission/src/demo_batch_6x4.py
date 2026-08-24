@@ -1,13 +1,22 @@
 """
-批量风格裂变 v6.5：按原图类型差异化裂变 + 欧美全幅印花方向。
-核心策略（相对 v6）：
-  1. 阴阳/装饰图（illust_1）与迷彩图（camo_4）保留其「构图风格」：高 composition 锁 + 高相似度。
-  2. 其余四类（eagle/denim/skull/metal）按「元素裂变」：低 composition 锁 + 中等相似度，
-     由 prompt 内容主导，避免同组四张长得一样。
-  3. 全局锁定「可印在全幅衣服上的图案」域：2D flat all-over print / t-shirt graphic，
-     明确排除摄影/3D/实物褶皱/品牌商标/侵权内容。
-  4. 双 LoRA：Canopus Textile Pattern（印花图案）+ chrisconyers T-shirts（T恤图案）。
-  5. 并发 + 实时进度 + 轻量画廊。
+批量风格裂变 v7：严格按原图构图 + 设计理念裂变。
+
+核心修正（相对 v6.5）：
+  1. 输出是「可印在全幅服装上的平面印花图案」，不是衣服效果图；
+     prompt 里删除 "t-shirt design" 等可能触发 garment/mockup 的词，
+     保留 "all-over print graphic, textile print artwork"。
+  2. 每一类裂变都必须参考原图的「构图」和「设计理念」：
+     - 阴阳/装饰图（illust_1）与迷彩图（camo_4）高构图锁，保留其构图风格；
+     - 其余四类也提高构图锁到 0.50-0.58，让布局仍看得出原图影子。
+  3. 「元素裂变」只允许在同类设计语言内部变化：
+     - eagle_2 只能换鹰/乌鸦/翼、骷髅、火焰、锁链、横幅；
+     - denim_3 只能换牛仔贴布、蝴蝶、缝线字母；
+     - skull_5 只能换骷髅、翅膀、蛇、玫瑰、血滴；
+     - metal_6 只能换金属 logo、鹰/乌鸦、角骷髅、闪电；
+     禁止向原图没有的语言跳跃（ dragon / butterfly 乱入 / 热带植物乱入等）。
+  4. 明确排除侵权内容：negative 用 "readable text, real words, brand name, trademark"
+     代替简单 "text"，允许装饰性字形成分但不出现可读品牌名。
+  5. 保留并发 + 实时进度 + 轻量画廊。
 """
 import os
 import sys
@@ -30,31 +39,32 @@ _cfg.SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors"
 COMFYUI_INPUT = r"E:\Desktop\双接口\image-fission\ComfyUI\input"
 JOBS_BASE = r"E:\Desktop\双接口\image-fission\jobs"
 
-# 全局印花/T恤 LoRA
+# 全局印花/T恤 LoRA（chrisconyers LoRA 文件名带 tshirts，但实际是图案风格 LoRA，不生成衣服）
 TEXTILE_LORA = "Canopus-Textile-Pattern-adp-LoRA.safetensors"
 TEXTILE_LORA_STRENGTH = 0.55
 TSHIRT_LORA = "chrisconyers-sdxl-tshirts-lora.safetensors"
 TSHIRT_LORA_STRENGTH = 0.45
 
-# 矢量线描 LoRA：仅用于 engraving 类，增强 ornamental 图案感
+# 矢量线描 LoRA：用于 engraving/ornamental 类，增强 ornamental 图案感
 VECTOR_LORA = "DD-vector-v2.safetensors"
 
-# ControlNet Canny fp16（可选，默认关闭以保速度；需要强像素级构图锁时开启）
+# ControlNet Canny fp16：全局开启，给每一类提供像素级构图参考；
+# 单类强度在 ORIGINALS_CONFIG 里分别控制。
 CONTROLNET = "controlnet-canny-sdxl-1.0.fp16.safetensors"
-USE_CONTROLNET = False
+USE_CONTROLNET = True
 
-# 公共风格前缀：明确「全幅衣服印花 / T恤图案」
+# 公共风格前缀：明确「全幅印花图案 / 纺织品印花艺术作品」，不是衣服效果图
 STYLE_PREFIX = (
-    "high quality all over print t-shirt design, surface pattern design, "
-    "2d flat graphic illustration, bold clean outlines, flat color blocks, "
-    "screen print aesthetic, centered composition, scalable vector style, "
-    "print ready artwork, no background scene, "
+    "high quality all-over print graphic, textile print artwork, "
+    "surface pattern design, 2d flat graphic illustration, "
+    "bold clean outlines, flat color blocks, screen print aesthetic, "
+    "scalable vector style, print ready artwork, no background scene, "
     "no photography, no 3d render, no realistic texture, no fabric folds, "
-    "no wrinkles, no shadows, no depth of field, no product shot, "
-    "no text, no watermark, no signature, no brand logo, no trademark, no copyrighted character"
+    "no wrinkles, no shadows, no depth of field, no product shot, no mockup, no garment, "
+    "no embroidery, no stitched texture, no raised thread, no 3d fabric, no buttons"
 )
 
-STYLE_SUFFIX = "sharp focus, crisp edges, professional apparel print"
+STYLE_SUFFIX = "sharp focus, crisp edges, professional textile print"
 
 
 def make_config(
@@ -62,9 +72,9 @@ def make_config(
     style_words,
     subjects,
     extra_lora=None,
-    extra_lora_strength=0.45,
+    extra_lora_strength=0.40,
     sim=0.70,
-    comp=0.35,
+    comp=0.55,
     cn=0.40,
 ):
     """打包一类原图的生成配置。"""
@@ -85,119 +95,120 @@ def make_config(
 # comp = composition 构图锁（0=完全由 prompt 重新构图，1=紧贴原图布局）
 # cn   = ControlNet Canny 强度（只在 USE_CONTROLNET=True 时生效）
 ORIGINALS_CONFIG = {
-    # illust_1：黑白高对比装饰纹章 → 保留「阴阳/对称构图」风格，换不同文化母题
+    # illust_1：黑白高对比装饰花卉/孔雀卷草 → 保留「竖向不对称装饰卷草」构图
     "illust_1": make_config(
-        type_label="yin_yang_ornamental",
+        type_label="bw_ornamental_scroll",
         style_words=(
-            "black and white ornamental engraving, art nouveau floral pattern, "
-            "high contrast yin yang composition, elegant botanical silhouette, "
-            "symmetrical decorative crest"
+            "black and white ornamental engraving, elegant botanical scrollwork, "
+            "high contrast floral illustration, Art Nouveau inspired decorative pattern, "
+            "peacock and flower silhouette, vertical asymmetrical composition"
         ),
         subjects=[
-            ("damask",     "intricate damask ornamental pattern with blooming botanical motifs, symmetrical scrollwork, monochrome decorative repeat"),
-            ("creature",   "heraldic ornamental pattern with stylized beast and flowering vines, monochrome decorative symmetrical crest"),
-            ("geometry",   "sacred geometry ornamental pattern with stars, circles and botanical frames, monochrome symmetrical mandala"),
-            ("ornamental", "ornate ornamental pattern with corner flourishes, peonies and acanthus leaves, monochrome decorative symmetrical"),
+            ("peacock_floral",   "ornate peacock with flowing tail feathers intertwined with blooming flowers and curling vines, high contrast black and white decorative scroll"),
+            ("hummingbird_vines", "hummingbird hovering among blossoming vines and swirling floral scrolls, monochrome ornamental illustration"),
+            ("floral_cascade",    "cascading bouquet of flowers, leaves and curls forming an elegant vertical scroll, high contrast decorative botanical pattern"),
+            ("butterfly_garden",  "ornate butterfly surrounded by daisies, leaves and curling tendrils, vertical asymmetrical botanical decorative motif"),
         ],
         extra_lora=VECTOR_LORA,
-        extra_lora_strength=0.40,
-        sim=0.78,   # 保留原图风格
-        comp=0.72,  # 保留对称构图
+        extra_lora_strength=0.35,
+        sim=0.78,   # 保留黑白装饰风格
+        comp=0.72,  # 保留竖向卷草构图
         cn=0.55,
     ),
 
-    # eagle_2：黑鹰+红火焰 → 按元素裂变：机车徽章 / 火焰 / 龙 / 盾徽
+    # eagle_2：鹰+火焰+骷髅+锁链+横幅徽章 → 元素在「哥特机车徽章」语汇内裂变
     "eagle_2": make_config(
-        type_label="gothic_biker",
+        type_label="gothic_biker_crest",
         style_words=(
-            "gothic biker emblem t-shirt print, red orange flame accents on black, "
-            "bold graphic badge, tattoo flash style, streetwear crest"
+            "gothic biker emblem print, black and orange flame graphic, "
+            "eagle and skull crest, chain and banner details, dark streetwear badge"
         ),
         subjects=[
-            ("eagle_alt",   "dark gothic eagle with spread black wings and roaring red orange flames, bold symmetrical shield emblem"),
-            ("skull_flame", "gothic skull with red flame accents and barbed wire, symmetrical badge layout, dark background"),
-            ("flame_wing",  "symmetrical shield with black wings, red flames and a lightning bolt, gothic graphic print"),
-            ("dragon",      "dark gothic dragon coiled with red flame accents, symmetrical emblem, bold outline print"),
+            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental banner, symmetrical vertical emblem, no text"),
+            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ribbon banner, symmetrical crest, no text"),
+            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank banner, dark gothic emblem, no text"),
+            ("winged_skull",  "winged skull with red flames, crossed chains and a blank ribbon banner, symmetrical biker crest, no text"),
         ],
-        sim=0.68,
-        comp=0.28,
-        cn=0.35,
+        sim=0.72,
+        comp=0.58,  # 保留垂直徽章构图，但允许元素替换
+        cn=0.45,
     ),
 
-    # denim_3：牛仔贴布+蝴蝶 → 按元素裂变：美式补丁 / 涂鸦字母 / 蝴蝶刺绣 / 工装标签
-    # 注意：用户明确不要「实体牛仔布照片」，所以 prompt 里用 "denim style patch" 而非 "denim texture"
+    # denim_3：牛仔贴布+蝴蝶+"UPCY"文字 → 元素在「牛仔再造贴布」语汇内裂变
+    # 注意：原图是真实牛仔布贴布照片，裂变结果必须是「平面印花图案」而非再拍一张布贴布
     "denim_3": make_config(
-        type_label="vintage_patchwork",
+        type_label="denim_patchwork",
         style_words=(
-            "vintage americana patchwork t-shirt print, blue indigo tones, "
-            "stitched patch aesthetic, distressed workwear graphic, "
-            "flat graphic print, no real denim fabric texture"
+            "flat vector illustration, light blue and white color palette only, "
+            "denim blue inspired graphic print, butterfly and abstract letterform motif, "
+            "crisp clean shapes, solid flat color blocks, screen print style, "
+            "no brown, no beige, no fabric texture, no embroidery"
         ),
         subjects=[
-            ("denim_alt",      "blue denim style patch with stylized butterfly motif and stitched border, vintage workwear print"),
-            ("patch_letters",  "blue patch with bold varsity letters and embroidered roses, stitched edges, vintage textile graphic"),
-            ("denim_butterfly","blue denim style patch with butterflies, floral embroidery and stitch details, vintage americana print"),
-            ("jeans_pattern",  "patchwork style pattern with various stitched patches, embroidered motifs and a name tag, workwear graphic"),
+            ("butterfly_trail", "flat vector butterfly graphic, upper abstract wordmark band, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors"),
+            ("word_butterfly",  "flat vector abstract letters across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors"),
+            ("shape_collage",   "flat vector collage of overlapping geometric shapes in denim blue, central butterfly graphic, star and heart accents, clean edges"),
+            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, upper ornamental wordmark, light blue and white solid colors"),
         ],
-        sim=0.65,
-        comp=0.25,
-        cn=0.30,
+        sim=0.42,   # 极低材质锁，避免把真实牛仔布纹理带进来；构图交给 ControlNet
+        comp=0.60,  # 保留上方文字+中央主图+下方小元素 的构图
+        cn=0.55,
     ),
 
-    # camo_4：迷彩 → 保留「迷彩构图」风格，只换前景英雄元素
+    # camo_4：迷彩+棕榈树全幅图案 → 保留「迷彩底+棕榈树剪影」构图
     "camo_4": make_config(
-        type_label="military_camo",
+        type_label="tropical_camo",
         style_words=(
-            "military camouflage all over print, woodland camo blocks, "
-            "brown green khaki tones, streetwear graphic pattern, "
-            "repeating camo background with central hero motif"
+            "military camouflage all-over print, woodland and desert camo blocks, "
+            "scattered palm tree silhouettes, brown green khaki tones, "
+            "repeating tactical surface pattern"
         ),
         subjects=[
-            ("camo_alt",     "woodland camouflage pattern with a black palm tree silhouette as the hero motif, brown green tones, repeating fabric print"),
-            ("camo_jungle",  "jungle camouflage pattern with tropical monstera leaves and a prowling panther silhouette, green brown tones"),
-            ("camo_desert",  "desert camouflage pattern with a black scorpion silhouette and a compass rose, sand brown tones"),
-            ("camo_digital", "digital military camouflage pattern with a black wolf head in pixel blocks, olive brown tones"),
+            ("palm_woodland", "woodland camouflage pattern with scattered black palm tree silhouettes, brown green khaki tones, repeating all-over print"),
+            ("palm_desert",   "desert camouflage pattern with palm tree silhouettes, sand tan and olive tones, repeating surface pattern"),
+            ("palm_jungle",   "jungle camouflage pattern with dense palm tree silhouettes, deep green and brown tones, repeating print"),
+            ("palm_digital",  "digital pixelated camouflage with palm tree silhouettes, olive and grey tones, modern tactical repeating pattern"),
         ],
         sim=0.78,   # 保留迷彩颜色/风格
-        comp=0.70,  # 保留迷彩构图
+        comp=0.70,  # 保留迷彩全幅构图
         cn=0.55,
     ),
 
-    # skull_5：骷髅头+红翅膀+蛇+玫瑰 → 按元素裂变，但保留哥特/亡灵节审美
+    # skull_5：骷髅+翅膀+蛇+玫瑰+血滴 → 元素在「哥特骷髅徽章」语汇内裂变
     "skull_5": make_config(
-        type_label="gothic_day_of_dead",
+        type_label="gothic_skull_emblem",
         style_words=(
-            "gothic day-of-the-dead t-shirt print, red orange accents on dark ground, "
-            "bold graphic skull art, tattoo inspired pattern, streetwear emblem"
+            "dark gothic skull emblem, red wings and roses, snake wrapped around skull, "
+            "blood drip accents, symmetrical vertical badge, dark rock poster art"
         ),
         subjects=[
-            ("skull_wing",  "detailed gothic skull with red wings and a rose in its teeth, symmetrical layout, dark background, bold outlines"),
-            ("skull_snake", "detailed gothic skull entwined by a snake and a rose, symmetrical emblem, dark moody background"),
-            ("skull_flame", "detailed gothic skull with red flame accents and a dagger, symmetrical emblem, dark background"),
-            ("skull_cross", "detailed gothic skull with crossbones and a rose wreath, symmetrical emblem, dark background"),
+            ("skull_wing_snake", "skull with spread red wings, snake coiled around, red roses at sides, blood drips, symmetrical emblem"),
+            ("skull_bat_wings",  "skull with bat wings, snake and thorny roses, dark red accents, symmetrical gothic badge"),
+            ("skull_raven_wings","skull with raven black wings, snake and roses, blood drops, dark symmetrical crest"),
+            ("skull_roses",      "skull surrounded by red roses and thorns, wing-like floral frame, snake at base, symmetrical emblem"),
         ],
-        sim=0.68,
-        comp=0.30,
-        cn=0.35,
+        sim=0.72,
+        comp=0.58,  # 保留中央骷髅+两侧翅膀/玫瑰+上下横幅 的构图
+        cn=0.45,
     ),
 
-    # metal_6：金属骷髅+鹰 → 按元素裂变：重金属乐队艺术（避免具体乐队名/商标）
+    # metal_6：金属 logo+鹰+角骷髅+闪电 → 元素在「重金属乐队艺术」语汇内裂变
     "metal_6": make_config(
-        type_label="heavy_metal",
+        type_label="heavy_metal_badge",
         style_words=(
-            "heavy metal band t-shirt art print, chrome silver and black, "
-            "aggressive spiked emblem, underground metal poster style, "
-            "symmetrical dark emblem"
+            "heavy metal band art print, spiked ornamental abstract lettering, no readable words, "
+            "eagle and horned skull, radiating lightning bolts, "
+            "dark underground metal emblem, black white and brown"
         ),
         subjects=[
-            ("metal_skull", "detailed metal skull with an eagle and industrial gears, spiked border, death metal emblem"),
-            ("metal_eagle", "detailed metal eagle with a skull and spikes, death metal band logo style, chrome and black"),
-            ("metal_cross", "detailed metal cross with a skull, eagle and chains, death metal emblem, symmetrical"),
-            ("metal_band",  "death metal band logo with skull, eagle and gothic lettering, symmetrical emblem, chrome and black"),
+            ("eagle_horned_skull",  "eagle with spread wings above a horned skull, radiating lightning bolts, spiked metal letterform banner at top, symmetrical emblem"),
+            ("skull_lightning",     "screaming skull with horns, lightning bolts radiating behind, spiked ornamental letterform banner above, death metal crest"),
+            ("raven_skull",         "raven with outstretched wings above horned skull, lightning and spikes, underground metal emblem"),
+            ("winged_horned_skull", "large horned skull with wings, lightning radiating, spiked ornamental lettering above, symmetrical metal badge"),
         ],
-        sim=0.68,
-        comp=0.30,
-        cn=0.35,
+        sim=0.72,
+        comp=0.58,  # 保留顶部 logo+中央鹰/骷髅+放射闪电 的构图
+        cn=0.45,
     ),
 }
 
@@ -205,7 +216,7 @@ ORIGINALS_CONFIG = {
 ORIGINALS = [
     ("pinterest_illust_1", "illust_1"),
     ("pinterest_eagle_2",  "eagle_2"),
-    ("pinterest_denim_3",  "denim_3"),
+    ("pinterest_denim_3_flat", "denim_3"),  # 原图是实物照片，用预处理后的平涂版作参考
     ("pinterest_camo_4",   "camo_4"),
     ("pinterest_skull_5",  "skull_5"),
     ("pinterest_metal_6",  "metal_6"),
@@ -214,7 +225,7 @@ ORIGINALS = [
 IPA_WEIGHT_TYPE = "style transfer"
 IPA_NOISE = 0.10
 IPA_END = 0.65
-CN_LOW, CN_HIGH = 100, 200
+CN_LOW, CN_HIGH = 0.4, 0.8
 
 _lock = threading.Lock()
 _done = 0
@@ -232,10 +243,10 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
 
     style_words = cfg.get("style_words", "")
     sim = cfg.get("sim", 0.70)
-    comp = cfg.get("comp", 0.35)
+    comp = cfg.get("comp", 0.55)
     cn = cfg.get("cn", 0.40)
     extra_lora = cfg.get("extra_lora")
-    extra_lora_strength = cfg.get("extra_lora_strength", 0.45)
+    extra_lora_strength = cfg.get("extra_lora_strength", 0.40)
 
     # 组合 prompt
     prompt = ", ".join(filter(None, [STYLE_PREFIX, style_words, sub_prompt, STYLE_SUFFIX]))
@@ -258,8 +269,9 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
         "negative_prompt": (
             "photography, product photo, 3d render, realistic texture, fabric folds, "
             "wrinkles, shadows, depth of field, blurry, deformed, low quality, "
-            "text, watermark, signature, brand logo, trademark, copyrighted character, "
-            "cropped, out of frame, mockup"
+            "readable text, real words, fake words, banner text, ribbon text, pseudo-words, "
+            "brand name, trademark, watermark, signature, brand logo, copyrighted character, "
+            "cropped, out of frame, mockup, garment"
         ),
         "width": 1024, "height": 1024, "batch_per_run": 1,
         "steps": 35, "cfg": 6.0,
@@ -271,10 +283,8 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
         "lora_strength_2": TSHIRT_LORA_STRENGTH,
     }
 
-    # 可选第三类 LoRA（目前只有 engraving 类用矢量线描）
+    # engraving 类用矢量线描 LoRA 替换第二个 LoRA，增强 ornamental 图案感
     if extra_lora:
-        # build_mode1 目前只支持两个 LoRA；把 extra 当作第二个，tshirt 降下来或合并到 prompt
-        # 策略：用 extra_lora 替换 tshirt LoRA（engraving 更需要矢量感）
         params["lora_name_2"] = extra_lora
         params["lora_strength_2"] = extra_lora_strength
 
@@ -322,7 +332,7 @@ def build_gallery(results, out_dir):
           {cells}
         </tr>""")
 
-    html = f"""<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>6x4 批量风格裂变 v6.5</title>
+    html = f"""<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>6x4 批量风格裂变 v7</title>
 <style>
 body{{font-family:system-ui;background:#fafafa;padding:24px;margin:0;}}
 h1{{margin:0 0 8px;font-size:22px;}}.sub{{color:#666;margin-bottom:24px;}}
@@ -335,9 +345,9 @@ td.seed img{{max-width:120px;}}
 .cap{{font-size:11px;color:#666;padding-top:4px;}}
 .empty{{color:#aaa;}}
 </style></head><body>
-<h1>图裂变 · 6 原图 × 4 主题批量 v6.5（全幅印花 / 差异化构图锁）</h1>
-<div class="sub">6 张 Pinterest 设计稿 → 4 个新主题 = 24 张可印衣服的欧美风格图案</div>
-<div class="params">阴阳/迷彩高构图锁 | 其余元素裂变 | 双 LoRA | 4x 真实超分 | 无侵权内容</div>
+<h1>图裂变 · 6 原图 × 4 主题批量 v7（参考原图构图+设计理念裂变）</h1>
+<div class="sub">6 张设计稿 → 4 个同设计语言新主题 = 24 张可印全幅服装的平面图案</div>
+<div class="params">全类构图参考 | 同设计语言元素裂变 | 双 LoRA | 4x 真实超分 | 无侵权内容</div>
 <table>
   <tr><th>原图</th><th>原图</th><th>主题1</th><th>主题2</th><th>主题3</th><th>主题4</th></tr>
   {''.join(rows_html)}
@@ -351,7 +361,7 @@ td.seed img{{max-width:120px;}}
 
 def main():
     global _total
-    out_dir = os.path.join(JOBS_BASE, f"batch_6x4_v65_{int(time.time())}")
+    out_dir = os.path.join(JOBS_BASE, f"batch_6x4_v7_{int(time.time())}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"[out] {out_dir}")
     print(f"[cfg] checkpoint={_cfg.SDXL_CHECKPOINT} textile={TEXTILE_LORA} tshirt={TSHIRT_LORA}")
