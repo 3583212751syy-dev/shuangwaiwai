@@ -1,22 +1,20 @@
 """
-批量风格裂变 v7：严格按原图构图 + 设计理念裂变。
+批量风格裂变 v7.5：在 v7 基础上修复三个迭代问题：
+  1. 中央噪点/碎裂感 → 关 USDU、走 hires fix（latent 1.55x + 二阶细化 KSampler）
+     - 第一阶 45 步满采；第二阶 30 步细化（denoise=0.28），既治噪又保留高构图锁；
+  2. 糊字/乱码（denim_3 顶部 OLDE/UPLUI，eagle_2 骷髅盒 JACHE DJAONOES 等）
+     - STYLE_PREFIX 加 6 个 anti-garbled-text 关键词；
+     - negative_prompt 加强到 14 项 anti-text；
+     - TSHIRT_LORA 强度从 0.45 降到 0.28（其训练集大量带 banner 字样样本）；
+     - tasks 里 4 个 text-prone 类型 (eagle_2/denim_3/skull_5/metal_6) 关闭 tshirts LoRA，
+       改用 VECTOR_LORA 治乱码；
+  3. 像素清晰度 → steps 35→45 / cfg 6→7 / hires_steps 20→30 / hires_denoise 0.35→0.28，
+     IPA_NOISE 0.10→0.05（减参考噪）、IPA_END 0.65→0.78（参考用得更彻底）。
 
-核心修正（相对 v6.5）：
-  1. 输出是「可印在全幅服装上的平面印花图案」，不是衣服效果图；
-     prompt 里删除 "t-shirt design" 等可能触发 garment/mockup 的词，
-     保留 "all-over print graphic, textile print artwork"。
-  2. 每一类裂变都必须参考原图的「构图」和「设计理念」：
-     - 阴阳/装饰图（illust_1）与迷彩图（camo_4）高构图锁，保留其构图风格；
-     - 其余四类也提高构图锁到 0.50-0.58，让布局仍看得出原图影子。
-  3. 「元素裂变」只允许在同类设计语言内部变化：
-     - eagle_2 只能换鹰/乌鸦/翼、骷髅、火焰、锁链、横幅；
-     - denim_3 只能换牛仔贴布、蝴蝶、缝线字母；
-     - skull_5 只能换骷髅、翅膀、蛇、玫瑰、血滴；
-     - metal_6 只能换金属 logo、鹰/乌鸦、角骷髅、闪电；
-     禁止向原图没有的语言跳跃（ dragon / butterfly 乱入 / 热带植物乱入等）。
-  4. 明确排除侵权内容：negative 用 "readable text, real words, brand name, trademark"
-     代替简单 "text"，允许装饰性字形成分但不出现可读品牌名。
-  5. 保留并发 + 实时进度 + 轻量画廊。
+设计语言约束（继承 v7）：
+  - 输出「可印在全幅服装上的平面印花图案」，非衣服效果图；
+  - 每类裂变参考原图的构图与设计语言，禁止跨语言跳跃；
+  - 排除侵权文字 / 品牌 / 真人。
 """
 import os
 import sys
@@ -41,9 +39,11 @@ JOBS_BASE = r"E:\Desktop\双接口\image-fission\jobs"
 
 # 全局印花/T恤 LoRA（chrisconyers LoRA 文件名带 tshirts，但实际是图案风格 LoRA，不生成衣服）
 TEXTILE_LORA = "Canopus-Textile-Pattern-adp-LoRA.safetensors"
-TEXTILE_LORA_STRENGTH = 0.55
+TEXTILE_LORA_STRENGTH = 0.50
 TSHIRT_LORA = "chrisconyers-sdxl-tshirts-lora.safetensors"
-TSHIRT_LORA_STRENGTH = 0.45
+# v7.5: 从 0.45 降到 0.28 —— 这套 LoRA 训练集含大量带 banner 文字的街头图案样本，
+# 强度过高是糊字/乱码的主因之一。
+TSHIRT_LORA_STRENGTH = 0.28
 
 # 矢量线描 LoRA：用于 engraving/ornamental 类，增强 ornamental 图案感
 VECTOR_LORA = "DD-vector-v2.safetensors"
@@ -53,7 +53,16 @@ VECTOR_LORA = "DD-vector-v2.safetensors"
 CONTROLNET = "controlnet-canny-sdxl-1.0.fp16.safetensors"
 USE_CONTROLNET = True
 
+# v7.5: 关闭 USDU 真实超分，改走 hires fix（潜空间 1.55x + 二阶细化 KSampler 30 步）。
+# 单一 USDU 2x 一次性放大没有细化 KSampler 二次清理，会把潜空间噪点放大成可见碎裂感。
+# hires fix 的细化 KSampler（denoise=0.28）会重新降噪的同时保持构图锁。
+USDU_MODEL = ""
+HIRES_SCALE = 1.55
+HIRES_DENOISE = 0.28
+HIRES_STEPS = 30
+
 # 公共风格前缀：明确「全幅印花图案 / 纺织品印花艺术作品」，不是衣服效果图
+# v7.5: 强化 anti-garbled-text（治糊字/乱码）—— 加 6 个关键词从源头引导模型远离 banner 文字。
 STYLE_PREFIX = (
     "high quality all-over print graphic, textile print artwork, "
     "surface pattern design, 2d flat graphic illustration, "
@@ -61,7 +70,11 @@ STYLE_PREFIX = (
     "scalable vector style, print ready artwork, no background scene, "
     "no photography, no 3d render, no realistic texture, no fabric folds, "
     "no wrinkles, no shadows, no depth of field, no product shot, no mockup, no garment, "
-    "no embroidery, no stitched texture, no raised thread, no 3d fabric, no buttons"
+    "no embroidery, no stitched texture, no raised thread, no 3d fabric, no buttons, "
+    "absolutely no readable text, no letters whatsoever, no alphabet, no words, "
+    "no garbled text, no gibberish text, no pseudo-script, no banner writing, "
+    "no ribbon writing, no sign writing, no carved text, no engraved text, no inscriptions, "
+    "no character glyphs resembling text, no scribbles"
 )
 
 STYLE_SUFFIX = "sharp focus, crisp edges, professional textile print"
@@ -224,8 +237,10 @@ ORIGINALS = [
 ]
 
 IPA_WEIGHT_TYPE = "style transfer"
-IPA_NOISE = 0.10
-IPA_END = 0.65
+# v7.5: IPA_NOISE 0.10→0.05（参考图加更少噪，避免 base 1024 中央出现碎裂噪点）；
+#        IPA_END 0.65→0.78（让 IPAdapter 的颜色/材质参考用到更靠后采样段，更彻底锁参考）。
+IPA_NOISE = 0.05
+IPA_END = 0.78
 CN_LOW, CN_HIGH = 0.4, 0.8
 
 _lock = threading.Lock()
@@ -255,6 +270,9 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     # 独立随机 seed，确保同原图 4 张有差异
     seed = random.randint(1, 999999999)
 
+    # v7.5: 治噪 + 治乱码 —— steps 35→45（更多采样降噪）/ cfg 6→7（更严守 prompt 治伪文字）/
+    # usdu_model 由 USDU_MODEL 默认空 → 走 hires fix 路径（治中央噪点）
+    # hires_* 通过 build.py 内置的 hires 路径生效
     params = {
         "style_prompt": prompt,
         "similarity": sim,
@@ -266,17 +284,23 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
         "controlnet_strength": cn if USE_CONTROLNET else 0.0,
         "controlnet_low_threshold": CN_LOW,
         "controlnet_high_threshold": CN_HIGH,
-        "usdu_model": "4x_NMKD-Siax_200k.pth",
+        "usdu_model": USDU_MODEL,
+        "hires_scale": HIRES_SCALE,
+        "hires_denoise": HIRES_DENOISE,
+        "hires_steps": HIRES_STEPS,
+        # v7.5: 增强 anti-garbled-text —— 14 项覆盖字母/文字/品牌/伪脚本
         "negative_prompt": (
             "photography, product photo, 3d render, realistic texture, fabric folds, "
             "wrinkles, shadows, depth of field, blurry, deformed, low quality, "
-            "readable text, real words, fake words, banner text, ribbon text, pseudo-words, "
-            "letters, lettering, alphabet characters, words, "
-            "brand name, trademark, watermark, signature, brand logo, copyrighted character, "
-            "cropped, out of frame, mockup, garment"
+            "readable text, real words, fake words, brand name, trademark, watermark, "
+            "letters, lettering, alphabet, alphabet characters, words, font, typography, "
+            "banner text, ribbon text, garbled text, gibberish text, pseudo-script, "
+            "sign text, label text, inscription, motto, slogan, carved text, engraved text, "
+            "scribbles resembling text, copyright logo, signature, cropped, out of frame, "
+            "mockup, garment"
         ),
         "width": 1024, "height": 1024, "batch_per_run": 1,
-        "steps": 35, "cfg": 6.0,
+        "steps": 45, "cfg": 7.0,
         "seed": seed,
         # 双 LoRA
         "lora_name": TEXTILE_LORA,
@@ -289,6 +313,14 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     if extra_lora:
         params["lora_name_2"] = extra_lora
         params["lora_strength_2"] = extra_lora_strength
+
+    # v7.5: 4 个 text-prone 类型 (eagle_2 / denim_3 / skull_5 / metal_6) 关 tshirts LoRA，
+    # 用 VECTOR_LORA 替代 —— chrisconyers-tshirts 训练集带大量 banner 文字样本，
+    # 是「骷髅盒 JACHE DJAONOES」/「牛仔顶部 OLDE」这类乱码的直接诱因。
+    if type_label in ("gothic_biker_crest", "denim_patchwork",
+                       "gothic_skull_emblem", "heavy_metal_badge"):
+        params["lora_name_2"] = VECTOR_LORA
+        params["lora_strength_2"] = 0.30  # VECTOR 强度低于 TSHIRT 避免拖累表达
 
     g = build_mode1(seed_name, params, f"batch_{orig_label}_{sub_label}")
     t0 = time.time()
@@ -334,7 +366,7 @@ def build_gallery(results, out_dir):
           {cells}
         </tr>""")
 
-    html = f"""<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>6x4 批量风格裂变 v7</title>
+    html = f"""<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>6x4 批量风格裂变 v7.5</title>
 <style>
 body{{font-family:system-ui;background:#fafafa;padding:24px;margin:0;}}
 h1{{margin:0 0 8px;font-size:22px;}}.sub{{color:#666;margin-bottom:24px;}}
@@ -347,9 +379,9 @@ td.seed img{{max-width:120px;}}
 .cap{{font-size:11px;color:#666;padding-top:4px;}}
 .empty{{color:#aaa;}}
 </style></head><body>
-<h1>图裂变 · 6 原图 × 4 主题批量 v7（参考原图构图+设计理念裂变）</h1>
+<h1>图裂变 · 6 原图 × 4 主题批量 v7.5（治噪 + 治乱码 + 像素清晰度提升）</h1>
 <div class="sub">6 张设计稿 → 4 个同设计语言新主题 = 24 张可印全幅服装的平面图案</div>
-<div class="params">全类构图参考 | 同设计语言元素裂变 | 双 LoRA | 4x 真实超分 | 无侵权内容</div>
+<div class="params">hires fix (1.55x + refine 30 steps) | 45 steps / cfg 7.0 | text-prone 类型 VECTOR LORA 替代 TSHIRT | 强化 anti-garbled-text</div>
 <table>
   <tr><th>原图</th><th>原图</th><th>主题1</th><th>主题2</th><th>主题3</th><th>主题4</th></tr>
   {''.join(rows_html)}
@@ -363,10 +395,11 @@ td.seed img{{max-width:120px;}}
 
 def main():
     global _total
-    out_dir = os.path.join(JOBS_BASE, f"batch_6x4_v7_{int(time.time())}")
+    out_dir = os.path.join(JOBS_BASE, f"batch_6x4_v75_{int(time.time())}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"[out] {out_dir}")
-    print(f"[cfg] checkpoint={_cfg.SDXL_CHECKPOINT} textile={TEXTILE_LORA} tshirt={TSHIRT_LORA}")
+    print(f"[cfg] checkpoint={_cfg.SDXL_CHECKPOINT} textile={TEXTILE_LORA}@{TEXTILE_LORA_STRENGTH} "
+          f"tshirt={TSHIRT_LORA}@{TSHIRT_LORA_STRENGTH} steps=45 cfg=7.0 hires={HIRES_SCALE}x/{HIRES_STEPS}steps denoise={HIRES_DENOISE}")
 
     client = ComfyClient()
 
