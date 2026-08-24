@@ -124,10 +124,10 @@ ORIGINALS_CONFIG = {
             "eagle and skull crest, chain and banner details, dark streetwear badge"
         ),
         subjects=[
-            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental banner, symmetrical vertical emblem, no text"),
-            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ribbon banner, symmetrical crest, no text"),
-            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank banner, dark gothic emblem, no text"),
-            ("winged_skull",  "winged skull with red flames, crossed chains and a blank ribbon banner, symmetrical biker crest, no text"),
+            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, empty ornamental banner with decorative scrollwork only, symmetrical vertical emblem, no text, no letters, no words"),
+            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, empty ribbon banner with ornamental scrollwork only, symmetrical crest, no text, no letters, no words"),
+            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and empty banner with decorative scrollwork only, dark gothic emblem, no text, no letters, no words"),
+            ("winged_skull",  "winged skull with red flames, crossed chains and an empty ribbon banner with ornamental scrollwork only, symmetrical biker crest, no text, no letters, no words"),
         ],
         sim=0.72,
         comp=0.58,  # 保留垂直徽章构图，但允许元素替换
@@ -142,7 +142,8 @@ ORIGINALS_CONFIG = {
             "flat vector illustration, light blue and white color palette only, "
             "denim blue inspired graphic print, butterfly and abstract letterform motif, "
             "crisp clean shapes, solid flat color blocks, screen print style, "
-            "no brown, no beige, no fabric texture, no embroidery"
+            "no orange, no yellow, no gold, no warm tones, no brown, no beige, "
+            "no fabric texture, no embroidery"
         ),
         subjects=[
             ("butterfly_trail", "flat vector butterfly graphic, upper abstract wordmark band, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors"),
@@ -270,6 +271,7 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
             "photography, product photo, 3d render, realistic texture, fabric folds, "
             "wrinkles, shadows, depth of field, blurry, deformed, low quality, "
             "readable text, real words, fake words, banner text, ribbon text, pseudo-words, "
+            "letters, lettering, alphabet characters, words, "
             "brand name, trademark, watermark, signature, brand logo, copyrighted character, "
             "cropped, out of frame, mockup, garment"
         ),
