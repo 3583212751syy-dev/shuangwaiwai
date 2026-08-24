@@ -83,6 +83,15 @@ def main():
     p.add_argument("--height", type=int, default=1344)
     p.add_argument("--lora", default=None, help="LoRA 文件名（ComfyUI/models/loras/ 下）")
     p.add_argument("--lora-strength", type=float, default=0.85, help="LoRA 强度 0-1（默认 0.85）")
+    # IPAdapter 三个独立维度（用户原话：颜色、构图、内容）
+    p.add_argument("--style-strength", type=float, default=None,
+                   help="颜色/风格参考强度（内部映射到 IPAdapter weight_type=style transfer + weight）")
+    p.add_argument("--composition-strength", type=float, default=None,
+                   help="构图参考强度（内部映射到 IPAdapter weight_type=composition + weight）")
+    p.add_argument("--ipadapter-noise", type=float, default=0.0,
+                   help="IPAdapter noise 0-0.5（防止完全照搬，推荐 0.05-0.15）")
+    p.add_argument("--ipadapter-end", type=float, default=1.0,
+                   help="IPAdapter 结束步 0-1（默认 1.0 全程，0.7 = 前 70% 影响）")
     args = p.parse_args()
 
     # 校验
@@ -138,6 +147,24 @@ def main():
         base_params["lora_name"] = args.lora
         base_params["lora_strength"] = args.lora_strength
         print(f"[lora] {args.lora} strength={args.lora_strength}")
+    # IPAdapter 三个独立维度 → 映射到 weight_type + weight
+    # 用户原话："参考颜色、构图、内容都要可选择强度"
+    if args.style_strength is not None:
+        base_params["ipadapter_weight_type"] = "style transfer"
+        base_params["similarity"] = args.style_strength  # 用 style_strength 覆盖主 weight
+        base_params["ipadapter_noise"] = args.ipadapter_noise
+        base_params["ipadapter_end"] = args.ipadapter_end
+        print(f"[ipa] STYLE TRANSFER weight={args.style_strength} noise={args.ipadapter_noise} end={args.ipadapter_end}")
+    elif args.composition_strength is not None:
+        base_params["ipadapter_weight_type"] = "composition"
+        base_params["similarity"] = args.composition_strength
+        base_params["ipadapter_noise"] = args.ipadapter_noise
+        base_params["ipadapter_end"] = args.ipadapter_end
+        print(f"[ipa] COMPOSITION weight={args.composition_strength} noise={args.ipadapter_noise} end={args.ipadapter_end}")
+    else:
+        base_params["ipadapter_noise"] = args.ipadapter_noise
+        base_params["ipadapter_end"] = args.ipadapter_end
+        print(f"[ipa] LINEAR weight={args.similarity} noise={args.ipadapter_noise} end={args.ipadapter_end}")
     client = ComfyClient()
     results = []
     for i, (name, prompt) in enumerate(prompts, 1):

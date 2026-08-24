@@ -19,12 +19,13 @@ _cfg.SDXL_CHECKPOINT = "juggernautXL_ragnarokBy.safetensors"
 COMFYUI_INPUT = r"E:\Desktop\双接口\image-fission\ComfyUI\input"
 JOBS_BASE = r"E:\Desktop\双接口\image-fission\jobs"
 
-# 4 个主题变体（全部带 vector LoRA trigger words）
+# 4 个"完全同源"主题变体：保持原图色调+构图+画风，只换具体元素
+# 关键：prompt 强调"keep the same color palette and composition" 让 IP-Adapter 0.75 锁住原图
 SUBJECTS = [
-    ("damask",      "vector, black line art, white background, an intricate damask ornamental pattern with botanical motifs, monochrome, decorative symmetrical, no text"),
-    ("creature",    "vector, black line art, white background, an intricate heraldic creature emblem with detailed beast and wings, monochrome, decorative symmetrical border, no text"),
-    ("geometry",    "vector, black line art, white background, an intricate sacred geometry pattern with stars circles and crosses, monochrome, symmetrical mandala, no text"),
-    ("frame",       "vector, black line art, white background, an ornate decorative frame with corner flourishes and scrollwork, monochrome, no text"),
+    ("botanical",  "vector, black line art, keep the same color palette and composition as the original, an intricate ornamental pattern with different botanical motifs and stylized plants, monochrome, decorative symmetrical, no text"),
+    ("creature",   "vector, black line art, keep the same color palette and composition as the original, an intricate ornamental pattern with heraldic creature and detailed beast elements, monochrome, decorative symmetrical, no text"),
+    ("geometry",   "vector, black line art, keep the same color palette and composition as the original, an intricate ornamental pattern with sacred geometry stars circles and crosses, monochrome, decorative symmetrical, no text"),
+    ("ornamental", "vector, black line art, keep the same color palette and composition as the original, an ornate ornamental pattern with corner flourishes and scrollwork, monochrome, decorative symmetrical, no text"),
 ]
 
 # 6 张原图
@@ -39,7 +40,10 @@ ORIGINALS = [
 
 LORA = "DD-vector-v2.safetensors"
 LORA_STRENGTH = 0.85
-SIM = 0.55
+SIM = 0.75  # 提高到 0.75，强锁原图风格/色调/构图
+IPA_WEIGHT_TYPE = "style transfer"   # SDXL 风格锁（IPAdapter Plus 1.5+ 推荐）
+IPA_NOISE = 0.10                     # 加噪防止完全照搬
+IPA_END = 0.85                       # 前 85% 强影响，后 15% 让模型自由发挥
 
 
 def img_to_b64(p):
@@ -72,10 +76,15 @@ def main():
                 "similarity": SIM,
                 "lora_name": LORA,
                 "lora_strength": LORA_STRENGTH,
+                "ipadapter_weight_type": IPA_WEIGHT_TYPE,
+                "ipadapter_noise": IPA_NOISE,
+                "ipadapter_end": IPA_END,
+                "usdu_model": "4x_NMKD-Siax_200k.pth",  # 治糊：4x 真实超分
                 "negative_prompt": ("color, colorful, photorealistic, photo, photography, "
                                      "text, watermark, signature, blurry, deformed, low quality, "
                                      "3d, render, gradient, soft, smooth shading, "
-                                     "person, face, human, animal, building, vehicle"),
+                                     "person, face, human, animal, building, vehicle, "
+                                     "different style, different color palette"),
                 "width": 768, "height": 1344, "batch_per_run": 1,
                 "steps": 30, "cfg": 5.0,
                 "hires_scale": 1.5, "hires_denoise": 0.40, "hires_steps": 20,

@@ -99,9 +99,15 @@ def _usdu_only(n_start, decoded_image_node, upscale_model_name, save_n, save_pre
 
 
 def _ipadapter_apply(n, model_node, ipadapter_node, image_node, weight,
-                     start_at=0.0, end_at=1.0, weight_type="linear"):
+                     start_at=0.0, end_at=1.0, weight_type="linear",
+                     noise=0.0, combine_embeds="average"):
     """IPAdapterAdvanced：输入 unified loader 的 MODEL(输出0) 与 IPADAPTER(输出1)，
-    输出带参考图条件的 MODEL(0)。weight=与原图相似度滑杆。"""
+    输出带参考图条件的 MODEL(0)。
+    weight_type (SDXL 关键)：
+      - linear: 通用混合
+      - style transfer (SDXL): 专锁风格（颜色/材质/笔触）— 用户要的颜色参考
+      - composition (SDXL): 专锁构图（布局/位置）— 用户要的构图参考
+    noise: 0.05-0.15 加噪防止完全照搬（"换内容"留更多空间）"""
     return {str(n): {"class_type": "IPAdapterAdvanced",
                      "inputs": {
                          "model": [str(model_node), 0],
@@ -109,9 +115,10 @@ def _ipadapter_apply(n, model_node, ipadapter_node, image_node, weight,
                          "image": [str(image_node), 0],
                          "weight": weight,
                          "weight_type": weight_type,
-                         "combine_embeds": "average",
+                         "combine_embeds": combine_embeds,
                          "start_at": start_at,
                          "end_at": end_at,
+                         "noise": noise,
                          "embeds_scaling": "V only",
                      }}}
 
@@ -161,7 +168,13 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
         g.update(_lora_loader_node(2, 1, 1, lora_name, lora_strength, lora_strength))
     g.update(_ipadapter_loader_node(3, model_node))
     g.update(_load_image_node(4, original_filename))
-    g.update(_ipadapter_apply(5, model_node, 3, 4, w))
+    # IPAdapter 参数：用户可分别控制颜色(style transfer)、构图(composition)、内容(linear)
+    g.update(_ipadapter_apply(5, model_node, 3, 4, w,
+                             weight_type=params.get("ipadapter_weight_type", "linear"),
+                             start_at=params.get("ipadapter_start", 0.0),
+                             end_at=params.get("ipadapter_end", 1.0),
+                             noise=params.get("ipadapter_noise", 0.0),
+                             combine_embeds=params.get("ipadapter_combine", "average")))
     g.update(_clip_nodes(6, 7, clip_node, style, neg))
     g.update({str(8): {"class_type": "EmptyLatentImage",
                        "inputs": {"width": params.get("width", DEFAULTS["width"]),
