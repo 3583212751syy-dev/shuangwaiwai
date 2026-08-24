@@ -1,14 +1,18 @@
 """
 批量风格裂变 v7.5：在 v7 基础上修复三个迭代问题：
-  1. 中央噪点/碎裂感 → 关 USDU、走 hires fix（latent 1.55x + 二阶细化 KSampler）
-     - 第一阶 45 步满采；第二阶 30 步细化（denoise=0.28），既治噪又保留高构图锁；
+  1. 中央噪点/碎裂感 → 保留 4x USDU 真实超分（4096px 高清晰度，用户要的），
+     但在超分前加「二阶细化 KSampler」（latent 低 denoise 重采）做二次清理：
+     KSampler1(45步满采) → 二阶细化 KSampler(denoise=0.28, 30步) → VAE → 4x USDU → Save。
+     潜空间先降噪再超分，避免把噪点放大成碎裂感（v7.5 初版误关 USDU 改 latent 1.55x
+     导致分辨率从 4096 掉到 1536，已回退）。
   2. 糊字/乱码（denim_3 顶部 OLDE/UPLUI，eagle_2 骷髅盒 JACHE DJAONOES 等）
      - STYLE_PREFIX 加 6 个 anti-garbled-text 关键词；
      - negative_prompt 加强到 14 项 anti-text；
      - TSHIRT_LORA 强度从 0.45 降到 0.28（其训练集大量带 banner 字样样本）；
      - tasks 里 4 个 text-prone 类型 (eagle_2/denim_3/skull_5/metal_6) 关闭 tshirts LoRA，
        改用 VECTOR_LORA 治乱码；
-  3. 像素清晰度 → steps 35→45 / cfg 6→7 / hires_steps 20→30 / hires_denoise 0.35→0.28，
+  3. 像素清晰度 → steps 35→45（build.py 现读取 params["steps"]）/ cfg 6→7 /
+     hires_steps 20→30（二阶细化步数）/ hires_denoise 0.35→0.28，
      IPA_NOISE 0.10→0.05（减参考噪）、IPA_END 0.65→0.78（参考用得更彻底）。
 
 设计语言约束（继承 v7）：
@@ -53,13 +57,13 @@ VECTOR_LORA = "DD-vector-v2.safetensors"
 CONTROLNET = "controlnet-canny-sdxl-1.0.fp16.safetensors"
 USE_CONTROLNET = True
 
-# v7.5: 关闭 USDU 真实超分，改走 hires fix（潜空间 1.55x + 二阶细化 KSampler 30 步）。
-# 单一 USDU 2x 一次性放大没有细化 KSampler 二次清理，会把潜空间噪点放大成可见碎裂感。
-# hires fix 的细化 KSampler（denoise=0.28）会重新降噪的同时保持构图锁。
-USDU_MODEL = ""
-HIRES_SCALE = 1.55
-HIRES_DENOISE = 0.28
-HIRES_STEPS = 30
+# v7.5: 保留 4x USDU 真实超分（1024→4096px，用户要的清晰度），但改在超分前加二阶细化
+# KSampler（见 build.py USDU 路径）= 潜空间先低 denoise 重采清理噪点，再 4x 超分，
+# 既治中央噪点又不掉分辨率。HIRES_DENOISE/HIRES_STEPS 即二阶细化 KSampler 的参数。
+USDU_MODEL = "4x_NMKD-Siax_200k.pth"
+HIRES_SCALE = 1.5     # 仅在 USDU 关闭的 fallback 路径使用
+HIRES_DENOISE = 0.28  # 二阶细化 KSampler 重采强度
+HIRES_STEPS = 30      # 二阶细化 KSampler 步数
 
 # 公共风格前缀：明确「全幅印花图案 / 纺织品印花艺术作品」，不是衣服效果图
 # v7.5: 强化 anti-garbled-text（治糊字/乱码）—— 加 6 个关键词从源头引导模型远离 banner 文字。
@@ -137,10 +141,10 @@ ORIGINALS_CONFIG = {
             "eagle and skull crest, chain and banner details, dark streetwear badge"
         ),
         subjects=[
-            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, empty ornamental banner with decorative scrollwork only, symmetrical vertical emblem, no text, no letters, no words"),
-            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, empty ribbon banner with ornamental scrollwork only, symmetrical crest, no text, no letters, no words"),
-            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and empty banner with decorative scrollwork only, dark gothic emblem, no text, no letters, no words"),
-            ("winged_skull",  "winged skull with red flames, crossed chains and an empty ribbon banner with ornamental scrollwork only, symmetrical biker crest, no text, no letters, no words"),
+            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental scroll shape with abstract pattern inside, symmetrical vertical emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ribbon scroll with abstract pattern inside, symmetrical crest, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank ornamental scroll with abstract pattern inside, dark gothic emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("winged_skull",  "winged skull with red flames, crossed chains and a blank scroll shape with abstract pattern inside, symmetrical biker crest, no writing, no text, no letters, no characters, no glyphs, no script"),
         ],
         sim=0.72,
         comp=0.58,  # 保留垂直徽章构图，但允许元素替换
@@ -159,10 +163,10 @@ ORIGINALS_CONFIG = {
             "no fabric texture, no embroidery"
         ),
         subjects=[
-            ("butterfly_trail", "flat vector butterfly graphic, upper abstract wordmark band, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors"),
-            ("word_butterfly",  "flat vector abstract letters across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors"),
-            ("shape_collage",   "flat vector collage of overlapping geometric shapes in denim blue, central butterfly graphic, star and heart accents, clean edges"),
-            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, upper ornamental wordmark, light blue and white solid colors"),
+            ("butterfly_trail", "flat vector butterfly graphic, upper abstract geometric pattern band, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors, no text, no letters, no glyphs"),
+            ("word_butterfly",  "flat vector abstract geometric pattern across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors, no text, no letters, no glyphs"),
+            ("shape_collage",   "flat vector collage of overlapping geometric shapes in denim blue, central butterfly graphic, star and heart accents, clean edges, no text, no letters, no glyphs"),
+            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, upper abstract geometric ornament, light blue and white solid colors, no text, no letters, no glyphs"),
         ],
         sim=0.42,   # 极低材质锁，避免把真实牛仔布纹理带进来；构图交给 ControlNet
         comp=0.60,  # 保留上方文字+中央主图+下方小元素 的构图
@@ -196,10 +200,10 @@ ORIGINALS_CONFIG = {
             "blood drip accents, symmetrical vertical badge, dark rock poster art"
         ),
         subjects=[
-            ("skull_wing_snake", "skull with spread red wings, snake coiled around, red roses at sides, blood drips, symmetrical emblem"),
-            ("skull_bat_wings",  "skull with bat wings, snake and thorny roses, dark red accents, symmetrical gothic badge"),
-            ("skull_raven_wings","skull with raven black wings, snake and roses, blood drops, dark symmetrical crest"),
-            ("skull_roses",      "skull surrounded by red roses and thorns, wing-like floral frame, snake at base, symmetrical emblem"),
+            ("skull_wing_snake", "skull with spread red wings, snake coiled around, red roses at sides, blood drips, symmetrical emblem, no text, no letters, no glyphs"),
+            ("skull_bat_wings",  "skull with bat wings, snake and thorny roses, dark red accents, symmetrical gothic badge, no text, no letters, no glyphs"),
+            ("skull_raven_wings","skull with raven black wings, snake and roses, blood drops, dark symmetrical crest, no text, no letters, no glyphs"),
+            ("skull_roses",      "skull surrounded by red roses and thorns, wing-like floral frame, snake at base, symmetrical emblem, no text, no letters, no glyphs"),
         ],
         sim=0.72,
         comp=0.58,  # 保留中央骷髅+两侧翅膀/玫瑰+上下横幅 的构图
@@ -210,15 +214,15 @@ ORIGINALS_CONFIG = {
     "metal_6": make_config(
         type_label="heavy_metal_badge",
         style_words=(
-            "heavy metal band art print, spiked ornamental abstract lettering, no readable words, "
+            "heavy metal band art print, spiked ornamental abstract shape, no readable words, "
             "eagle and horned skull, radiating lightning bolts, "
             "dark underground metal emblem, black white and brown"
         ),
         subjects=[
-            ("eagle_horned_skull",  "eagle with spread wings above a horned skull, radiating lightning bolts, spiked metal letterform banner at top, symmetrical emblem"),
-            ("skull_lightning",     "screaming skull with horns, lightning bolts radiating behind, spiked ornamental letterform banner above, death metal crest"),
-            ("raven_skull",         "raven with outstretched wings above horned skull, lightning and spikes, underground metal emblem"),
-            ("winged_horned_skull", "large horned skull with wings, lightning radiating, spiked ornamental lettering above, symmetrical metal badge"),
+            ("eagle_horned_skull",  "eagle with spread wings above a horned skull, radiating lightning bolts, spiked abstract ornamental shape banner at top, symmetrical emblem, no text, no letters, no glyphs"),
+            ("skull_lightning",     "screaming skull with horns, lightning bolts radiating behind, spiked abstract ornamental shape banner above, death metal crest, no text, no letters, no glyphs"),
+            ("raven_skull",         "raven with outstretched wings above horned skull, lightning and spikes, underground metal emblem, no text, no letters, no glyphs"),
+            ("winged_horned_skull", "large horned skull with wings, lightning radiating, spiked abstract ornamental shape above, symmetrical metal badge, no text, no letters, no glyphs"),
         ],
         sim=0.72,
         comp=0.58,  # 保留顶部 logo+中央鹰/骷髅+放射闪电 的构图
@@ -270,9 +274,9 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     # 独立随机 seed，确保同原图 4 张有差异
     seed = random.randint(1, 999999999)
 
-    # v7.5: 治噪 + 治乱码 —— steps 35→45（更多采样降噪）/ cfg 6→7（更严守 prompt 治伪文字）/
-    # usdu_model 由 USDU_MODEL 默认空 → 走 hires fix 路径（治中央噪点）
-    # hires_* 通过 build.py 内置的 hires 路径生效
+    # v7.5: 治噪 + 治乱码 —— steps 35→45（更多采样降噪，build.py 现已读取 params["steps"]）/
+    # cfg 6→7（更严守 prompt 治伪文字）。USDU_MODEL 恢复 4x 真实超分（4096px 清晰度），
+    # 二阶细化 KSampler（hires_denoise/hires_steps）在超分前做潜空间二次清理治中央噪点。
     params = {
         "style_prompt": prompt,
         "similarity": sim,
@@ -317,10 +321,10 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     # v7.5: 4 个 text-prone 类型 (eagle_2 / denim_3 / skull_5 / metal_6) 关 tshirts LoRA，
     # 用 VECTOR_LORA 替代 —— chrisconyers-tshirts 训练集带大量 banner 文字样本，
     # 是「骷髅盒 JACHE DJAONOES」/「牛仔顶部 OLDE」这类乱码的直接诱因。
-    if type_label in ("gothic_biker_crest", "denim_patchwork",
+    if cfg["type"] in ("gothic_biker_crest", "denim_patchwork",
                        "gothic_skull_emblem", "heavy_metal_badge"):
         params["lora_name_2"] = VECTOR_LORA
-        params["lora_strength_2"] = 0.30  # VECTOR 强度低于 TSHIRT 避免拖累表达
+        params["lora_strength_2"] = 0.22  # VECTOR 强度再降（0.30→0.22），减少 vector/engraving 风格诱发伪字母
 
     g = build_mode1(seed_name, params, f"batch_{orig_label}_{sub_label}")
     t0 = time.time()

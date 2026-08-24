@@ -258,16 +258,28 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     usdu_model = params.get("usdu_model", "4x_NMKD-Siax_200k.pth")
     use_usdu = bool(usdu_model)
     if use_usdu:
-        # USDU 路径：KSampler 1 → VAE Decode → 真实 2x → Save
-        g.update(_sampler_node(10, model_for_sampler, samp_pos, samp_neg, 9, {**params, "denoise": 1.0,
-                                               "steps": params.get("steps_base", DEFAULTS["steps"])}))
-        g.update(_vae_decode(11, 10, last_model))
-        usdu_nodes, _ = _usdu_only(12, 11, usdu_model, save_n=15, save_prefix=f"{job_id}/mode1")
+        # USDU 路径（治「中央噪点」关键修正）：
+        #   KSampler 1（满采去噪, steps） → 二阶细化 KSampler（latent 二次清理,
+        #   denoise=hires_denoise, steps=hires_steps） → VAE Decode → 真实 4x 超分 → Save。
+        # 二阶细化在 base latent(1024) 上以低 denoise 重采，清掉潜空间残留噪点，
+        # 使 4x 真实超分不会把噪点放大成可见碎裂感；同时保留 4096px 高清晰度。
+        g.update(_sampler_node(10, model_for_sampler, samp_pos, samp_neg, 9,
+                               {**params, "denoise": 1.0,
+                                "steps": params.get("steps",
+                                                    params.get("steps_base", DEFAULTS["steps"]))}))
+        g.update(_sampler_node(11, model_for_sampler, samp_pos, samp_neg, 10,
+                               {**params,
+                                "denoise": params.get("hires_denoise", 0.28),
+                                "steps": params.get("hires_steps", 30)}))
+        g.update(_vae_decode(12, 11, last_model))
+        usdu_nodes, _ = _usdu_only(13, 12, usdu_model, save_n=15,
+                                   save_prefix=f"{job_id}/mode1")
         g.update(usdu_nodes)
     else:
         # 旧路径：KSampler 1 → LatentUpscale 1.5x → KSampler 2 → Save
         g.update(_sampler_node(10, model_for_sampler, samp_pos, samp_neg, 9, {**params, "denoise": 1.0,
-                                               "steps": params.get("steps_base", DEFAULTS["steps"])}))
+                                               "steps": params.get("steps",
+                                                                   params.get("steps_base", DEFAULTS["steps"]))}))
         g.update(_latent_upscale_by(11, 10, scale_by=params.get("hires_scale", 1.5)))
         g.update(_sampler_node(12, model_for_sampler, samp_pos, samp_neg, 11,
                                {**params, "denoise": params.get("hires_denoise", 0.35),
