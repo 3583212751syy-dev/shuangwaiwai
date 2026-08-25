@@ -182,19 +182,24 @@ def _controlnet_apply(n, pos_from, neg_from, controlnet_from, image_from, streng
 
 def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     """换景换风格：保持与原图相似度(weight)，用 prompt 换场景/风格。
-    可选 LoRA：
-      - params["lora_name"] + params["lora_strength"]  启用第一个 LoRA
-      - params["lora_name_2"] + params["lora_strength_2"] 启用第二个 LoRA（链在第一个之后）
+    可选 LoRA（链式加载，最多 3 个）：
+      - params["lora_name"]   + params["lora_strength"]   第一个 LoRA
+      - params["lora_name_2"] + params["lora_strength_2"] 第二个 LoRA（链在第一个之后）
+      - params["lora_name_3"] + params["lora_strength_3"] 第三个 LoRA（链在第二个之后）
+        用于文字可控生成（如 Harrlogos XL）：让徽章/横幅区出现的文字是真实可读英文，
+        而非 SDXL 默认生成的伪字母乱码。
     """
     w = params.get("similarity", DEFAULTS["similarity"])
     style = params.get("style_prompt", "")
     neg = params.get("negative_prompt", "low quality, blurry, deformed, watermark, text")
 
-    # ---- 双 LoRA 链式加载 ----
+    # ---- 三 LoRA 链式加载 ----
     lora1_name = params.get("lora_name", "")
     lora1_strength = float(params["lora_strength"]) if "lora_strength" in params and params["lora_strength"] is not None else 0.0
     lora2_name = params.get("lora_name_2", "")
     lora2_strength = float(params["lora_strength_2"]) if "lora_strength_2" in params and params["lora_strength_2"] is not None else 0.0
+    lora3_name = params.get("lora_name_3", "")
+    lora3_strength = float(params["lora_strength_3"]) if "lora_strength_3" in params and params["lora_strength_3"] is not None else 0.0
 
     g = {}
     g.update(_checkpoint_node(1))
@@ -205,6 +210,12 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     if lora2_name and lora2_strength > 0:
         g.update(_lora_loader_node(3, last_model, last_clip, lora2_name, lora2_strength, lora2_strength))
         last_model, last_clip = 3, 3
+    # 第三个 LoRA 用节点 17（与 IPAdapter 4/5/6、CLIP 7/8、ControlNet 70/71/72、
+    # USDU 的 UpscaleModelLoader(13)/ImageUpscaleWithModel(14)/SaveImage(15)、
+    # VAEDecode(12)/KSampler(10/11) 均不冲突；17 仅作 LoRA 链式上游输入）。
+    if lora3_name and lora3_strength > 0:
+        g.update(_lora_loader_node(17, last_model, last_clip, lora3_name, lora3_strength, lora3_strength))
+        last_model, last_clip = 17, 17
 
     # ---- IPAdapter 加载（必须在 LoRA 之后）----
     g.update(_ipadapter_loader_node(4, last_model))
