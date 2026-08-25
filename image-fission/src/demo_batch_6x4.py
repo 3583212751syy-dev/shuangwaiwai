@@ -61,7 +61,11 @@ VECTOR_LORA = "DD-vector-v2.safetensors"
 # 改为：移除 no-text 抑制，引入 Harrlogos 让该区域的文字成为真实有意义英文单词。
 # 训练于 1024x1024，单/多词皆可；负向建议加 malformed letters / repeating letters。
 TEXT_LOGO_LORA = "Harrlogos_XL_v2.safetensors"
-TEXT_LOGO_LORA_STRENGTH = 0.85
+# v8.4: 0.85→0.65 —— 用户反馈 v8.3 文字"白字无衬线+实心色块"是 UI 贴纸感太重，
+# Harrlogos 强度太高反而把字形风格锁死在它的默认 sans-serif 实心 banner 模板上。
+# 降到 0.65 让画面其他 LoRA（VECTOR/VECTOR_ENGRAVE/TSHIRTS）的画风 token 有更多权重，
+# 字形仍真实可读（Harrlogos 0.6+ 仍稳定拼字），但能跟周围雕花/插画笔触融合。
+TEXT_LOGO_LORA_STRENGTH = 0.65
 
 # ControlNet Canny fp16：全局开启，给每一类提供像素级构图参考；
 # 单类强度在 ORIGINALS_CONFIG 里分别控制。
@@ -156,46 +160,63 @@ ORIGINALS_CONFIG = {
     # （BERE DJANKIE 之类）。v8.3 反向操作——引入 Harrlogos XL（TEXT_LOGO_LORA），
     # 每个 subject 用「真实单词 + text logo」触发词，让徽章中央/横幅区的文字成为
     # 真实可读英文（如 RIDE / RULES / REBEL / WILD），语义贴合机车/哥特主题。
-    # 构图保留「主图 + 元素四周」，中央留给真实文字横幅。
+    # v8.4 文字风格匹配修复：v8.3 出图时文字像后期 UI 贴纸（白字无衬线+实心色块 banner），
+    # 和哥特雕花风格脱节。修复：(1) 删 "central horizontal text banner" 字面化指代，
+    # 改 "ornamental integrated typography matching illustration stroke weight" 让
+    # 文字像画的一部分；(2) 显式风格 token: heavy metal, spikey, blood, engraved
+    # gothic serif 强制粗砺衬线；(3) 单词用单短词 (RIDE/RULES/REBEL/WILD)
+    # 减少字母错位。
     "eagle_2": make_config(
         type_label="gothic_biker_crest",
         style_words=(
             "gothic biker emblem print, black and orange flame graphic, "
-            "eagle and skull crest, chain and flame details, dark streetwear badge"
+            "eagle and skull crest, chain and flame details, dark streetwear badge, "
+            "heavy metal typographic style, engraved gothic serif letterforms, "
+            "spikey blood letterforms, ornamental integrated typography "
+            "matching illustration stroke weight, no solid color text block, no plain banner"
         ),
         subjects=[
-            ("eagle_flame",   "RIDE text logo, black and orange, metal, spikey, spread-wing eagle clutching a flaming skull, fire and chains on left and right edges, bottom thorny vines, top flame wisps, central horizontal text banner, symmetrical vertical emblem"),
-            ("skull_wings",   "RULES text logo, black and orange, metal, large skull with spread eagle wings on top half, red flames and chains at bottom corners, top corner wing tips, central horizontal text banner, symmetrical crest"),
-            ("raven_flame",   "REBEL text logo, black and red, metal, black raven with outstretched wings at top, flaming skull below, chains on outer edges, central horizontal text banner, dark gothic emblem"),
-            ("winged_skull",  "WILD text logo, black and orange, metal, winged skull at center with red flames radiating outward, crossed chains in four corners, central horizontal text banner, symmetrical biker crest"),
+            ("eagle_flame",   "RIDE text logo, heavy metal, spikey, blood, spread-wing eagle clutching a flaming skull, fire and chains on left and right edges, bottom thorny vines, top flame wisps, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical vertical emblem"),
+            ("skull_wings",   "RULES text logo, heavy metal, spikey, blood, large skull with spread eagle wings on top half, red flames and chains at bottom corners, top corner wing tips, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical crest"),
+            ("raven_flame",   "REBEL text logo, heavy metal, spikey, blood, black raven with outstretched wings at top, flaming skull below, chains on outer edges, ornamental integrated typography matching illustration stroke style, engraved gothic serif, dark gothic emblem"),
+            ("winged_skull",  "WILD text logo, heavy metal, spikey, blood, winged skull at center with red flames radiating outward, crossed chains in four corners, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical biker crest"),
         ],
         sim=0.72,
         comp=0.58,
         cn=0.45,
     ),
 
-    # denim_3：牛仔贴布+蝴蝶+"UPCY"文字 → 元素在「牛仔再造贴布」语汇内裂变
+    # denim_3：牛仔贴布+蝴蝶+原图顶部 "UPCY" 文字 → 元素在「维多利亚雕花平面矢量」语汇内裂变
     # 注意：原图是真实牛仔布贴布照片，裂变结果必须是「平面印花图案」而非再拍一张布贴布
-    # v8.3 文字策略：引入 Harrlogos XL，每个 subject 用「真实单词 + text logo」
-    # （REBORN/REMAKE/DENIM/VINTAGE）让顶部/中央文字成为真实可读英文，贴合牛仔再造主题。
+    # v8.4 文字风格匹配修复：v8.3 出 "NO SCRHET" 在实心蓝色 banner 上白字无衬线，
+    # 像后期贴的 UI 贴纸，和画面雕花线条格格不入；且 "SECRET" 拼成 "SCRHET"（漏 E）。
+    # 根因：(1) "central horizontal text banner" 让 Harrlogos 渲成纯色块 banner；
+    # (2) 长单词 SECRET/REBORN/VINTAGE/REMAKE 在 LoRA 中更易字母错位。
+    # 修复：(1) 删 "central horizontal text banner" 字面化指代，改 "integrated
+    # ornamental typography matching illustration stroke weight" 让文字像画的一部分
+    # 而非外加贴纸；(2) 用更短更常见的单词 (DENIM/BLUE/TRUE/PURE) 减少拼错概率；
+    # (3) 显式注入风格 token: engraved Victorian serif + hand-drawn calligraphic
+    # letterforms，强制衬线+手绘感，匹配画面雕花笔触。
     "denim_3": make_config(
         type_label="denim_patchwork",
         style_words=(
             "flat vector illustration, light blue and white color palette only, "
-            "denim blue inspired graphic print, butterfly and abstract floral motif, "
-            "crisp clean shapes, solid flat color blocks, screen print style, "
+            "denim blue inspired graphic print, butterfly and Victorian flourish motif, "
+            "crisp clean shapes, solid flat color blocks, screen print aesthetic, "
+            "engraved Victorian typographic style, hand-drawn calligraphic letterforms, "
+            "ornamental integrated typography matching illustration stroke weight, "
             "no orange, no yellow, no gold, no warm tones, no brown, no beige, "
-            "no fabric texture, no embroidery"
+            "no fabric texture, no embroidery, no solid color text block, no plain banner"
         ),
         subjects=[
-            ("butterfly_trail", "REBORN text logo, light blue and white, flat vector butterfly graphic at center, decorative filigree flourishes at top corners, smaller butterflies trailing below along a dotted path, solid colors, central horizontal text banner"),
-            ("word_butterfly",  "REMAKE text logo, light blue and white, flat vector ornamental filigree flourishes at top corners, large butterfly graphic at center, small star and heart accents scattered, central horizontal text banner"),
-            ("shape_collage",   "DENIM text logo, light blue and white, flat vector collage of overlapping geometric shapes at outer edges, central butterfly graphic, star and heart accents, central horizontal text banner"),
-            ("floral_butterfly","VINTAGE text logo, light blue and white, flat vector butterfly at center surrounded by small flowers and dotted trail, decorative floral filigree at top corners, central horizontal text banner"),
+            ("butterfly_trail", "DENIM text logo, flat vector butterfly at center, smaller butterflies trailing below, dotted path, light blue and white solid colors, ornamental integrated typography matching illustration stroke style, engraved Victorian serif letterforms"),
+            ("word_butterfly",  "BLUE text logo, flat vector butterfly at center, star and heart accents, light blue and white solid colors, ornamental integrated typography matching illustration stroke style, engraved Victorian serif letterforms"),
+            ("shape_collage",   "TRUE text logo, flat vector collage of overlapping geometric shapes, central butterfly graphic, light blue and white solid colors, ornamental integrated typography matching illustration stroke style, engraved Victorian serif letterforms"),
+            ("floral_butterfly","PURE text logo, flat vector butterfly at center surrounded by small flowers and dotted trail, decorative floral filigree, light blue and white solid colors, ornamental integrated typography matching illustration stroke style, engraved Victorian serif letterforms"),
         ],
-        sim=0.42,   # 极低材质锁，避免把真实牛仔布纹理带进来；构图交给 ControlNet
+        sim=0.42,
         comp=0.60,
-        cn=0.40,    # 防复现原图真字
+        cn=0.40,
     ),
 
     # camo_4：迷彩+棕榈树全幅图案 → 保留「迷彩底+棕榈树剪影」构图
@@ -220,17 +241,22 @@ ORIGINALS_CONFIG = {
     # skull_5：骷髅+翅膀+蛇+玫瑰+血滴 → 元素在「哥特骷髅徽章」语汇内裂变
     # v8.3 文字策略：引入 Harrlogos XL，每个 subject 用「真实单词 + text logo」
     # （FEAR/MEMENTO/RISE/ALIVE）让中央横幅文字成为真实可读英文，贴合哥特主题。
+    # v8.4 文字风格匹配修复：同 eagle_2，删 banner 字面 + 显式风格 token；
+    # 长词 MEMENTO 易拼错，改用单短词 FEAR/RISE/DEAD/SOUL。
     "skull_5": make_config(
         type_label="gothic_skull_emblem",
         style_words=(
             "dark gothic skull emblem, red wings and roses, snake wrapped around skull, "
-            "blood drip accents, symmetrical vertical badge, dark rock poster art"
+            "blood drip accents, symmetrical vertical badge, dark rock poster art, "
+            "engraved gothic typographic style, hand-drawn calligraphic letterforms, "
+            "spikey blood letterforms, ornamental integrated typography "
+            "matching illustration stroke weight, no solid color text block, no plain banner"
         ),
         subjects=[
-            ("skull_wing_snake", "FEAR text logo, red and black, gothic, skull at center, spread red wings at top corners, snake coiled at bottom edge, red roses at sides, blood drips, central horizontal text banner, symmetrical emblem"),
-            ("skull_bat_wings",  "MEMENTO text logo, red and black, gothic, skull with bat wings at top corners, snake at bottom edge, thorny roses at outer sides, central horizontal text banner, symmetrical gothic badge"),
-            ("skull_raven_wings","RISE text logo, red and black, gothic, skull with raven black wings at top corners, snake at bottom edge, roses at sides, central horizontal text banner, dark symmetrical crest"),
-            ("skull_roses",      "ALIVE text logo, red and black, gothic, skull at center, red roses and thorns at outer frame, snake at base, central horizontal text banner, symmetrical emblem"),
+            ("skull_wing_snake", "FEAR text logo, gothic, spikey, blood, skull at center, spread red wings at top corners, snake coiled at bottom edge, red roses at sides, blood drips, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical emblem"),
+            ("skull_bat_wings",  "DEAD text logo, gothic, spikey, blood, skull with bat wings at top corners, snake at bottom edge, thorny roses at outer sides, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical gothic badge"),
+            ("skull_raven_wings","RISE text logo, gothic, spikey, blood, skull with raven black wings at top corners, snake at bottom edge, roses at sides, ornamental integrated typography matching illustration stroke style, engraved gothic serif, dark symmetrical crest"),
+            ("skull_roses",      "SOUL text logo, gothic, spikey, blood, skull at center, red roses and thorns at outer frame, snake at base, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical emblem"),
         ],
         sim=0.72,
         comp=0.58,
@@ -240,18 +266,23 @@ ORIGINALS_CONFIG = {
     # metal_6：金属 logo+鹰+角骷髅+闪电 → 元素在「重金属乐队艺术」语汇内裂变
     # v8.3 文字策略：引入 Harrlogos XL，每个 subject 用「真实单词 + text logo」
     # （HEAVY/METAL/RISE/OBEY）让中央横幅文字成为真实可读英文，贴合重金属主题。
+    # v8.4 文字风格匹配修复：同 eagle_2/skull_5，删 banner 字面 + 显式风格 token；
+    # 双词 HEAVY METAL 易各自字母错位，改用单短词 HELL/HATE/FURY/PAIN。
     "metal_6": make_config(
         type_label="heavy_metal_badge",
         style_words=(
             "heavy metal band art print, dark underground metal emblem, "
             "eagle and horned skull, radiating lightning bolts, "
-            "black white and brown"
+            "black white and brown, heavy metal typographic style, "
+            "engraved gothic serif letterforms, spikey blood letterforms, "
+            "ornamental integrated typography matching illustration stroke weight, "
+            "no solid color text block, no plain banner"
         ),
         subjects=[
-            ("eagle_horned_skull",  "HEAVY text logo, black white and brown, metal, eagle with spread wings above a horned skull, lightning bolts at outer edges, spiked shapes at top corners, central horizontal text banner, symmetrical emblem"),
-            ("skull_lightning",     "METAL text logo, black white and brown, metal, screaming skull with horns at center, lightning from outer edges, spiked shapes at corners, central horizontal text banner, death metal crest"),
-            ("raven_skull",         "RISE text logo, black white and brown, metal, raven with outstretched wings above horned skull, lightning and spikes at outer edges, central horizontal text banner, underground metal emblem"),
-            ("winged_horned_skull", "OBEY text logo, black white and brown, metal, large horned skull at center with wings, lightning from outer edges, spiked shapes at corners, central horizontal text banner, symmetrical metal badge"),
+            ("eagle_horned_skull",  "HELL text logo, metal, spikey, blood, eagle with spread wings above a horned skull, lightning bolts at outer edges, spiked shapes at top corners, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical emblem"),
+            ("skull_lightning",     "HATE text logo, metal, spikey, blood, screaming skull with horns at center, lightning from outer edges, spiked shapes at corners, ornamental integrated typography matching illustration stroke style, engraved gothic serif, death metal crest"),
+            ("raven_skull",         "FURY text logo, metal, spikey, blood, raven with outstretched wings above horned skull, lightning and spikes at outer edges, ornamental integrated typography matching illustration stroke style, engraved gothic serif, underground metal emblem"),
+            ("winged_horned_skull", "PAIN text logo, metal, spikey, blood, large horned skull at center with wings, lightning from outer edges, spiked shapes at corners, ornamental integrated typography matching illustration stroke style, engraved gothic serif, symmetrical metal badge"),
         ],
         sim=0.72,
         comp=0.58,
@@ -327,6 +358,10 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
         # runic nonsense），并加 Harrlogos 推荐的 malformed letters / repeating letters /
         # double letters（治拼写错误）。真实可读英文由 Harrlogos XL + 正向措辞保证。
         # v8: 仍保留 SDXL 原生负向 embedding NegativeXL + unaestheticXL（治画质伪影）。
+        # v8.4 文字风格匹配负向：用户反馈 v8.3 文字像后期 UI 贴纸（白字无衬线+实心色块
+        # banner），和画风脱节。补 6 项 anti-UI-overlay 阻止纯色块+无衬线+现代字体：
+        # no solid color text block / no plain sans-serif / no Helvetica / no Arial /
+        # no modern UI / no UI overlay sticker —— 强制 Harrlogos 渲成与画面融合的衬线/雕花字。
         "negative_prompt": (
             "embedding:NegativeXL, embedding:unaestheticXL, "
             "photography, product photo, 3d render, realistic texture, fabric folds, "
@@ -335,7 +370,10 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
             "runic nonsense, occult sigils, runes, talisman symbols, "
             "malformed letters, repeating letters, double letters, misspelled words, "
             "illegible text, scribbles resembling text, watermark, copyright logo, "
-            "cropped, out of frame, mockup, garment"
+            "cropped, out of frame, mockup, garment, "
+            "solid color text block, plain banner, plain sans-serif text, Helvetica, "
+            "Arial, modern UI font, UI overlay sticker, mismatched typography, "
+            "text style different from illustration style, standalone text banner"
         ),
         "width": 1024, "height": 1024, "batch_per_run": 1,
         "steps": 45, "cfg": 7.0,
