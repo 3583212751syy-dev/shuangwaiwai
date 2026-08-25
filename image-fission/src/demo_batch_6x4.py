@@ -138,50 +138,49 @@ ORIGINALS_CONFIG = {
     ),
 
     # eagle_2：鹰+火焰+骷髅+锁链+横幅徽章 → 元素在「哥特机车徽章」语汇内裂变
+    # v8.2: 删掉所有 "cartouche / scroll / filigree / band / banner" 字面化指代——
+    # v8.1 验证这些词本身不直接诱导填字，但 SDXL 仍把"中央装饰区"当成"放乐队名/符文"
+    # 的位置反射性填字。改成「主图 + 元素全在画布四周/角落，构图无中央装饰带」，
+    # 并加 "occult sigils, runes, faux-font" 强 negative 治 BERE DJANKIE 类符文。
     "eagle_2": make_config(
         type_label="gothic_biker_crest",
         style_words=(
             "gothic biker emblem print, black and orange flame graphic, "
-            "eagle and skull crest, chain and banner details, dark streetwear badge"
+            "eagle and skull crest, chain and flame details, dark streetwear badge, "
+            "no central panel, no central cartouche, no banner, no scroll"
         ),
         subjects=[
-            # v8.1: "blank scroll / ribbon scroll" → "blank ornamental filigree cartouche"
-            # —— scroll 是横幅的近义词，会被模型识别为放字的位置；filigree cartouche
-            # 则被渲成装饰花纹/卷叶，不出字（v8 验证）。
-            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental filigree cartouche with abstract pattern inside, symmetrical vertical emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ornamental filigree cartouche with abstract pattern inside, symmetrical crest, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank ornamental filigree cartouche with abstract pattern inside, dark gothic emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("winged_skull",  "winged skull with red flames, crossed chains and a blank ornamental filigree cartouche with abstract pattern inside, symmetrical biker crest, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains on left and right edges, bottom thorny vines, top flame wisps, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, symmetrical vertical emblem"),
+            ("skull_wings",   "large skull with spread eagle wings on top half, red flames and chains only at the bottom corners, top corner wing tips, no central panel, no typographic element, no letter shapes, no symbol resembling writing, symmetrical crest"),
+            ("raven_flame",   "black raven with outstretched wings at top, flaming skull below, chains only on outer edges, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, dark gothic emblem"),
+            ("winged_skull",  "winged skull at center with red flames radiating outward, crossed chains only in the four corners, no central panel, no typographic element, no letter shapes, no symbol resembling writing, symmetrical biker crest"),
         ],
         sim=0.72,
-        comp=0.58,  # 保留垂直徽章构图，但允许元素替换
+        comp=0.58,  # 保留垂直徽章构图，但不允许元素替换中央装饰带
         cn=0.45,
     ),
 
     # denim_3：牛仔贴布+蝴蝶+"UPCY"文字 → 元素在「牛仔再造贴布」语汇内裂变
     # 注意：原图是真实牛仔布贴布照片，裂变结果必须是「平面印花图案」而非再拍一张布贴布
+    # v8.2: 顶部装饰带彻底删除（原图顶部有真字），改成"decoration only at the top corners"
     "denim_3": make_config(
         type_label="denim_patchwork",
         style_words=(
             "flat vector illustration, light blue and white color palette only, "
-            "denim blue inspired graphic print, butterfly and abstract letterform motif, "
+            "denim blue inspired graphic print, butterfly and abstract floral motif, "
             "crisp clean shapes, solid flat color blocks, screen print style, "
             "no orange, no yellow, no gold, no warm tones, no brown, no beige, "
-            "no fabric texture, no embroidery"
+            "no fabric texture, no embroidery, no central horizontal band, no banner"
         ),
         subjects=[
-            # v8.1: 把 "upper abstract geometric pattern band" / "across the top" 改成
-            # "decorative filigree flourish / ornamental crest" —— 「band/top」 类词会
-            # 触发模型往里填字母（v8 验证 denim_3 出 "CNST"）；ornament/filigree/crests
-            # 则被渲成装饰花纹，不出字。
-            ("butterfly_trail", "flat vector butterfly graphic, decorative filigree flourish above, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors, no text, no letters, no glyphs"),
-            ("word_butterfly",  "flat vector ornamental filigree flourish across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors, no text, no letters, no glyphs"),
-            ("shape_collage",   "flat vector collage of overlapping geometric shapes in denim blue, central butterfly graphic, star and heart accents, clean edges, no text, no letters, no glyphs"),
-            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, decorative floral filigree above, light blue and white solid colors, no text, no letters, no glyphs"),
+            ("butterfly_trail", "flat vector butterfly graphic at center, decorative filigree flourishes only at top corners, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors, no text, no letters, no glyphs, no typographic element, no letter shapes, no symbol resembling writing"),
+            ("word_butterfly",  "flat vector ornamental filigree flourishes only at top corners, large butterfly graphic at center, small star and heart accents scattered, light blue and white solid colors, no text, no letters, no glyphs, no typographic element, no letter shapes, no symbol resembling writing"),
+            ("shape_collage",   "flat vector collage of overlapping geometric shapes at outer edges in denim blue, central butterfly graphic, star and heart accents scattered, clean edges, no text, no letters, no glyphs, no typographic element, no letter shapes, no symbol resembling writing"),
+            ("floral_butterfly","flat vector butterfly at center surrounded by small flowers and dotted trail, decorative floral filigree only at top corners, light blue and white solid colors, no text, no letters, no glyphs, no typographic element, no letter shapes, no symbol resembling writing"),
         ],
         sim=0.42,   # 极低材质锁，避免把真实牛仔布纹理带进来；构图交给 ControlNet
-        comp=0.60,  # 保留上方装饰+中央主图+下方小元素 的构图
-        cn=0.40,    # v8.1: 0.55→0.40 —— 原图带真字 "UPCY"，高 CN 让模型想复现文字
+        comp=0.60,  # 保留中央主图+四周装饰 的构图
+        cn=0.40,    # 防复现原图真字
     ),
 
     # camo_4：迷彩+棕榈树全幅图案 → 保留「迷彩底+棕榈树剪影」构图
@@ -204,39 +203,43 @@ ORIGINALS_CONFIG = {
     ),
 
     # skull_5：骷髅+翅膀+蛇+玫瑰+血滴 → 元素在「哥特骷髅徽章」语汇内裂变
+    # v8.2: 同样删掉"cartouche / 装饰区"字面，元素全在画布四周/底部角落，构图无中央装饰带
     "skull_5": make_config(
         type_label="gothic_skull_emblem",
         style_words=(
             "dark gothic skull emblem, red wings and roses, snake wrapped around skull, "
-            "blood drip accents, symmetrical vertical badge, dark rock poster art"
+            "blood drip accents, symmetrical vertical badge, dark rock poster art, "
+            "no central panel, no central cartouche, no banner, no scroll"
         ),
         subjects=[
-            ("skull_wing_snake", "skull with spread red wings, snake coiled around, red roses at sides, blood drips, symmetrical emblem, no text, no letters, no glyphs"),
-            ("skull_bat_wings",  "skull with bat wings, snake and thorny roses, dark red accents, symmetrical gothic badge, no text, no letters, no glyphs"),
-            ("skull_raven_wings","skull with raven black wings, snake and roses, blood drops, dark symmetrical crest, no text, no letters, no glyphs"),
-            ("skull_roses",      "skull surrounded by red roses and thorns, wing-like floral frame, snake at base, symmetrical emblem, no text, no letters, no glyphs"),
+            ("skull_wing_snake", "skull at center, spread red wings only at top corners, snake coiled only at bottom edge, red roses only at left and right sides, blood drips from skull, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, symmetrical emblem"),
+            ("skull_bat_wings",  "skull with bat wings at top corners, snake only at bottom edge, thorny roses only at outer sides, dark red accents, no central panel, no typographic element, no letter shapes, no symbol resembling writing, symmetrical gothic badge"),
+            ("skull_raven_wings","skull with raven black wings at top corners, snake only at bottom edge, roses at outer sides, blood drops, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, dark symmetrical crest"),
+            ("skull_roses",      "skull at center, red roses and thorns only at outer frame, snake only at base, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, symmetrical emblem"),
         ],
         sim=0.72,
-        comp=0.58,  # 保留中央骷髅+两侧翅膀/玫瑰+上下横幅 的构图
+        comp=0.58,  # 中央骷髅+四周元素，无中央装饰带
         cn=0.45,
     ),
 
     # metal_6：金属 logo+鹰+角骷髅+闪电 → 元素在「重金属乐队艺术」语汇内裂变
+    # v8.2: "spiked abstract ornamental shape banner" 删除，改成"spiked abstract shape
+    # at top corners only"，不让中央留装饰带诱发填字
     "metal_6": make_config(
         type_label="heavy_metal_badge",
         style_words=(
-            "heavy metal band art print, spiked ornamental abstract shape, no readable words, "
+            "heavy metal band art print, dark underground metal emblem, "
             "eagle and horned skull, radiating lightning bolts, "
-            "dark underground metal emblem, black white and brown"
+            "black white and brown, no central panel, no central cartouche, no banner"
         ),
         subjects=[
-            ("eagle_horned_skull",  "eagle with spread wings above a horned skull, radiating lightning bolts, spiked abstract ornamental shape banner at top, symmetrical emblem, no text, no letters, no glyphs"),
-            ("skull_lightning",     "screaming skull with horns, lightning bolts radiating behind, spiked abstract ornamental shape banner above, death metal crest, no text, no letters, no glyphs"),
-            ("raven_skull",         "raven with outstretched wings above horned skull, lightning and spikes, underground metal emblem, no text, no letters, no glyphs"),
-            ("winged_horned_skull", "large horned skull with wings, lightning radiating, spiked abstract ornamental shape above, symmetrical metal badge, no text, no letters, no glyphs"),
+            ("eagle_horned_skull",  "eagle with spread wings above a horned skull, radiating lightning bolts only at outer edges, spiked abstract shapes only in top corners, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, symmetrical emblem"),
+            ("skull_lightning",     "screaming skull with horns at center, lightning bolts only radiating from outer edges, spiked abstract shapes only at corners, no central panel, no typographic element, no letter shapes, no symbol resembling writing, death metal crest"),
+            ("raven_skull",         "raven with outstretched wings above horned skull, lightning and spikes only at outer edges, no central decorative zone, no typographic element, no letter shapes, no symbol resembling writing, underground metal emblem"),
+            ("winged_horned_skull", "large horned skull at center with wings, lightning radiating only from outer edges, spiked abstract shapes only at corners, no central panel, no typographic element, no letter shapes, no symbol resembling writing, symmetrical metal badge"),
         ],
         sim=0.72,
-        comp=0.58,  # 保留顶部 logo+中央鹰/骷髅+放射闪电 的构图
+        comp=0.58,
         cn=0.45,
     ),
 }
@@ -316,7 +319,13 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
             "banner text, ribbon text, garbled text, gibberish text, pseudo-script, "
             "sign text, label text, inscription, motto, slogan, carved text, engraved text, "
             "scribbles resembling text, copyright logo, signature, cropped, out of frame, "
-            "mockup, garment"
+            "mockup, garment, "
+            # v8.2: 强 anti-occult / 伪符文 / 假字体 —— 治 BERE DJANKIE / BRING MORE /
+            # UTCN 这类 SDXL 反射性填的「欧基夫符文/伪乐队名/伪字符」
+            "occult sigils, runes, runic characters, talisman symbols, faux-font, "
+            "imagined alphabet, geometric letterform patterns, decorative typography, "
+            "faux calligraphic characters, pseudo-Chinese characters, pseudo-Arabic script, "
+            "fantasy glyphs, rune-like shapes, sigil-like characters"
         ),
         "width": 1024, "height": 1024, "batch_per_run": 1,
         "steps": 45, "cfg": 7.0,
@@ -339,7 +348,9 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     if cfg["type"] in ("gothic_biker_crest", "denim_patchwork",
                        "gothic_skull_emblem", "heavy_metal_badge"):
         params["lora_name_2"] = VECTOR_LORA
-        params["lora_strength_2"] = 0.15  # v8.1: 0.22→0.15 —— vector/engraving 风格本身诱发伪字母，再降
+        # v8.2: 0.15→0.10 —— vector/engraving 风格本身仍会诱发伪字母/符文，
+        # 进一步降权减诱导；预期对 eagle_2/denim_3/skull_5 出字率降低。
+        params["lora_strength_2"] = 0.10
 
     g = build_mode1(seed_name, params, f"batch_{orig_label}_{sub_label}")
     t0 = time.time()
