@@ -35,8 +35,10 @@ from engine.comfy_client import ComfyClient
 from pipelines.build import build_mode1
 import config as _cfg
 
-# 底模：中性 SDXL base，让 LoRA 与 IPAdapter 主导风格
-_cfg.SDXL_CHECKPOINT = "sd_xl_base_1.0.safetensors"
+# 底模：v8 起改回强底模 Juggernaut Ragnarok v10 —— 原版 sd_xl_base_1.0 噪声大、易出乱码、
+# 质量低（用户 8/25 反馈）。Juggernaut v10 质量更高、prompt 服从更强，仍配合
+# IPAdapter + LoRA 主导风格。备选 CounterfeitXL（更平涂/动漫风）。
+_cfg.SDXL_CHECKPOINT = "juggernautXL_ragnarokBy.safetensors"
 
 COMFYUI_INPUT = r"E:\Desktop\双接口\image-fission\ComfyUI\input"
 JOBS_BASE = r"E:\Desktop\双接口\image-fission\jobs"
@@ -60,7 +62,9 @@ USE_CONTROLNET = True
 # v7.5: 保留 4x USDU 真实超分（1024→4096px，用户要的清晰度），但改在超分前加二阶细化
 # KSampler（见 build.py USDU 路径）= 潜空间先低 denoise 重采清理噪点，再 4x 超分，
 # 既治中央噪点又不掉分辨率。HIRES_DENOISE/HIRES_STEPS 即二阶细化 KSampler 的参数。
-USDU_MODEL = "4x_NMKD-Siax_200k.pth"
+# v8: 超分模型 NMKD-Siax → 4x-UltraSharp —— 前者在矢量/插画平涂上易出颗粒噪点，
+# UltraSharp 对插画边缘更干净（用户 8/25 反馈噪点多）。配合 USDU 前二阶细化 KSampler。
+USDU_MODEL = "4x-UltraSharp.pth"
 HIRES_SCALE = 1.5     # 仅在 USDU 关闭的 fallback 路径使用
 HIRES_DENOISE = 0.28  # 二阶细化 KSampler 重采强度
 HIRES_STEPS = 30      # 二阶细化 KSampler 步数
@@ -293,7 +297,11 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
         "hires_denoise": HIRES_DENOISE,
         "hires_steps": HIRES_STEPS,
         # v7.5: 增强 anti-garbled-text —— 14 项覆盖字母/文字/品牌/伪脚本
+        # v8: 增加 SDXL 原生负向 embedding —— NegativeXL（CounterfeitXL 作者出品，治乱码/
+        # 画质伪影）+ unaestheticXL（ComfyUI 官方推荐通用质量负向）。EasyNegative 是 SD1.5
+        # 的，对 SDXL 无效，勿用。embedding 放最前确保 CLIP 权重优先。
         "negative_prompt": (
+            "embedding:NegativeXL, embedding:unaestheticXL, "
             "photography, product photo, 3d render, realistic texture, fabric folds, "
             "wrinkles, shadows, depth of field, blurry, deformed, low quality, "
             "readable text, real words, fake words, brand name, trademark, watermark, "
