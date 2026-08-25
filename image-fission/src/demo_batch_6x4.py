@@ -145,10 +145,13 @@ ORIGINALS_CONFIG = {
             "eagle and skull crest, chain and banner details, dark streetwear badge"
         ),
         subjects=[
-            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental scroll shape with abstract pattern inside, symmetrical vertical emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ribbon scroll with abstract pattern inside, symmetrical crest, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank ornamental scroll with abstract pattern inside, dark gothic emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
-            ("winged_skull",  "winged skull with red flames, crossed chains and a blank scroll shape with abstract pattern inside, symmetrical biker crest, no writing, no text, no letters, no characters, no glyphs, no script"),
+            # v8.1: "blank scroll / ribbon scroll" → "blank ornamental filigree cartouche"
+            # —— scroll 是横幅的近义词，会被模型识别为放字的位置；filigree cartouche
+            # 则被渲成装饰花纹/卷叶，不出字（v8 验证）。
+            ("eagle_flame",   "spread-wing eagle clutching a flaming skull, surrounded by fire and chains, blank ornamental filigree cartouche with abstract pattern inside, symmetrical vertical emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("skull_wings",   "large skull with spread eagle wings, red flames and chain borders, blank ornamental filigree cartouche with abstract pattern inside, symmetrical crest, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("raven_flame",   "black raven with outstretched wings, flaming skull below, chains and blank ornamental filigree cartouche with abstract pattern inside, dark gothic emblem, no writing, no text, no letters, no characters, no glyphs, no script"),
+            ("winged_skull",  "winged skull with red flames, crossed chains and a blank ornamental filigree cartouche with abstract pattern inside, symmetrical biker crest, no writing, no text, no letters, no characters, no glyphs, no script"),
         ],
         sim=0.72,
         comp=0.58,  # 保留垂直徽章构图，但允许元素替换
@@ -167,14 +170,18 @@ ORIGINALS_CONFIG = {
             "no fabric texture, no embroidery"
         ),
         subjects=[
-            ("butterfly_trail", "flat vector butterfly graphic, upper abstract geometric pattern band, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors, no text, no letters, no glyphs"),
-            ("word_butterfly",  "flat vector abstract geometric pattern across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors, no text, no letters, no glyphs"),
+            # v8.1: 把 "upper abstract geometric pattern band" / "across the top" 改成
+            # "decorative filigree flourish / ornamental crest" —— 「band/top」 类词会
+            # 触发模型往里填字母（v8 验证 denim_3 出 "CNST"）；ornament/filigree/crests
+            # 则被渲成装饰花纹，不出字。
+            ("butterfly_trail", "flat vector butterfly graphic, decorative filigree flourish above, central large butterfly, smaller butterflies trailing below along a dotted path, light blue and white solid colors, no text, no letters, no glyphs"),
+            ("word_butterfly",  "flat vector ornamental filigree flourish across the top, large butterfly graphic in the center, small star and heart accents, light blue and white solid colors, no text, no letters, no glyphs"),
             ("shape_collage",   "flat vector collage of overlapping geometric shapes in denim blue, central butterfly graphic, star and heart accents, clean edges, no text, no letters, no glyphs"),
-            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, upper abstract geometric ornament, light blue and white solid colors, no text, no letters, no glyphs"),
+            ("floral_butterfly","flat vector butterfly surrounded by small flowers and dotted trail, decorative floral filigree above, light blue and white solid colors, no text, no letters, no glyphs"),
         ],
         sim=0.42,   # 极低材质锁，避免把真实牛仔布纹理带进来；构图交给 ControlNet
-        comp=0.60,  # 保留上方文字+中央主图+下方小元素 的构图
-        cn=0.55,
+        comp=0.60,  # 保留上方装饰+中央主图+下方小元素 的构图
+        cn=0.40,    # v8.1: 0.55→0.40 —— 原图带真字 "UPCY"，高 CN 让模型想复现文字
     ),
 
     # camo_4：迷彩+棕榈树全幅图案 → 保留「迷彩底+棕榈树剪影」构图
@@ -332,12 +339,12 @@ def run_one(client, orig_label, sub_label, sub_prompt, seed_name, cfg, out_dir, 
     if cfg["type"] in ("gothic_biker_crest", "denim_patchwork",
                        "gothic_skull_emblem", "heavy_metal_badge"):
         params["lora_name_2"] = VECTOR_LORA
-        params["lora_strength_2"] = 0.22  # VECTOR 强度再降（0.30→0.22），减少 vector/engraving 风格诱发伪字母
+        params["lora_strength_2"] = 0.15  # v8.1: 0.22→0.15 —— vector/engraving 风格本身诱发伪字母，再降
 
     g = build_mode1(seed_name, params, f"batch_{orig_label}_{sub_label}")
     t0 = time.time()
     try:
-        res = client.run(g, timeout=360)
+        res = client.run(g, timeout=600)
         data = next(iter(res.values()))[0]
         out_path = os.path.join(out_dir, f"{orig_label}_{sub_label}.jpg")
         with open(out_path, "wb") as f:
