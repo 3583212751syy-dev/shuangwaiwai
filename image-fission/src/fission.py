@@ -7,12 +7,11 @@
 
 参数：
   --input / -i     必需：原图路径
-  --similarity / -s  画面参考强度 0-1（IP-Adapter weight）
-                    0.0  = 完全自由发挥，跟原图无关
-                    0.3  = 只传色调/构图基因
-                    0.55 = 平衡（默认，传承画风、换具体内容）
-                    0.7  = 强传承，连具体形态都像
-                    1.0  = 几乎复刻
+  --similarity / -s  画面参考强度 0-1（旧单 IPAdapter linear 模式，仅显式传此参时启用；
+                    启用后关闭下方颜色/构图双锁，回退到单一权重）
+  --color-strength   颜色/材质锁强度 0-1（IP-Adapter style transfer，默认 0.6；锁原图配色）
+  --composition-strength  构图锁强度 0-1（IP-Adapter composition，默认 0.55；锁原图布局）
+                    默认「颜色锁 + 构图锁」同时开 → 裂变图同色同构、异内容。
   --prompts / -p   新内容主题（不传则用默认花卉变体）
   --count / -n     生成张数（默认 4，受 prompts 数量限制）
   --out / -o       输出目录（默认 ./jobs/fission_<时间戳>）
@@ -69,8 +68,8 @@ NEG = ("color, colorful, photorealistic, photo, photography, "
 def main():
     p = argparse.ArgumentParser(description="图裂变 - 风格裂变 CLI")
     p.add_argument("--input", "-i", required=True, help="原图路径")
-    p.add_argument("--similarity", "-s", type=float, default=0.55,
-                   help="画面参考强度 0-1（默认 0.55）")
+    p.add_argument("--similarity", "-s", type=float, default=None,
+                   help="画面参考强度 0-1（旧单 linear 模式；显式传此参会关闭颜色/构图双锁）")
     p.add_argument("--prompts", "-p", nargs="*", default=None,
                    help="新内容主题字符串列表（不传则用默认 8 个花卉变体）")
     p.add_argument("--count", "-n", type=int, default=4,
@@ -83,15 +82,19 @@ def main():
     p.add_argument("--height", type=int, default=1344)
     p.add_argument("--lora", default=None, help="LoRA 文件名（ComfyUI/models/loras/ 下）")
     p.add_argument("--lora-strength", type=float, default=0.85, help="LoRA 强度 0-1（默认 0.85）")
-    # IPAdapter 三个独立维度（用户原话：颜色、构图、内容）
+    # IPAdapter 三通道：颜色锁 + 构图锁（默认同时开） + 内容(prompt)
+    p.add_argument("--color-strength", type=float, default=0.6,
+                   help="颜色/材质锁强度（IP-Adapter style transfer，默认 0.6；0=关闭）")
     p.add_argument("--style-strength", type=float, default=None,
-                   help="颜色/风格参考强度（内部映射到 IPAdapter weight_type=style transfer + weight）")
-    p.add_argument("--composition-strength", type=float, default=None,
-                   help="构图参考强度（内部映射到 IPAdapter weight_type=composition + weight）")
-    p.add_argument("--ipadapter-noise", type=float, default=0.0,
-                   help="IPAdapter noise 0-0.5（防止完全照搬，推荐 0.05-0.15）")
-    p.add_argument("--ipadapter-end", type=float, default=1.0,
-                   help="IPAdapter 结束步 0-1（默认 1.0 全程，0.7 = 前 70% 影响）")
+                   help="(兼容别名) 等同 --color-strength")
+    p.add_argument("--composition-strength", type=float, default=0.55,
+                   help="构图锁强度（IP-Adapter composition，默认 0.55；0=关闭）")
+    p.add_argument("--ipadapter-noise", type=float, default=0.05,
+                   help="颜色锁噪点 0-0.5（防完全照搬、给内容留空间，推荐 0.05-0.15）")
+    p.add_argument("--ipadapter-end", type=float, default=0.85,
+                   help="IPAdapter 结束步 0-1（默认 0.85，末段放开让内容自由）")
+    p.add_argument("--controlnet-strength", type=float, default=0.0,
+                   help="可选 Canny 硬构图锁 0-1（默认 0 关闭；>0 时叠加，强锁原图边缘布局）")
     args = p.parse_args()
 
     # 校验
@@ -128,7 +131,7 @@ def main():
         out_dir = os.path.join(JOBS_BASE, f"fission_{base}_s{args.similarity:.2f}_{ts}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"[out]  {out_dir}")
-    print(f"[cfg] similarity={args.similarity}  count={len(prompts)}  steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}")
+    print(f"[cfg] color={color_w}  comp={comp_w}  count={len(prompts)}  steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}")
 
     # 跑
     base_params = {
@@ -147,24 +150,35 @@ def main():
         base_params["lora_name"] = args.lora
         base_params["lora_strength"] = args.lora_strength
         print(f"[lora] {args.lora} strength={args.lora_strength}")
-    # IPAdapter 三个独立维度 → 映射到 weight_type + weight
-    # 用户原话："参考颜色、构图、内容都要可选择强度"
+    # ---- 三通道参考控制：颜色锁 + 构图锁（默认同时开）----
+    # 用户要求：裂变图「有区别」但「保留原图颜色与构图参考」。
+    # 默认 color_strength=0.6(style transfer 锁色) + composition_strength=0.55(锁构图)，
+    # 内容由每个 prompt 变化 → 同色同构、异内容。
+    # 仅当用户显式传 --similarity 时，回退到旧单 IPAdapter linear 模式（关闭双锁）。
+    color_w = args.color_strength
     if args.style_strength is not None:
-        base_params["ipadapter_weight_type"] = "style transfer"
-        base_params["similarity"] = args.style_strength  # 用 style_strength 覆盖主 weight
-        base_params["ipadapter_noise"] = args.ipadapter_noise
-        base_params["ipadapter_end"] = args.ipadapter_end
-        print(f"[ipa] STYLE TRANSFER weight={args.style_strength} noise={args.ipadapter_noise} end={args.ipadapter_end}")
-    elif args.composition_strength is not None:
-        base_params["ipadapter_weight_type"] = "composition"
-        base_params["similarity"] = args.composition_strength
-        base_params["ipadapter_noise"] = args.ipadapter_noise
-        base_params["ipadapter_end"] = args.ipadapter_end
-        print(f"[ipa] COMPOSITION weight={args.composition_strength} noise={args.ipadapter_noise} end={args.ipadapter_end}")
+        color_w = args.style_strength
+    comp_w = args.composition_strength
+    if args.similarity is not None:
+        # 旧模式：单 IPAdapter linear（兼容旧用法），关闭双锁
+        base_params["similarity"] = args.similarity
+        color_w = 0.0
+        comp_w = 0.0
+        print(f"[ipa] LINEAR(similarity) weight={args.similarity} "
+              f"noise={args.ipadapter_noise} end={args.ipadapter_end}")
     else:
+        base_params["color_strength"] = color_w
+        base_params["composition_strength"] = comp_w
         base_params["ipadapter_noise"] = args.ipadapter_noise
         base_params["ipadapter_end"] = args.ipadapter_end
-        print(f"[ipa] LINEAR weight={args.similarity} noise={args.ipadapter_noise} end={args.ipadapter_end}")
+        print(f"[ipa] DUAL-LOCK  color(style transfer)={color_w}  "
+              f"composition={comp_w}  noise={args.ipadapter_noise}  end={args.ipadapter_end}")
+    # 可选 Canny 硬构图锁（进一步钉死原图边缘布局）
+    if args.controlnet_strength and args.controlnet_strength > 0:
+        base_params["controlnet_name"] = "controlnet-canny-sdxl-1.0.fp16.safetensors"
+        base_params["controlnet_strength"] = args.controlnet_strength
+        base_params["controlnet_end"] = 0.9
+        print(f"[cn] Canny hard-comp lock strength={args.controlnet_strength}")
     client = ComfyClient()
     results = []
     for i, (name, prompt) in enumerate(prompts, 1):
@@ -202,7 +216,8 @@ def main():
 <style>
 body{{font-family:system-ui;background:#fafafa;padding:24px;margin:0;}}
 h1{{margin:0 0 8px;font-size:22px;}}
-.sub{{color:#666;margin-bottom:24px;}}
+.sub{{color:#666;margin-bottom:16px;}}
+.lock{{background:#0a7;color:#fff;padding:6px 12px;border-radius:4px;display:inline-block;font-size:13px;font-weight:600;margin-bottom:20px;}}
 .seed{{background:#fff;padding:16px;border-radius:8px;margin-bottom:24px;text-align:center;}}
 .seed img{{max-width:300px;border:1px solid #ddd;}}
 .grid{{display:grid;grid-template-columns:repeat({min(4, len(results))},1fr);gap:16px;}}
@@ -211,9 +226,10 @@ h1{{margin:0 0 8px;font-size:22px;}}
 .cap{{padding:8px;font-size:13px;color:#333;text-align:center;font-weight:500;}}
 .params{{background:#222;color:#fff;padding:8px 12px;border-radius:4px;display:inline-block;font-family:monospace;font-size:12px;}}
 </style></head><body>
-<h1>图裂变 · 风格裂变</h1>
-<div class="sub">原图 → {len(results)} 张同画风不同内容 · 可作 T恤印花/手机壳/包装纹样</div>
-<p><span class="params">similarity={args.similarity}  steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}</span></p>
+<h1>图裂变 · 同色同构裂变</h1>
+<div class="sub">原图 → {len(results)} 张「同色同构·异内容」裂变图（颜色/构图锁定原图，内容由 prompt 变化）</div>
+<p><span class="lock">颜色锁 {color_w} · 构图锁 {comp_w}</span></p>
+<p><span class="params">steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}  noise={args.ipadapter_noise}  end={args.ipadapter_end}</span></p>
 <div class="seed"><img src="data:image/jpeg;base64,{seed_b64}"><div class="cap">原图（参考）</div></div>
 <div class="grid">{cards}</div>
 </body></html>"""

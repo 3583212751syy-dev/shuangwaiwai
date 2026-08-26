@@ -221,24 +221,45 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     g.update(_ipadapter_loader_node(4, last_model))
     g.update(_load_image_node(5, original_filename))
 
-    # IPAdapter（颜色/材质锁）
-    g.update(_ipadapter_apply(6, last_model, 4, 5, w,
-                             weight_type=params.get("ipadapter_weight_type", "linear"),
-                             start_at=params.get("ipadapter_start", 0.0),
-                             end_at=params.get("ipadapter_end", 1.0),
-                             noise=params.get("ipadapter_noise", 0.0),
-                             combine_embeds=params.get("ipadapter_combine", "average")))
+    # ---- 三通道参考控制：颜色 + 构图 + 内容 ----
+    # 用户需求：裂变图「有区别」（内容由 prompt/seed 变化），但「保留原图颜色与构图参考」。
+    # 做法：同一张原图挂两个 IPAdapter——
+    #   · 颜色锁 node6  weight_type="style transfer" → 锁住配色/材质/笔触
+    #   · 构图锁 node60 weight_type="composition"    → 锁住布局/结构/位置
+    # 两者叠加后，内容(prompt)自由变化 → 得到「同色同构、异内容」的裂变图。
+    # color_strength / composition_strength 都为 0 时，回退到单 IPAdapter linear
+    # （兼容只传 similarity 的旧 demo：demo_pattern_fission / demo_fission）。
+    color_w = float(params.get("color_strength", 0.0) or 0.0)
+    comp_w = float(params.get("composition_strength", 0.0) or 0.0)
+    ipa_noise = params.get("ipadapter_noise", 0.05)
+    ipa_end = params.get("ipadapter_end", 0.85)
 
-    # 双 IPAdapter：颜色锁（style transfer, 节点6） + 构图锁（composition, 节点60）
-    # 两者独立可控，对应 颜色/构图 滑杆；内容由 prompt 控制。无需额外显存。
-    model_pre_cn = 6
-    comp = float(params.get("composition_strength", 0.0) or 0.0)
-    if comp > 0:
-        g.update(_ipadapter_apply(60, 6, 4, 5, comp,
+    model_after_ip = last_model
+    if color_w > 0:
+        g.update(_ipadapter_apply(6, last_model, 4, 5, color_w,
+                                 weight_type="style transfer",
+                                 start_at=params.get("ipadapter_start", 0.0),
+                                 end_at=ipa_end,
+                                 noise=ipa_noise,
+                                 combine_embeds="average"))
+        model_after_ip = 6
+    if comp_w > 0:
+        # 构图锁叠加在「颜色锁之后的模型」上，end 取 max(颜色锁, 0.9) 保证布局收尾稳定
+        g.update(_ipadapter_apply(60, model_after_ip, 4, 5, comp_w,
                                  weight_type="composition",
-                                 start_at=0.0, end_at=0.9,
+                                 start_at=0.0, end_at=max(ipa_end, 0.9),
                                  noise=0.0, combine_embeds="average"))
-        model_pre_cn = 60
+        model_after_ip = 60
+    if color_w <= 0 and comp_w <= 0:
+        # 旧路径：单 IPAdapter linear（仅传 similarity 的 demo 用）
+        g.update(_ipadapter_apply(6, last_model, 4, 5, w,
+                                 weight_type="linear",
+                                 start_at=0.0, end_at=1.0,
+                                 noise=params.get("ipadapter_noise", 0.0),
+                                 combine_embeds="average"))
+        model_after_ip = 6
+
+    model_pre_cn = model_after_ip
 
     # ---- CLIP 编码（供 prompt 使用）----
     g.update(_clip_nodes(7, 8, last_clip, style, neg))
