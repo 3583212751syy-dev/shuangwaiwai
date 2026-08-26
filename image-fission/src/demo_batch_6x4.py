@@ -135,24 +135,33 @@ def make_config(
 # cn   = ControlNet Canny 强度（只在 USE_CONTROLNET=True 时生效）
 ORIGINALS_CONFIG = {
     # illust_1：黑白高对比装饰花卉/孔雀卷草 → 保留「竖向不对称装饰卷草」构图
+    # v8.5 D1 重做：用户 14:46 反馈"跟原图没什么关系 / 意义不明的设计"。
+    # 根因：IPAdapter 0.78 不够锁主体 + prompt 写"ornamental scroll"抽象，
+    # 模型只能渲通用花纹，没复现参考图具体元素。修法：
+    # 1) style_words 加细元素：peacock feather eye-spots / curling vine loops /
+    #    poppies and daisies and forget-me-nots / lily of the valley。
+    # 2) subjects 加细具体可视元素，让 prompt 真正驱动主体。
+    # 3) sim 0.78→0.85（更锁参考图主体轮廓），cn 0.55→0.62（更锁构图轮廓）。
     "illust_1": make_config(
         type_label="bw_ornamental_scroll",
         style_words=(
-            "black and white ornamental engraving, elegant botanical scrollwork, "
-            "high contrast floral illustration, Art Nouveau inspired decorative pattern, "
-            "peacock and flower silhouette, vertical asymmetrical composition"
+            "black and white ornamental engraving with peacock feather eye-spots, "
+            "Art Nouveau curling vine loops, poppies daisies forget-me-nots and "
+            "lily of the valley botanical illustrations, high contrast floral "
+            "linework, vertical asymmetrical decorative composition, leaves "
+            "tendrils and winding botanical scrolls"
         ),
         subjects=[
-            ("peacock_floral",   "ornate peacock with flowing tail feathers intertwined with blooming flowers and curling vines, high contrast black and white decorative scroll"),
-            ("hummingbird_vines", "hummingbird hovering among blossoming vines and swirling floral scrolls, monochrome ornamental illustration"),
-            ("floral_cascade",    "cascading bouquet of flowers, leaves and curls forming an elegant vertical scroll, high contrast decorative botanical pattern"),
-            ("butterfly_garden",  "ornate butterfly surrounded by daisies, leaves and curling tendrils, vertical asymmetrical botanical decorative motif"),
+            ("peacock_floral",    "ornate peacock with flowing tail feathers showing peacock feather eye-spots, intertwined with blooming poppies and daisies and curling vine loops, high contrast black and white decorative botanical scroll with tendrils"),
+            ("hummingbird_vines", "hummingbird hovering among blossoming vine loops and swirling floral scrolls with poppies and forget-me-nots, monochrome ornamental botanical illustration, leaves tendrils winding"),
+            ("floral_cascade",    "cascading bouquet of poppies daisies lily-of-the-valley and forget-me-nots, leaves and curls forming an elegant vertical scroll with Art Nouveau loops, high contrast decorative botanical pattern with tendrils"),
+            ("butterfly_garden",  "ornate butterfly surrounded by daisies poppies forget-me-nots and leaves with curling tendril loops, vertical asymmetrical botanical decorative motif"),
         ],
         extra_lora=VECTOR_LORA,
         extra_lora_strength=0.35,
-        sim=0.78,   # 保留黑白装饰风格
+        sim=0.85,   # v8.5: 0.78→0.85 更锁参考图主体轮廓
         comp=0.72,  # 保留竖向卷草构图
-        cn=0.55,
+        cn=0.62,    # v8.5: 0.55→0.62 更锁构图轮廓
     ),
 
     # eagle_2：鹰+火焰+骷髅+锁链+横幅徽章 → 元素在「哥特机车徽章」语汇内裂变
