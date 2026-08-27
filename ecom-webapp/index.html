@@ -82,6 +82,8 @@ details li{margin-bottom:6px;}
   <p>上传产品图 / 1688采购图 / 平台售卖图 → 选择平台与物流 → 自动生成专业选品分析报表（.xlsx 可下载）</p>
 </header>
 
+<div id="error_box" style="display:none; background:var(--red-bg); border:2px solid var(--red); border-radius:8px; padding:14px 18px; margin-bottom:16px; color:var(--red); font-size:14px; font-weight:600;"></div>
+
 <!-- 步骤 1：上传图片 -->
 <div class="card">
   <h2><span class="step-tag">STEP 1</span>上传产品图片（三张图将并排对照分析）</h2>
@@ -279,6 +281,14 @@ function unitCost(purchase,intl,p){
 }
 function profit(price,ad,purchase,p,ship){let rev=toCNY(price,p);let fee=rev*(p.com+p.trans+p.pay+ad);return rev-fee-unitCost(purchase,ship,p);}
 function rate(price,ad,purchase,p,ship){let rev=toCNY(price,p);return rev===0?0:profit(price,ad,purchase,p,ship)/rev;}
+/* ============ 错误提示 ============ */
+function showError(msg){
+  const eb=document.getElementById('error_box');
+  eb.innerHTML='⚠️ '+msg+'<button onclick="document.getElementById(\'error_box\').style.display=\'none\'" style="float:right;background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;line-height:1;">×</button>';
+  eb.style.display='block';
+  eb.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function clearError(){document.getElementById('error_box').style.display='none';}
 /* ============ 图片预览 ============ */
 let imgs={product:null,purchase:null,platform:null};
 function preview(inp,id){
@@ -303,21 +313,27 @@ function pickComp(name){
 /* ============ 生成报表 ============ */
 let last={};
 function generate(){
+  const btn=document.querySelector('button.btn-primary');
+  const orig=btn.textContent;
+  btn.disabled=true; btn.textContent='⏳ 处理中…';
+  clearError();
+  document.getElementById('result').style.display='none';
   const name=document.getElementById('product_name').value.trim();
   const platKey=document.getElementById('platform').value;
   const logiKey=document.getElementById('logistics').value;
-  const purchase=parseFloat(document.getElementById('purchase').value)||0;
-  const bench=parseFloat(document.getElementById('benchmark').value)||0;
+  const purchase=parseFloat(document.getElementById('purchase').value);
+  const bench=parseFloat(document.getElementById('benchmark').value);
   const ads=[...document.querySelectorAll('.ad:checked')].map(x=>parseInt(x.value)/100);
   const disc=document.getElementById('discount').value.split(/[,，]/).map(s=>parseFloat(s)/100).filter(v=>!isNaN(v));
   const plat=PLATFORMS[platKey], logi=LOGISTICS[logiKey];
   const ship=logiKey==='air'?logi.intl:logi.intl;
   const airShip=logi.air||null;
-  if(!name){alert('请填写产品名称（或先上传产品图）');return;}
-  if(!bench){alert('请填写基准售价');return;}
-  if(ads.length===0){alert('请至少勾选一个广告费率');return;}
+  // 校验
+  if(!name){showError('请填写「产品名称」（手动输入或先上传产品图自动填充）');btn.disabled=false;btn.textContent=orig;return;}
+  if(!bench||bench<=0){showError('请填写「基准售价」（截图里的原价，如 109000）');btn.disabled=false;btn.textContent=orig;return;}
+  if(!purchase||purchase<=0){showError('请填写「采购价」（¥/件，如 4.00）');btn.disabled=false;btn.textContent=orig;return;}
+  if(ads.length===0){showError('请至少勾选一个「广告费率」');btn.disabled=false;btn.textContent=orig;return;}
   document.getElementById('loading').style.display='block';
-  document.getElementById('result').style.display='none';
   setTimeout(()=>{
     try{
       /* --- 三重检查 --- */
@@ -325,7 +341,7 @@ function generate(){
       const certs=CERT_RULES.filter(r=>r.p.test(name)).map(r=>r.name);
       checks.push({n:'资质检查',ok:certs.length===0,d:certs.length===0?'✅ 无强制资质门槛':'❌ 需强制资质：'+certs.join('、')});
       const dup=checkDup(name,platKey);
-      checks.push({n:'记忆库去重',ok:!dup,d:dup?'❌ 重复使用：该产品在此平台已生成过报表':'✅ 新项目，无重复记录'});
+      checks.push({n:'记忆库去重',ok:!dup,d:dup?'❌ 重复使用：该产品在此平台已生成过报表（清除浏览器 localStorage 可重置）':'✅ 新项目，无重复记录'});
       const comp=pickComp(name);
       checks.push({n:'自动搜索',ok:true,d:'✅ 内置价格库匹配（1688 '+comp.comp1688.length+' 款 / 平台 '+comp.compPlat.length+' 款）'});
       const flash=Math.round(bench*0.5);
@@ -338,7 +354,7 @@ function generate(){
       renderChecks(checks);
       if(blocked.length>0){
         document.getElementById('block_reason').style.display='block';
-        document.getElementById('block_reason').innerHTML='⛔ <b>停止生成报表：</b>'+blocked.map(c=>c.d).join('<br>')+'<br><br><b>建议：</b>'+(certs.length?'先完成资质认证或更换产品；':'')+(dup?'勾选/清除记忆库或换平台；':'')+(mainP<=0?'谈判采购价 / 改物流 / 提高售价或放弃该产品。':'');
+        document.getElementById('block_reason').innerHTML='⛔ <b>停止生成报表：</b>'+blocked.map(c=>c.d).join('<br>')+'<br><br><b>建议：</b>'+(certs.length?'先完成资质认证或更换产品；':'')+(dup?'清除浏览器 localStorage 后重试（控制台 F12 → Application → Local Storage）；':'')+(mainP<=0?'谈判采购价 / 改物流 / 提高售价或放弃该产品。':'');
         document.getElementById('btn_download').disabled=true;
       }else{
         document.getElementById('block_reason').style.display='none';
@@ -348,7 +364,12 @@ function generate(){
       }
       document.getElementById('loading').style.display='none';
       document.getElementById('result').style.display='block';
-    }catch(e){document.getElementById('loading').style.display='none';alert('生成出错：'+e.message);}
+      btn.disabled=false; btn.textContent=orig;
+    }catch(e){
+      document.getElementById('loading').style.display='none';
+      showError('生成出错：'+(e.message||e));
+      btn.disabled=false; btn.textContent=orig;
+    }
   },50);
 }
 function renderChecks(checks){
