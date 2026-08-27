@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>电商产品图片分析报表 · 在线生成器 v2.0</title>
+<title>电商产品图片分析报表 · 在线生成器 v2.2</title>
 <script src="xlsx.full.min.js"></script>
 <style>
 :root{
@@ -16,6 +16,7 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:#F4F6F9;
 header{background:linear-gradient(135deg,#1F4E79,#2E75B6); color:#fff; border-radius:12px; padding:22px 28px; margin-bottom:18px;}
 header h1{font-size:22px; font-weight:700;}
 header p{font-size:13px; opacity:.92; margin-top:4px;}
+.notice{background:#FFF8E1; border:1px solid #F2C94C; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:13px; color:#7a5c00;}
 .card{background:#fff; border:1px solid #E3E8EF; border-radius:10px; padding:20px 22px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .card h2{font-size:16px; color:var(--primary); margin-bottom:14px; border-left:4px solid var(--primary); padding-left:10px;}
 .step-tag{display:inline-block; background:var(--primary); color:#fff; border-radius:20px; font-size:12px; padding:2px 10px; margin-right:8px; vertical-align:2px;}
@@ -23,23 +24,13 @@ header p{font-size:13px; opacity:.92; margin-top:4px;}
 .grid-3{grid-template-columns:repeat(3,1fr);}
 .grid-2{grid-template-columns:repeat(2,1fr);}
 @media(max-width:720px){.grid-3,.grid-2{grid-template-columns:1fr;}}
-.upload-box{border:2px dashed #B7C6D8; border-radius:10px; padding:14px; text-align:center; cursor:pointer; transition:.2s; background:#FBFCFE; min-height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-.upload-box:hover{border-color:var(--primary); background:#F0F6FD;}
-.upload-box img{max-width:100%; max-height:120px; border-radius:6px; margin-bottom:6px;}
-.upload-box .lb{font-size:13px; color:var(--primary); font-weight:600;}
-.upload-box .sub{font-size:11px; color:var(--gray);}
-.upload-box input{display:none;}
-label.f{display:block; font-size:13px; color:#333; margin-bottom:6px; font-weight:600;}
-input[type=text],input[type=number],select{width:100%; padding:9px 12px; border:1px solid #CBD5E1; border-radius:8px; font-size:14px; background:#fff;}
-input:focus,select:focus{outline:2px solid #2E75B6; border-color:#2E75B6;}
-.chips{display:flex; gap:10px; flex-wrap:wrap;}
-.chip{display:flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #D8E0EA; padding:6px 12px; border-radius:20px; font-size:13px; cursor:pointer;}
-.chip input{accent-color:var(--primary);}
-.btn{display:inline-block; padding:12px 28px; border:none; border-radius:8px; font-size:15px; font-weight:700; cursor:pointer; transition:.15s;}
+.btn{display:inline-block; padding:10px 22px; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; transition:.15s;}
 .btn-primary{background:linear-gradient(135deg,#1F4E79,#2E75B6); color:#fff;}
 .btn-primary:hover{filter:brightness(1.08);}
 .btn-green{background:#1E7B34; color:#fff;}
 .btn-green:hover{filter:brightness(1.08);}
+.btn-ghost{background:#fff; color:var(--primary); border:1px solid var(--primary);}
+.btn-ghost:hover{background:var(--primary-light);}
 .btn:disabled{opacity:.5; cursor:not-allowed;}
 .badge{display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; margin:2px 4px 2px 0;}
 .badge-ok{background:var(--green-bg); color:var(--green);}
@@ -53,11 +44,6 @@ tr:nth-child(even) td{background:#FAFBFD;}
 .neg{color:var(--red); font-weight:700;}
 .tooltip{font-size:12px; color:var(--gray);}
 .section-title{font-size:14px; font-weight:700; color:var(--primary); margin:16px 0 6px;}
-.img-compare{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
-@media(max-width:720px){.img-compare{grid-template-columns:1fr;}}
-.img-compare .box{border:1px solid #E1E6EC; border-radius:8px; overflow:hidden; text-align:center; background:#FBFCFE;}
-.img-compare .box .cap{background:#F1F5F9; font-size:12px; font-weight:600; color:#333; padding:6px;}
-.img-compare .box img{width:100%; height:150px; object-fit:contain; background:#fff;}
 #result{display:none;}
 #loading{display:none; text-align:center; padding:30px; color:var(--primary); font-size:15px;}
 footer{margin-top:14px; text-align:center; color:#8a94a6; font-size:12px;}
@@ -65,6 +51,27 @@ details{background:#F8FAFC; border:1px solid #E3E8EF; border-radius:8px; padding
 summary{cursor:pointer; font-weight:600; color:var(--primary); font-size:14px;}
 details ol{margin:8px 0 0 18px; font-size:13px; color:#333;}
 details li{margin-bottom:6px;}
+/* 多图上传 */
+.upload-area{border:2px dashed #B7C6D8; border-radius:10px; padding:18px; text-align:center; cursor:pointer; background:#FBFCFE; transition:.2s; margin-bottom:12px;}
+.upload-area:hover{border-color:var(--primary); background:#F0F6FD;}
+.upload-area .lb{font-size:15px; color:var(--primary); font-weight:700;}
+.upload-area .sub{font-size:12px; color:var(--gray); margin-top:4px;}
+.img-list{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-top:10px;}
+.img-item{border:1px solid #E1E6EC; border-radius:8px; background:#FBFCFE; overflow:hidden;}
+.img-item .img-wrap{position:relative; background:#fff; height:140px; display:flex; align-items:center; justify-content:center;}
+.img-item img{max-width:100%; max-height:100%;}
+.img-item .ctrls{padding:8px 10px; background:#F8FAFC; border-top:1px solid #E1E6EC;}
+.img-item .ctrls select, .img-item .ctrls button{font-size:12px; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1;}
+.img-item .ctrls select{flex:1; min-width:0;}
+.img-item .ctrls .row{display:flex; gap:6px; margin-top:6px; align-items:center;}
+.img-item .ctrls .row .name{font-size:11px; color:var(--gray); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.img-item .ctrls .row .del{background:var(--red); color:#fff; border:none; padding:4px 10px; border-radius:6px; cursor:pointer;}
+label.f{display:block; font-size:13px; color:#333; margin-bottom:6px; font-weight:600;}
+input[type=text],input[type=number],select{width:100%; padding:9px 12px; border:1px solid #CBD5E1; border-radius:8px; font-size:14px; background:#fff;}
+input:focus,select:focus{outline:2px solid #2E75B6; border-color:#2E75B6;}
+.chips{display:flex; gap:10px; flex-wrap:wrap;}
+.chip{display:flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #D8E0EA; padding:6px 12px; border-radius:20px; font-size:13px; cursor:pointer;}
+.chip input{accent-color:var(--primary);}
 .flow-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px;}
 @media(max-width:720px){.flow-grid{grid-template-columns:1fr 1fr;}}
 .flow-step{background:#fff; border:1px solid #E3E8EF; border-radius:8px; padding:12px; text-align:center;}
@@ -73,45 +80,44 @@ details li{margin-bottom:6px;}
 .flow-step .d{font-size:11px; color:var(--gray); margin-top:4px;}
 .rule-list{font-size:13px; color:#333; margin:6px 0 0 18px;}
 .rule-list li{margin-bottom:4px;}
+#img_compare{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px;}
+#img_compare .box{border:1px solid #E1E6EC; border-radius:8px; overflow:hidden; text-align:center; background:#FBFCFE;}
+#img_compare .box .cap{background:#F1F5F9; font-size:12px; font-weight:600; color:#333; padding:6px;}
+#img_compare .box img{width:100%; height:140px; object-fit:contain; background:#fff;}
+.checkbox-default{margin-left:8px; font-size:11px; color:var(--gray);}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-  <h1>🛒 电商产品图片分析报表 · 在线生成器</h1>
-  <p>上传产品图 / 1688采购图 / 平台售卖图 → 选择平台与物流 → 自动生成专业选品分析报表（.xlsx 可下载）</p>
+  <h1>🛒 电商产品图片分析报表 · 在线生成器 v2.2</h1>
+  <p>上传多张产品/1688/平台图片 → 选平台与物流 → 自动出报表（.xlsx 可下载）</p>
 </header>
+
+<div class="notice">
+  ℹ️ <b>浏览器端 AI 限制：</b>当前网页在您浏览器内运行，无法调用 AI 读图或实时搜 1688。已做妥协：① 采购价空时按内置价格库自动估算 ② 平台/物流/佣金/广告费率/汇率/资质规则全部内置（自动接入）。如需 AI 自动读图分类+实时搜 1688 采购价，请把图片发我（切多模态模型后即可）。
+</div>
 
 <div id="error_box" style="display:none; background:var(--red-bg); border:2px solid var(--red); border-radius:8px; padding:14px 18px; margin-bottom:16px; color:var(--red); font-size:14px; font-weight:600;"></div>
 
-<!-- 步骤 1：上传图片 -->
+<!-- 步骤 1：上传图片（多图） -->
 <div class="card">
-  <h2><span class="step-tag">STEP 1</span>上传产品图片（三张图将并排对照分析）</h2>
-  <div class="grid grid-3">
-    <div class="upload-box" id="box_product" onclick="document.getElementById('file_product').click()">
-      <input type="file" id="file_product" accept="image/*" onchange="preview(this,'prev_product')">
-      <img id="prev_product" style="display:none" alt=""><span id="ph_product" class="lb">📷 产品图</span>
-      <div class="sub">点击上传产品主图</div>
-    </div>
-    <div class="upload-box" id="box_purchase" onclick="document.getElementById('file_purchase').click()">
-      <input type="file" id="file_purchase" accept="image/*" onchange="preview(this,'prev_purchase')">
-      <img id="prev_purchase" style="display:none" alt=""><span id="ph_purchase" class="lb">🏭 1688采购图</span>
-      <div class="sub">点击上传 1688 采购页截图</div>
-    </div>
-    <div class="upload-box" id="box_platform" onclick="document.getElementById('file_platform').click()">
-      <input type="file" id="file_platform" accept="image/*" onchange="preview(this,'prev_platform')">
-      <img id="prev_platform" style="display:none" alt=""><span id="ph_platform" class="lb">🛍️ 平台售卖图</span>
-      <div class="sub">点击上传目标平台售卖页截图</div>
-    </div>
+  <h2><span class="step-tag">STEP 1</span>上传图片（一次可选多张；不限于三张）</h2>
+  <div class="upload-area" onclick="document.getElementById('file_multi').click()">
+    <input type="file" id="file_multi" accept="image/*" multiple onchange="addImages(this.files)" style="display:none;">
+    <div class="lb">📷 点击或拖拽上传多张图片</div>
+    <div class="sub">支持产品图、1688采购图、平台售卖图、自定义图等任意张数</div>
   </div>
+  <div id="img_list" class="img-list"></div>
+  <div class="tooltip" style="margin-top:6px;">每张图请在标签下拉里选「产品图 / 1688采购图 / 平台售卖图 / 其他」；最常用的：1张产品图 + 1张1688图 + 1张平台图。</div>
 </div>
 
-<!-- 步骤 2：参数 -->
+<!-- 步骤 2：参数（精简：用户只选平台/物流） -->
 <div class="card">
-  <h2><span class="step-tag">STEP 2</span>选择平台 / 物流 / 成本参数</h2>
+  <h2><span class="step-tag">STEP 2</span>选择平台 / 物流（其他默认全选）</h2>
   <div class="grid grid-2">
     <div>
-      <label class="f">产品名称（默认取产品图文件名，可修改）</label>
+      <label class="f">产品名称（自动取第一张产品图文件名，可改）</label>
       <input type="text" id="product_name" placeholder="如：浴室壁挂式脏衣篮HSB808">
     </div>
     <div>
@@ -129,48 +135,59 @@ details li{margin-bottom:6px;}
       <select id="logistics">
         <option value="sea">🚢 海运 LCL（20-35天 · 国际段¥3/件）</option>
         <option value="air">✈️ 空运（5-10天 · 国际段¥22/件）</option>
-        <option value="mixed" selected>🚢+✈️ 海运+空运结合（首轮海运+补货空运 · 推荐）</option>
+        <option value="mixed" selected>🚢+✈️ 海运+空运结合（首轮海运+补货空运）</option>
       </select>
     </div>
     <div>
-      <label class="f">采购价（¥ / 件）</label>
-      <input type="number" id="purchase" value="4.00" step="0.01" min="0">
-    </div>
-    <div>
-      <label class="f">基准售价（当地货币，如 Rp109000）</label>
-      <input type="number" id="benchmark" value="109000" step="1" min="0">
-    </div>
-    <div>
-      <label class="f">广告费率（可多选，每个都算利润）</label>
-      <div class="chips">
-        <label class="chip"><input type="checkbox" class="ad" value="0" checked>0%</label>
-        <label class="chip"><input type="checkbox" class="ad" value="5" checked>5%</label>
-        <label class="chip"><input type="checkbox" class="ad" value="10" checked>10%</label>
-        <label class="chip"><input type="checkbox" class="ad" value="15" checked>15%</label>
-      </div>
-    </div>
-    <div>
-      <label class="f">降价阶梯（%，逗号分隔；基准售价按此降档）</label>
-      <input type="text" id="discount" value="5,10,15,20,25">
+      <label class="f">采购价（¥/件）<span class="checkbox-default">留空时按内置价格库自动估算</span></label>
+      <input type="number" id="purchase" step="0.01" min="0" placeholder="留空 → 自动估算">
     </div>
   </div>
+  <details style="margin-top:12px;">
+    <summary>▾ 高级选项（默认全选，点开可改）</summary>
+    <div class="grid grid-2" style="margin-top:10px;">
+      <div>
+        <label class="f">基准售价（当地货币）</label>
+        <input type="number" id="benchmark" value="109000" step="1" min="0">
+      </div>
+      <div>
+        <label class="f">广告费率（默认全选 0/5/10/15%）</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" class="ad" value="0" checked>0%</label>
+          <label class="chip"><input type="checkbox" class="ad" value="5" checked>5%</label>
+          <label class="chip"><input type="checkbox" class="ad" value="10" checked>10%</label>
+          <label class="chip"><input type="checkbox" class="ad" value="15" checked>15%</label>
+        </div>
+      </div>
+      <div>
+        <label class="f">降价阶梯（%，逗号分隔）</label>
+        <input type="text" id="discount" value="5,10,15,20,25">
+      </div>
+      <div>
+        <label class="f">是否启用负利润自动停止</label>
+        <div class="chips">
+          <label class="chip"><input type="checkbox" id="stop_negative" checked>负利润 → 停止出表</label>
+          <label class="chip"><input type="checkbox" id="stop_duplicate" checked>重复产品 → 停止出表</label>
+          <label class="chip"><input type="checkbox" id="stop_cert" checked>需资质 → 停止出表</label>
+        </div>
+      </div>
+    </div>
+  </details>
   <div style="margin-top:16px; display:flex; gap:12px; align-items:center;">
     <button class="btn btn-primary" onclick="generate()">⚡ 生成专业数据报表</button>
-    <span id="gen_hint" class="tooltip">生成后自动检查：负利润 / 平台资质 / 重复产品，任一命中即停止并提示原因</span>
+    <span class="tooltip">生成后自动检查：负利润 / 平台资质 / 重复产品，任一命中即停止并提示原因</span>
   </div>
 </div>
 
-<!-- 加载中 -->
 <div id="loading">⏳ 正在计算利润矩阵与竞品数据…</div>
 
-<!-- 步骤 3：结果 -->
 <div id="result">
   <div class="card">
     <h2><span class="step-tag">STEP 3</span>报表结果 <span id="verdict_badges"></span></h2>
     <div id="block_reason" style="display:none; background:var(--red-bg); border:1px solid var(--red); border-radius:8px; padding:14px; margin-bottom:12px; font-size:14px; color:var(--red);"></div>
 
-    <div class="section-title">📷 图片对照</div>
-    <div class="img-compare" id="img_compare"></div>
+    <div class="section-title">📷 图片对照（按您标签顺序）</div>
+    <div id="img_compare"></div>
 
     <div class="section-title">💹 利润明细（降价阶梯 × 广告率）</div>
     <div style="overflow-x:auto"><table id="profit_table"></table></div>
@@ -192,48 +209,39 @@ details li{margin-bottom:6px;}
   </div>
 </div>
 
-<!-- 操作流程与技能说明 -->
 <div class="card">
-  <h2>📖 操作流程 & 技能说明（ecom-product-report v2.0）</h2>
+  <h2>📖 操作流程 & 技能说明（ecom-product-report v2.2）</h2>
   <div class="flow-grid">
-    <div class="flow-step"><div class="n">1</div><div class="t">上传图片</div><div class="d">产品图 / 1688采购图 / 平台售卖图，三图同页对照</div></div>
-    <div class="flow-step"><div class="n">2</div><div class="t">选参数</div><div class="d">平台（5种）、物流（海运/空运/混合）、采购价、基准售价、广告率</div></div>
-    <div class="flow-step"><div class="n">3</div><div class="t">自动检查</div><div class="d">资质 → 记忆库去重 → 负利润判定，任一命中立即停止并提示</div></div>
-    <div class="flow-step"><div class="n">4</div><div class="t">出报表</div><div class="d">利润矩阵 + 竞品 + 物流 + 决策建议，下载 .xlsx</div></div>
+    <div class="flow-step"><div class="n">1</div><div class="t">上传图片</div><div class="d">多张图，每张打标签：产品/采购/平台/其他</div></div>
+    <div class="flow-step"><div class="n">2</div><div class="t">选平台/物流</div><div class="d">其他选项（佣金/广告/汇率/资质规则）自动接入</div></div>
+    <div class="flow-step"><div class="n">3</div><div class="t">自动检查</div><div class="d">资质 → 记忆库去重 → 负利润，命中即停</div></div>
+    <div class="flow-step"><div class="n">4</div><div class="t">出报表</div><div class="d">利润矩阵 + 竞品 + 物流 + 决策，下载 .xlsx</div></div>
   </div>
   <details>
-    <summary>展开：三大禁用规则（负利润 / 需资质 / 重复使用）</summary>
+    <summary>展开：三大禁用规则（可勾选关闭）</summary>
     <ul class="rule-list">
       <li><b>负利润</b>：主力场景（半价档 + 常规广告率 + 所选物流）单件净利 ≤ 0 → 停止出表</li>
       <li><b>需资质</b>：产品名命中强制资质关键词（食品接触塑料 SNI 7323:2008 / 化妆品·药品 BPOM / 电子产品·儿童用品 SNI / 食品 Halal / 禁售词）→ 停止出表</li>
-      <li><b>重复使用</b>：本浏览器记忆库（localStorage）中同产品同平台已生成过 → 停止出表（可勾选跳过）</li>
+      <li><b>重复使用</b>：本浏览器记忆库（localStorage）中同产品同平台已生成过 → 停止出表</li>
     </ul>
   </details>
   <details>
     <summary>展开：完整操作步骤</summary>
     <ol>
-      <li>点击三个上传框，分别选择<b>产品主图</b>、<b>1688采购页截图</b>、<b>目标平台售卖页截图</b>（图片仅在您浏览器本地处理，不上传服务器）</li>
-      <li>确认产品名称（自动取自文件名）；选择售卖平台与物流方式；填写采购价与基准售价（截图里的原价）</li>
-      <li>勾选要计算的广告费率（可多选）；可调整降价阶梯</li>
-      <li>点击「生成专业数据报表」：系统自动执行 <b>资质核查 → 记忆库去重 → 竞品匹配 → 利润矩阵计算</b></li>
+      <li>点击上传框，<b>一次选多张图</b>（不限制张数）：产品图、1688 采购页截图、平台售卖页截图、或其他图</li>
+      <li>每张图下方标签下拉选「<b>产品图 / 1688采购图 / 平台售卖图 / 其他</b>」</li>
+      <li>确认产品名称（自动取自产品图文件名）；选择售卖平台与物流方式</li>
+      <li>采购价：手动输入或留空（留空时按内置价格库中位价自动估算）</li>
+      <li>展开「高级选项」可调整基准售价、广告率、降价阶梯、是否启用停止规则（默认全开）</li>
+      <li>点「生成专业数据报表」：系统自动执行<b>资质核查 → 记忆库去重 → 竞品匹配 → 利润矩阵计算</b></li>
       <li>如触发禁用规则：页面顶部红框显示<b>停止原因与建议</b>，不生成报表</li>
       <li>如通过：下方展示图片对照、利润矩阵、竞品全景、物流对比、决策建议</li>
-      <li>点击「下载 .xlsx」保存数据报表（Excel/WPS 可打开）</li>
-      <li>换产品时点击上传框替换图片即可；同一产品同一平台不会重复生成（记忆库拦截）</li>
+      <li>点「下载 .xlsx」保存数据报表（Excel/WPS 可打开）</li>
     </ol>
-  </details>
-  <details>
-    <summary>展开：数据说明</summary>
-    <ul class="rule-list">
-      <li>汇率：1 CNY = 2,644 IDR（2026-08-27 实时中间价）；amazon-us 按 1 USD = 7.2 CNY</li>
-      <li>费用：佣金 + 交易费 + 支付费(1%) + 广告率（按平台/勾选）</li>
-      <li>物流：海运国际段 ¥3/件（LCL USD15-25/m³）+ 印尼段 Rp8k-15k/单；空运 ¥22/件（¥15-25/kg）；包装 ¥1、集运 ¥0.5、清关仓 ¥2</li>
-      <li>竞品数据：内置价格库自动匹配（1688 价格带 ¥3.60-16.00 + 平台价格带 IDR30k-2.3M）；如需更精确可后续由 AI 搜索注入</li>
-    </ul>
   </details>
 </div>
 
-<footer>电商产品图片分析报表生成器 · ecom-product-report v2.0 · 数据仅供选品决策参考</footer>
+<footer>电商产品图片分析报表生成器 · ecom-product-report v2.2 · 数据仅供选品决策参考</footer>
 </div>
 
 <script>
@@ -261,26 +269,30 @@ const CERT_RULES = [
 ];
 const AUTO_LIB = {
   'laundry|脏衣篮|收纳篮|脏衣篓|basket|hamper': {
+    mid:4.50, mid1688:5.0,
     comp1688:[['无品牌普料壁挂脏衣篮',3.60,'塑料薄、挂钩易断'],['折叠手提脏衣篓',3.90,'尺寸偏小'],['免打孔壁挂收纳篮',4.20,'胶贴易脱落'],['大容量衣物收纳筐',4.50,'与本品同档'],['卫生间挂式脏衣篮',5.30,'同质化严重'],['可折叠脏衣篓(热销)',5.50,'价格战最烈档'],['防水牛津布脏衣篮',7.80,'贵、起订量大'],['带盖壁挂脏衣篮',10.50,'高价小众'],['加厚塑料收纳筐',12.80,'高端慢销'],['品牌定制款',16.00,'品牌溢价']],
     compPlat:[['无品牌塑料脏衣篮',45000,'红海带底部'],['入门折叠布艺款',65000,'主销带'],['大众织物款',85000,'大众段'],['带盖织物款',120000,'中高端'],['设计款多格',160000,'设计溢价'],['高级品牌锚点',2299000,'品牌锚点']],
   },
   'storage|收纳盒|整理箱|衣架|hanger': {
+    mid:3.50, mid1688:4.0,
     comp1688:[['无品牌塑料收纳盒',2.80,'料薄'],['分格收纳盒',3.50,'同质化'],['加厚收纳箱',8.90,'高端'],['品牌收纳套装',18.00,'溢价']],
     compPlat:[['无品牌收纳盒',25000,'低价'],['分格款',40000,'主销'],['品牌套装',120000,'溢价']],
   },
 };
-/* ============ 工具函数 ============ */
+const DEFAULT_LIB = {mid:5.0, mid1688:5.5, comp1688:[['同类1688款(未匹配内置库)',5.00,'请补充']], compPlat:[['同类平台款',50000,'请补充']]};
+/* ============ 工具函数（带防御） ============ */
 function hash(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return (h>>>0).toString(16);}
-function toCNY(a,p){return p.cur==='CNY'?a:a*p.fx;}
-function money(a,p){if(p.cur==='IDR')return 'Rp'+a.toLocaleString('en-US');if(p.cur==='USD')return '$'+a.toFixed(2);return a.toFixed(2);}
-function cny(a){return '¥'+a.toFixed(2);}
-function pct(a){return (a*100).toFixed(1)+'%';}
+function toCNY(a,p){a=Number(a);return p.cur==='CNY'?a:a*p.fx;}
+function num(a){const n=Number(a);return isNaN(n)?0:n;}
+function money(a,p){const n=num(a);if(p.cur==='IDR')return 'Rp'+Math.round(n).toLocaleString('en-US');if(p.cur==='USD')return '$'+n.toFixed(2);return n.toFixed(2);}
+function cny(a){return '¥'+num(a).toFixed(2);}
+function pct(a){const n=num(a);return (n*100).toFixed(1)+'%';}
 function unitCost(purchase,intl,p){
-  let local=p.cur==='IDR'?p.local*p.fx:(p.cur==='USD'?p.local*p.fx:0);
-  return purchase+0.5+intl+2.0+local+1.0;
+  const local=p.cur==='IDR'?p.local*p.fx:(p.cur==='USD'?p.local*p.fx:0);
+  return num(purchase)+0.5+intl+2.0+local+1.0;
 }
-function profit(price,ad,purchase,p,ship){let rev=toCNY(price,p);let fee=rev*(p.com+p.trans+p.pay+ad);return rev-fee-unitCost(purchase,ship,p);}
-function rate(price,ad,purchase,p,ship){let rev=toCNY(price,p);return rev===0?0:profit(price,ad,purchase,p,ship)/rev;}
+function profit(price,ad,purchase,p,ship){const rev=toCNY(price,p);const fee=rev*(p.com+p.trans+p.pay+ad);return rev-fee-unitCost(purchase,ship,p);}
+function rate(price,ad,purchase,p,ship){const rev=toCNY(price,p);return rev===0?0:profit(price,ad,purchase,p,ship)/rev;}
 /* ============ 错误提示 ============ */
 function showError(msg){
   const eb=document.getElementById('error_box');
@@ -289,26 +301,61 @@ function showError(msg){
   eb.scrollIntoView({behavior:'smooth',block:'center'});
 }
 function clearError(){document.getElementById('error_box').style.display='none';}
-/* ============ 图片预览 ============ */
-let imgs={product:null,purchase:null,platform:null};
-function preview(inp,id){
-  const f=inp.files[0]; if(!f)return;
-  const rd=new FileReader();
-  rd.onload=e=>{document.getElementById(id).src=e.target.result;document.getElementById(id).style.display='block';document.getElementById(id.replace('prev','ph')).style.display='none';};
-  rd.readAsDataURL(f);
-  if(id==='prev_product'){imgs.product=f;autoName(f.name);}
-  if(id==='prev_purchase')imgs.purchase=f;
-  if(id==='prev_platform')imgs.platform=f;
+/* ============ 多图管理 ============ */
+let images=[];  // [{id, name, type, dataUrl, file}]
+function addImages(files){
+  Array.from(files).forEach(f=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      const id='img_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+      // 自动识别类型
+      const n=f.name.toLowerCase();
+      let autoType='other';
+      if(/产品|product|主图|goods/.test(n)) autoType='product';
+      else if(/1688|采购|supply|wholesale/.test(n)) autoType='purchase';
+      else if(/shopee|lazada|tiktok|amazon|售卖|platform|listing/.test(n)) autoType='platform';
+      images.push({id,name:f.name,type:autoType,dataUrl:e.target.result,file:f});
+      renderImgList();
+      // 自动填产品名（用第一张产品图）
+      if(autoType==='product' && !document.getElementById('product_name').value){
+        document.getElementById('product_name').value=f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,80);
+      }
+    };
+    rd.readAsDataURL(f);
+  });
+  // 清空 input value，允许重复选同一文件
+  document.getElementById('file_multi').value='';
 }
-function autoName(n){const t=document.getElementById('product_name');if(!t.value){t.value=n.replace(/\.[^.]+$/,'').replace(/_+/g,' ');}}
-/* ============ 记忆库（localStorage 去重） ============ */
+function renderImgList(){
+  const list=document.getElementById('img_list');
+  if(images.length===0){list.innerHTML='<div class="tooltip" style="grid-column:1/-1;text-align:center;padding:20px;">未上传图片</div>';return;}
+  list.innerHTML=images.map((im,i)=>`
+    <div class="img-item">
+      <div class="img-wrap"><img src="${im.dataUrl}" alt="${im.name}"></div>
+      <div class="ctrls">
+        <select onchange="images[${i}].type=this.value">
+          <option value="product" ${im.type==='product'?'selected':''}>📦 产品图</option>
+          <option value="purchase" ${im.type==='purchase'?'selected':''}>🏭 1688采购图</option>
+          <option value="platform" ${im.type==='platform'?'selected':''}>🛍️ 平台售卖图</option>
+          <option value="other" ${im.type==='other'?'selected':''}>📎 其他</option>
+        </select>
+        <div class="row">
+          <span class="name" title="${im.name}">${im.name}</span>
+          <button class="del" onclick="removeImg(${i})">删除</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function removeImg(i){images.splice(i,1);renderImgList();}
+/* ============ 记忆库 ============ */
 function memKey(name,plat){return 'ecom_mem_'+hash(name.toLowerCase()+plat);}
 function checkDup(name,plat){return localStorage.getItem(memKey(name,plat));}
 function saveMem(name,plat,result){localStorage.setItem(memKey(name,plat),JSON.stringify({result:result,t:new Date().toISOString()}));}
 /* ============ 竞品匹配 ============ */
 function pickComp(name){
   for(const k in AUTO_LIB){if(new RegExp(k,'i').test(name))return AUTO_LIB[k];}
-  return {comp1688:[['同类1688款(未匹配内置库)',5.00,'请补充']],compPlat:[['同类平台款',50000,'请补充']]};
+  return DEFAULT_LIB;
 }
 /* ============ 生成报表 ============ */
 let last={};
@@ -321,53 +368,70 @@ function generate(){
   const name=document.getElementById('product_name').value.trim();
   const platKey=document.getElementById('platform').value;
   const logiKey=document.getElementById('logistics').value;
-  const purchase=parseFloat(document.getElementById('purchase').value);
   const bench=parseFloat(document.getElementById('benchmark').value);
+  const purchaseRaw=document.getElementById('purchase').value;
+  const purchaseInput=parseFloat(purchaseRaw);
   const ads=[...document.querySelectorAll('.ad:checked')].map(x=>parseInt(x.value)/100);
   const disc=document.getElementById('discount').value.split(/[,，]/).map(s=>parseFloat(s)/100).filter(v=>!isNaN(v));
+  const stopNeg=document.getElementById('stop_negative').checked;
+  const stopDup=document.getElementById('stop_duplicate').checked;
+  const stopCert=document.getElementById('stop_cert').checked;
   const plat=PLATFORMS[platKey], logi=LOGISTICS[logiKey];
   const ship=logiKey==='air'?logi.intl:logi.intl;
   const airShip=logi.air||null;
   // 校验
-  if(!name){showError('请填写「产品名称」（手动输入或先上传产品图自动填充）');btn.disabled=false;btn.textContent=orig;return;}
-  if(!bench||bench<=0){showError('请填写「基准售价」（截图里的原价，如 109000）');btn.disabled=false;btn.textContent=orig;return;}
-  if(!purchase||purchase<=0){showError('请填写「采购价」（¥/件，如 4.00）');btn.disabled=false;btn.textContent=orig;return;}
+  if(!name){showError('请填写「产品名称」（手动输入或先上传一张「产品图」自动填充）');btn.disabled=false;btn.textContent=orig;return;}
+  if(!bench||bench<=0){showError('请填写「基准售价」（如 109000，展开高级选项可改）');btn.disabled=false;btn.textContent=orig;return;}
   if(ads.length===0){showError('请至少勾选一个「广告费率」');btn.disabled=false;btn.textContent=orig;return;}
+  // 采购价：空则用内置库中位
+  let purchase=purchaseInput;
+  let purchaseAuto=false;
+  if(!purchase||purchase<=0||isNaN(purchase)){
+    const comp=pickComp(name);
+    purchase=comp.mid1688;
+    purchaseAuto=true;
+  }
   document.getElementById('loading').style.display='block';
   setTimeout(()=>{
     try{
-      /* --- 三重检查 --- */
       const checks=[];
       const certs=CERT_RULES.filter(r=>r.p.test(name)).map(r=>r.name);
-      checks.push({n:'资质检查',ok:certs.length===0,d:certs.length===0?'✅ 无强制资质门槛':'❌ 需强制资质：'+certs.join('、')});
+      const certOK=certs.length===0;
+      checks.push({n:'资质检查',ok:certOK,d:certOK?'✅ 无强制资质门槛':'❌ 需强制资质：'+certs.join('、')});
       const dup=checkDup(name,platKey);
-      checks.push({n:'记忆库去重',ok:!dup,d:dup?'❌ 重复使用：该产品在此平台已生成过报表（清除浏览器 localStorage 可重置）':'✅ 新项目，无重复记录'});
+      const dupOK=!dup;
+      checks.push({n:'记忆库去重',ok:dupOK,d:dupOK?'✅ 新项目，无重复记录':'❌ 重复使用：该产品在此平台已生成过（清除浏览器 localStorage 可重置）'});
       const comp=pickComp(name);
-      checks.push({n:'自动搜索',ok:true,d:'✅ 内置价格库匹配（1688 '+comp.comp1688.length+' 款 / 平台 '+comp.compPlat.length+' 款）'});
+      checks.push({n:'自动搜索',ok:true,d:'✅ 内置价格库匹配（1688 '+comp.comp1688.length+' 款 / 平台 '+comp.compPlat.length+' 款）'+(purchaseAuto?'，采购价已按中位价自动估算 '+cny(purchase):'')});
       const flash=Math.round(bench*0.5);
       const mainAd=ads[1]||ads[0];
       const mainP=profit(flash,mainAd,purchase,plat,ship);
-      checks.push({n:'利润判定',ok:mainP>0,d:(mainP>0?'✅':'❌')+' 主力场景（半价档+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat))});
-      const blocked=checks.filter(c=>!c.ok);
-      last={name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd};
-      /* --- 渲染 --- */
+      const profitOK=mainP>0;
+      checks.push({n:'利润判定',ok:profitOK,d:(profitOK?'✅':'❌')+' 主力场景（半价档+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat))});
+      // 决定是否停止
+      const blocked=[];
+      if(!certOK && stopCert) blocked.push({check:checks[0],fix:'先完成资质认证或更换产品'});
+      if(!dupOK && stopDup) blocked.push({check:checks[1],fix:'清除浏览器 localStorage 后重试（控制台 F12 → Application → Local Storage）'});
+      if(!profitOK && stopNeg) blocked.push({check:checks[2],fix:'谈判采购价 / 改物流 / 提高售价或放弃该产品'});
+      last={name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd,purchaseAuto};
       renderChecks(checks);
       if(blocked.length>0){
         document.getElementById('block_reason').style.display='block';
-        document.getElementById('block_reason').innerHTML='⛔ <b>停止生成报表：</b>'+blocked.map(c=>c.d).join('<br>')+'<br><br><b>建议：</b>'+(certs.length?'先完成资质认证或更换产品；':'')+(dup?'清除浏览器 localStorage 后重试（控制台 F12 → Application → Local Storage）；':'')+(mainP<=0?'谈判采购价 / 改物流 / 提高售价或放弃该产品。':'');
+        document.getElementById('block_reason').innerHTML='⛔ <b>停止生成报表：</b><br>'+blocked.map(b=>b.check.d+'（建议：'+b.fix+'）').join('<br>');
         document.getElementById('btn_download').disabled=true;
       }else{
         document.getElementById('block_reason').style.display='none';
         document.getElementById('btn_download').disabled=false;
         renderAll();
-        saveMem(name,platKey,'OK');
+        if(profitOK) saveMem(name,platKey,'OK');
       }
       document.getElementById('loading').style.display='none';
       document.getElementById('result').style.display='block';
       btn.disabled=false; btn.textContent=orig;
     }catch(e){
       document.getElementById('loading').style.display='none';
-      showError('生成出错：'+(e.message||e));
+      const loc=(e.stack||'').split('\n').slice(1,3).join(' | ');
+      showError('生成出错：'+(e.message||e)+(loc?'<br><span style="font-size:11px;color:#888;">位置：'+loc+'</span>':''));
       btn.disabled=false; btn.textContent=orig;
     }
   },50);
@@ -376,14 +440,17 @@ function renderChecks(checks){
   document.getElementById('verdict_badges').innerHTML=checks.map(c=>'<span class="badge '+(c.ok?'badge-ok':'badge-err')+'">'+c.n+'：'+(c.ok?'通过':'未通过')+'</span>').join('');
 }
 function renderAll(){
-  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd}=last;
-  /* 图片对照 */
-  const map={product:['产品图','产品主图'],purchase:['1688采购图','1688采购页截图'],platform:['平台售卖图','平台售卖页截图']};
-  document.getElementById('img_compare').innerHTML=Object.keys(map).map(k=>{
-    const f=imgs[k]; let inner=f?('<img src="'+URL.createObjectURL(f)+'" alt="'+map[k][0]+'">'):('<div style="height:150px;line-height:150px;color:#aaa;font-size:13px;">未上传</div>');
-    return '<div class="box"><div class="cap">'+map[k][0]+'</div>'+inner+'</div>';
-  }).join('');
-  /* 利润明细 */
+  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd,purchaseAuto}=last;
+  // 图片对照（按用户标签顺序：product → purchase → platform → other）
+  const order={product:0,purchase:1,platform:2,other:3};
+  const sorted=[...images].sort((a,b)=>order[a.type]-order[b.type]);
+  const typeLabel={product:'📦 产品图',purchase:'🏭 1688采购图',platform:'🛍️ 平台售卖图',other:'📎 其他'};
+  if(sorted.length>0){
+    document.getElementById('img_compare').innerHTML=sorted.map(im=>'<div class="box"><div class="cap">'+typeLabel[im.type]+'</div><img src="'+im.dataUrl+'" alt="'+im.name+'"></div>').join('');
+  }else{
+    document.getElementById('img_compare').innerHTML='<div class="tooltip" style="grid-column:1/-1;text-align:center;padding:20px;">未上传图片（您可跳过，报表仅含数据）</div>';
+  }
+  // 利润明细
   const hdr=['降价档','售价('+plat.cur+')','售价(CNY)'];
   ads.forEach(a=>hdr.push('广告'+Math.round(a*100)+'%净利','利润率'));
   let html='<tr>'+hdr.map(h=>'<th>'+h+'</th>').join('')+'</tr>';
@@ -396,57 +463,58 @@ function renderAll(){
   });
   if(airShip){
     const p=profit(flash,mainAd,purchase,plat,airShip);
-    html+='<tr><td><b>空运参考(半价档)</b></td><td>'+money(flash,plat)+'</td><td>≈'+cny(toCNY(flash,plat))+'</td><td colspan="'+(hdr.length-3)+'"><span class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</span>（空运补货价，'+pct(p/toCNY(flash,plat))+'）</td></tr>';
+    html+='<tr><td><b>空运参考(半价档)</b></td><td>'+money(flash,plat)+'</td><td>≈'+cny(toCNY(flash,plat))+'</td><td colspan="'+(hdr.length-3)+'"><span class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</span>（空运补货，'+pct(p/toCNY(flash,plat))+'）</td></tr>';
   }
   document.getElementById('profit_table').innerHTML=html;
-  document.getElementById('profit_note').textContent='备注：费用=佣金'+Math.round(plat.com*100)+'%+交易费'+Math.round(plat.trans*100)+'%+支付1%+广告率；物流='+logi.label+'（国际段 '+cny(ship)+'/件'+((airShip)?'，空运补货 '+cny(airShip)+'/件':'')+'）。空运半价档一般亏损 → 空运仅补货。';
-  /* 竞品 */
+  let note='备注：费用=佣金'+Math.round(plat.com*100)+'%+交易费'+Math.round(plat.trans*100)+'%+支付1%+广告率；物流='+logi.label+'（国际段 '+cny(ship)+'/件'+((airShip)?'，空运补货 '+cny(airShip)+'/件':'')+'）。空运半价档一般亏损 → 空运仅补货。';
+  if(purchaseAuto) note+=' ⚠️ 采购价已按内置价格库自动估算 '+cny(purchase)+'。';
+  document.getElementById('profit_note').textContent=note;
+  // 竞品
   let ch='<tr><th>序号</th><th>商品/卖家</th><th>1688价(CNY)</th><th>平台价('+plat.cur+')</th><th>折合CNY</th><th>热度/备注</th><th>对标痛点</th></tr>';
-  ch+='<tr style="background:#FFF2CC;"><td><b>本品基准</b></td><td>'+name+'</td><td>'+cny(purchase)+'</td><td>'+money(bench,plat)+'</td><td>≈'+cny(toCNY(bench,plat))+'</td><td>★ 待售</td><td>基准锚点</td></tr>';
+  ch+='<tr style="background:#FFF2CC;"><td><b>本品基准</b></td><td>'+name+'</td><td>'+cny(purchase)+(purchaseAuto?' <span class="tooltip">(自动估算)</span>':'')+'</td><td>'+money(bench,plat)+'</td><td>≈'+cny(toCNY(bench,plat))+'</td><td>★ 待售</td><td>基准锚点</td></tr>';
   comp.comp1688.forEach((r,i)=>{ch+='<tr><td>1688-'+(i+1)+'</td><td>'+r[0]+'</td><td>'+cny(r[1])+'</td><td>—</td><td>—</td><td>—</td><td>'+r[2]+'</td></tr>';});
   comp.compPlat.forEach((r,i)=>{ch+='<tr><td>平台-'+(i+1)+'</td><td>'+r[0]+'</td><td>—</td><td>'+money(r[1],plat)+'</td><td>≈'+cny(toCNY(r[1],plat))+'</td><td>'+r[2]+'</td><td></td></tr>';});
   document.getElementById('comp_table').innerHTML=ch;
-  /* 物流 */
-  const seaTotal=purchase+0.5+3.0+2.0+(plat.local*(plat.cur==='IDR'?plat.fx:plat.fx))+1.0;
-  const airTotal=purchase+0.5+22.0+2.0+(plat.local*(plat.cur==='IDR'?plat.fx:plat.fx))+1.0;
+  // 物流
+  const localFee=plat.local*plat.fx;
+  const seaTotal=purchase+0.5+3.0+2.0+localFee+1.0;
+  const airTotal=purchase+0.5+22.0+2.0+localFee+1.0;
   let lh='<tr><th>环节</th><th>说明</th><th>海运方案</th><th>海运费用(CNY/件)</th><th>空运方案</th><th>空运费用(CNY/件)</th><th>备注</th></tr>';
-  const lrows=[['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³；空运¥15-25/kg'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T 1-3天',(plat.local*plat.fx).toFixed(2),'JNE/J&T 1-3天',(plat.local*plat.fx).toFixed(2),'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压']];
+  const lrows=[['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³；空运¥15-25/kg'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T 1-3天',localFee,'JNE/J&T 1-3天',localFee,'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压']];
   lrows.forEach(r=>{lh+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+cny(r[3])+'</td><td>'+r[4]+'</td><td>'+cny(r[5])+'</td><td>'+r[6]+'</td></tr>';});
   lh+='<tr style="background:#FFF2CC;"><td><b>单件物流合计</b></td><td></td><td><b>海运到岸 '+cny(seaTotal)+'</b></td><td></td><td><b>空运到岸 '+cny(airTotal)+'</b></td><td></td><td>'+(logiKey==='mixed'?'<span class="neg">混合建议：首批70%海运+30%空运补货</span>':'差 ¥19/件')+'</td></tr>';
   document.getElementById('logi_table').innerHTML=lh;
-  /* 决策建议 */
+  // 决策建议
   const adv=['✅ 项目可行：主力场景（半价档+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat)),
     '物流建议：'+logi.label+(logiKey==='mixed'?'，首批 70% 海运 + 30% 空运测款补货。':'；空运仅用于补货/测款。'),
     '定价建议：半价档 Flash 只在大促/清库存使用；日常成交价建议落在基准价的 60-85% 区间保利润。',
-    '注意事项：印尼语标签（强制）、PT PMA 主体、原产国标注；若用品牌名（如 DejaVu）需授权，否则 IP 侵权下架。'];
+    '注意事项：印尼语标签（强制）、PT PMA 主体、原产国标注；若用品牌名需授权。',
+    (images.length>0?'已上传 '+images.length+' 张图（'+images.filter(i=>i.type==='product').length+'产品 / '+images.filter(i=>i.type==='purchase').length+'采购 / '+images.filter(i=>i.type==='platform').length+'平台 / '+images.filter(i=>i.type==='other').length+'其他）— 图片对照仅在线查看。':'(未上传图片) 若需图片嵌入报表的 xlsx 版，请用本地 CLI 工具 ecom_report_tool.py 生成。')];
   document.getElementById('advice_box').innerHTML=adv.map(a=>'<div style="margin-bottom:6px;">• '+a+'</div>').join('');
 }
-/* ============ 下载 xlsx（SheetJS） ============ */
+/* ============ 下载 xlsx ============ */
 function downloadXlsx(){
   if(!last)return;
-  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,flash,mainP,mainAd}=last;
+  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,flash,mainP,mainAd,purchaseAuto}=last;
   const wb=XLSX.utils.book_new();
-  /* 利润明细 */
   const hdr=['降价档','售价('+plat.cur+')','售价(CNY)'];
   ads.forEach(a=>hdr.push('广告'+Math.round(a*100)+'%净利(CNY)','利润率'));
   const rows=[hdr];
   [0,...disc].forEach(d=>{
-    const price=Math.round(bench*(1-d));const r=['原价'===d?'原价':('降'+Math.round(d*100)+'%'),money(price,plat),cny(toCNY(price,plat))];
-    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship);r.push(p.toFixed(2),(rate(price,a,purchase,plat,ship)*100).toFixed(1)+'%');});
+    const price=Math.round(bench*(1-d));const r=[d===0?'原价':('降'+Math.round(d*100)+'%'),money(price,plat),cny(toCNY(price,plat))];
+    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship);r.push(num(p).toFixed(2),(num(rate(price,a,purchase,plat,ship))*100).toFixed(1)+'%');});
     rows.push(r);
   });
-  if(airShip){const p=profit(flash,mainAd,purchase,plat,airShip);rows.push(['空运参考(半价档)',money(flash,plat),cny(toCNY(flash,plat)),p.toFixed(2),(p/toCNY(flash,plat)*100).toFixed(1)+'%']);}
+  if(airShip){const p=profit(flash,mainAd,purchase,plat,airShip);rows.push(['空运参考(半价档)',money(flash,plat),cny(toCNY(flash,plat)),num(p).toFixed(2),(num(p/toCNY(flash,plat))*100).toFixed(1)+'%']);}
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'利润明细');
-  /* 竞品 */
-  const cr=[['序号','商品/卖家','1688价(CNY)','平台价('+plat.cur+')','折合CNY','热度/备注','对标痛点'],['本品基准',name,cny(purchase),money(bench,plat),cny(toCNY(bench,plat)),'★ 待售','基准锚点']];
+  const cr=[['序号','商品/卖家','1688价(CNY)','平台价('+plat.cur+')','折合CNY','热度/备注','对标痛点'],['本品基准',name,cny(purchase)+(purchaseAuto?' (自动估算)':''),money(bench,plat),cny(toCNY(bench,plat)),'★ 待售','基准锚点']];
   comp.comp1688.forEach((r,i)=>cr.push(['1688-'+(i+1),r[0],cny(r[1]),'—','—','—',r[2]]));
   comp.compPlat.forEach((r,i)=>cr.push(['平台-'+(i+1),r[0],'—',money(r[1],plat),cny(toCNY(r[1],plat)),r[2],'']));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cr),'竞品全景');
-  /* 决策结论 */
-  const dr=[['检查项','结果'],['资质检查',checks[0].d],['记忆库去重',checks[1].d],['自动搜索',checks[2].d],['利润判定',checks[3].d],['',''],['定价建议',mainP>0?'✅ 项目可行，主力场景单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat)):'⛔ 负利润，停止']];
+  const dr=[['检查项','结果'],['资质检查',last.checks[0].d],['记忆库去重',last.checks[1].d],['自动搜索',last.checks[2].d],['利润判定',last.checks[3].d],['',''],['定价建议',mainP>0?'✅ 项目可行，主力场景单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat)):'⛔ 负利润，停止']];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(dr),'决策结论');
-  /* 供应链物流 */
-  const lr=[['环节','说明','海运方案','海运费用(CNY/件)','空运方案','空运费用(CNY/件)','备注'],['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T',(plat.local*plat.fx).toFixed(2),'JNE/J&T',(plat.local*plat.fx).toFixed(2),'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压'],['','','海运到岸',(purchase+0.5+3+2+plat.local*plat.fx+1).toFixed(2),'空运到岸',(purchase+0.5+22+2+plat.local*plat.fx+1).toFixed(2),'差 ¥19/件']];
+  const localFee=plat.local*plat.fx;
+  const lr=[['环节','说明','海运方案','海运费用(CNY/件)','空运方案','空运费用(CNY/件)','备注'],['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T',num(localFee).toFixed(2),'JNE/J&T',num(localFee).toFixed(2),'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压'],['','','海运到岸',num(purchase+0.5+3+2+localFee+1).toFixed(2),'空运到岸',num(purchase+0.5+22+2+localFee+1).toFixed(2),'差 ¥19/件']];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(lr),'供应链物流');
   XLSX.writeFile(wb,name.replace(/[\\\/:*?"<>|]/g,'_')+'_选品分析报表.xlsx');
 }
