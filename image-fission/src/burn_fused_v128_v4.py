@@ -12,7 +12,7 @@ from pathlib import Path
 import sys
 
 OUT_FINAL = Path(r"C:\Users\lenovo\WorkBuddy\2026-08-24-16-39-13\outputs\v128")
-CLEAN = Path(r"E:\Desktop\双接口\image-fission\jobs\smoke_v128_1787814169")
+CLEAN = Path(r"E:\Desktop\双接口\image-fission\jobs\smoke_v128_1787822084")
 FONTS = {
     "metal_mania": r"E:/Desktop/双接口/image-fission/fonts/MetalMania-Regular.ttf",
     "pirata_one":  r"E:/Desktop/双接口/image-fission/fonts/PirataOne-Regular.ttf",
