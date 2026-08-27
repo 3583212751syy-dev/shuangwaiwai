@@ -1,0 +1,12 @@
+{
+  "_说明": "ecom_report_tool.py 配置文件模板。复制改名 config.json 后按需修改；命令行参数优先于本文件。",
+  "platform": "shopee-id",
+  "logistics": "mixed",
+  "purchase": 4.00,
+  "benchmark": 109000,
+  "ad": "0,5,10,15",
+  "discount": "5,10,15,20,25",
+  "extra_cost": 0.0,
+  "auto_search": true,
+  "image_dir": ""
+}
