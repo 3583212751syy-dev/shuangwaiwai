@@ -435,12 +435,13 @@ function generate(){
       }
       document.getElementById('loading').style.display='none';
       document.getElementById('result').style.display='block';
-      btn.disabled=false; btn.textContent=orig;
     }catch(e){
       document.getElementById('loading').style.display='none';
       const loc=(e.stack||'').split('\n').slice(1,3).join(' | ');
       showError('生成出错：'+(e.message||e)+(loc?'<br><span style="font-size:11px;color:#888;">位置：'+loc+'</span>':''));
-      btn.disabled=false; btn.textContent=orig;
+    }finally{
+      // 无论如何确保按钮恢复（避免"一直在处理中"）
+      try{btn.disabled=false; btn.textContent=orig;}catch(_){}
     }
   },50);
 }
