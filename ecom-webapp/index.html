@@ -380,7 +380,15 @@ function generate(){
   const ship=logiKey==='air'?logi.intl:logi.intl;
   const airShip=logi.air||null;
   // 校验
-  if(!name){showError('请填写「产品名称」（手动输入或先上传一张「产品图」自动填充）');btn.disabled=false;btn.textContent=orig;return;}
+  if(!name){
+    if(images.length>0){
+      const firstProduct=images.find(im=>im.type==='product')||images[0];
+      name=firstProduct.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').slice(0,80);
+      document.getElementById('product_name').value=name;
+    } else {
+      showError('请填写「产品名称」（手动输入或先上传一张图自动填充）');btn.disabled=false;btn.textContent=orig;return;
+    }
+  }
   if(!bench||bench<=0){showError('请填写「基准售价」（如 109000，展开高级选项可改）');btn.disabled=false;btn.textContent=orig;return;}
   if(ads.length===0){showError('请至少勾选一个「广告费率」');btn.disabled=false;btn.textContent=orig;return;}
   // 采购价：空则用内置库中位
@@ -516,7 +524,16 @@ function downloadXlsx(){
   const localFee=plat.local*plat.fx;
   const lr=[['环节','说明','海运方案','海运费用(CNY/件)','空运方案','空运费用(CNY/件)','备注'],['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T',num(localFee).toFixed(2),'JNE/J&T',num(localFee).toFixed(2),'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压'],['','','海运到岸',num(purchase+0.5+3+2+localFee+1).toFixed(2),'空运到岸',num(purchase+0.5+22+2+localFee+1).toFixed(2),'差 ¥19/件']];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(lr),'供应链物流');
-  XLSX.writeFile(wb,name.replace(/[\\\/:*?"<>|]/g,'_')+'_选品分析报表.xlsx');
+  // 显式用 Blob + a.download，文件名稳定可控（避免 SheetJS 内部用临时 UUID）
+  const safeName=(name||'product').replace(/[\\\/:*?"<>|]/g,'_').trim()||'product';
+  const fname=safeName+'_选品分析报表.xlsx';
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=fname; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},200);
 }
 </script>
 </body>
