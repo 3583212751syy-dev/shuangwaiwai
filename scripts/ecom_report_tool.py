@@ -71,7 +71,7 @@ LOGISTICS = {
 # 强制资质规则：(平台通配, 关键词正则, 资质要求说明)；命中即停止
 CERT_RULES = [
     ("*", r"food\s*contact|食品接触|餐盒|奶瓶|水杯|吸管", "SNI 7323:2008（食品接触塑料强制）"),
-    ("*", r"cosmetic|化妆品|面膜|防晒|彩妆|口红", "BPOM 注册（化妆品强制）"),
+    ("*", r"cosmetic|化妆品|面膜|彩妆|口红|防晒霜|防晒乳|防晒喷雾|sunscreen|sunblock|隔离霜|粉底|睫毛膏", "BPOM 注册（化妆品强制）"),
     ("*", r"drug|药品|保健品|维生素|protein|蛋白粉", "BPOM 注册（药品/保健品强制）"),
     ("*", r"electronic|电子|充电|电源|灯|light|battery|电池|耳机|phone|手机", "SNI 强制认证（电子产品）"),
     ("*", r"baby|儿童|玩具|toy|child", "SNI 强制认证（儿童用品）"),
@@ -572,12 +572,11 @@ def main(argv=None):
     # 4) 利润计算 + 负利润判定
     main_ad = ad_rates[1] if len(ad_rates) > 1 else ad_rates[0]
     main_ship = logistics.get("air_ship", logistics["intl_ship"]) if args.logistics == "air" else logistics["intl_ship"]
-    # 主力场景：基准售价*0.5（Flash档）+ 常规广告 + 海运
-    flash_price = int(args.benchmark * 0.5) if args.benchmark else args.benchmark
-    main_p = calc_profit(flash_price, main_ad, args.purchase, plat, main_ship, args.extra_cost)
-    main_rate = calc_rate(flash_price, main_ad, args.purchase, plat, main_ship, args.extra_cost)
+    # 主力场景：基准原价（日常定价，FLASH 亏本走量单独标注不算主力）
+    main_p = calc_profit(args.benchmark, main_ad, args.purchase, plat, main_ship, args.extra_cost)
+    main_rate = calc_rate(args.benchmark, main_ad, args.purchase, plat, main_ship, args.extra_cost)
     checks.append(("利润判定", main_p > 0,
-                   f"{'✅' if main_p > 0 else '❌'} 主力场景（半价档+{int(main_ad*100)}%广告+{args.logistics}）单件净利 {fmt_cny(main_p)}，利润率 {fmt_pct(main_rate)}"))
+                   f"{'✅' if main_p > 0 else '❌'} 主力场景（基准原价+{int(main_ad*100)}%广告+{args.logistics}）单件净利 {fmt_cny(main_p)}，利润率 {fmt_pct(main_rate)}"))
     if main_p <= 0:
         result_meta = {"checks": checks, "advice": [f"主力场景利润 {fmt_cny(main_p)} ≤ 0，按禁用规则停止生成报表。建议：谈判采购价 / 改物流 / 提高售价或放弃该产品。"]}
         _emit_blocked(args, result_meta, "负利润", fmt_cny(main_p))
