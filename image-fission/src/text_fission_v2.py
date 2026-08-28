@@ -178,7 +178,7 @@ def wait_outputs(pid, prefix, timeout=320):
 
 # ---------- graph builders ----------
 def build_restyle(orig_name, style_prompt, seed, prefix):
-    """强风格裂变: Canny 中强度锁结构 + 高 denoise, 去掉 IPAdapter 让画风明显变化。"""
+    """图裂变(v115-v118 正解参数): Canny 0.55 锁主体 + IPAdapter 0.45 锁风格 + denoise 0.72 明显变化."""
     g = {}
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
     g["2"] = {"class_type": "LoadImage", "inputs": {"image": orig_name}}
@@ -187,17 +187,22 @@ def build_restyle(orig_name, style_prompt, seed, prefix):
     g["4"] = {"class_type": "Canny", "inputs": {"image": ["3", 0], "low_threshold": 0.05, "high_threshold": 0.18}}
     g["5"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": CONTROL_CKPT}}
     pos = (f"masterpiece, best quality, ultra detailed, {style_prompt}, "
-           f"same subject and composition as the reference, sharp, clean")
+           f"same subject and composition as the reference, redesigned internal details, sharp, clean")
     g["8"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["1", 1], "text": pos}}
     g["9"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["1", 1], "text": RESTYLE_NEG}}
     g["6"] = {"class_type": "ControlNetApplyAdvanced", "inputs": {
         "positive": ["8", 0], "negative": ["9", 0], "image": ["4", 0],
-        "strength": 0.6, "start_percent": 0.0, "end_percent": 0.92, "control_net": ["5", 0]}}
+        "strength": 0.55, "start_percent": 0.0, "end_percent": 0.9, "control_net": ["5", 0]}}
+    g["10"] = {"class_type": "IPAdapterUnifiedLoader", "inputs": {"model": ["1", 0], "preset": "PLUS (high strength)"}}
+    g["11"] = {"class_type": "IPAdapterAdvanced", "inputs": {
+        "model": ["10", 0], "ipadapter": ["10", 1], "image": ["2", 0],
+        "weight": 0.45, "weight_type": "style transfer", "combine_embeds": "average",
+        "embeds_scaling": "V only", "start_at": 0.0, "end_at": 0.9, "noise": 0.08}}
     g["7"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["3", 0], "vae": ["1", 2]}}
     g["12"] = {"class_type": "KSampler", "inputs": {
-        "model": ["1", 0], "positive": ["6", 0], "negative": ["6", 1], "latent_image": ["7", 0],
+        "model": ["11", 0], "positive": ["6", 0], "negative": ["6", 1], "latent_image": ["7", 0],
         "seed": seed, "steps": 35, "cfg": 7.5, "sampler_name": "dpmpp_2m", "scheduler": "karras",
-        "denoise": 0.7}}
+        "denoise": 0.72}}
     g["13"] = {"class_type": "VAEDecode", "inputs": {"samples": ["12", 0], "vae": ["1", 2]}}
     g["14"] = {"class_type": "ImageScaleToTotalPixels", "inputs": {
         "upscale_method": "lanczos", "megapixels": 1.0, "image": ["13", 0], "resolution_steps": 64}}
