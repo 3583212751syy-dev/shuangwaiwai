@@ -122,24 +122,48 @@ input:focus,select:focus{outline:2px solid #2E75B6; border-color:#2E75B6;}
     </div>
     <div>
       <label class="f">售卖平台</label>
-      <select id="platform">
+      <select id="platform" onchange="syncCurrency()">
         <option value="shopee-id">Shopee 印尼本土店(PT) · 佣金5%+交易2%</option>
         <option value="shopee-id-cb">Shopee 印尼跨境店(CB) · 佣金8%+交易6%</option>
         <option value="lazada-id">Lazada 印尼(LGS) · 佣金6%+交易2%</option>
         <option value="tiktok-id">TikTok Shop 印尼 · 佣金2%+交易2%</option>
+        <option value="shopee-my">Shopee 马来(本地店) · 佣金5%+交易2%</option>
+        <option value="lazada-my">Lazada 马来 · 佣金6%+交易2%</option>
+        <option value="shopee-th">Shopee 泰国(本地店) · 佣金5%+交易2%</option>
+        <option value="shopee-vn">Shopee 越南(本地店) · 佣金5%+交易2%</option>
+        <option value="shopee-ph">Shopee 菲律宾(本地店) · 佣金5%+交易2%</option>
+        <option value="shopee-sg">Shopee 新加坡(本地店) · 佣金5%+交易2%</option>
         <option value="amazon-us">Amazon 美国站 · 佣金15%+交易1%</option>
       </select>
     </div>
     <div>
-      <label class="f">物流方式</label>
+      <label class="f">货币币种（可自主选，自动换算人民币）</label>
+      <select id="currency">
+        <option value="IDR">印尼盾 IDR</option>
+        <option value="MYR">马币 MYR</option>
+        <option value="THB">泰铢 THB</option>
+        <option value="VND">越南盾 VND</option>
+        <option value="PHP">比索 PHP</option>
+        <option value="SGD">新元 SGD</option>
+        <option value="USD">美元 USD</option>
+        <option value="CNY">人民币 CNY</option>
+      </select>
+      <div class="tooltip" id="cur_hint"></div>
+    </div>
+    <div>
+      <label class="f">物流方式（网页保留海运/空运/混合）</label>
       <select id="logistics">
-        <option value="sea">🚢 海运 LCL（20-35天 · 国际段¥3/件）</option>
-        <option value="air">✈️ 空运（5-10天 · 国际段¥22/件）</option>
-        <option value="mixed" selected>🚢+✈️ 海运+空运结合（首轮海运+补货空运）</option>
+        <option value="sea" selected>🚢 海运 LCL（20-35天）</option>
+        <option value="air">✈️ 空运（5-10天）</option>
+        <option value="mixed">🚢+✈️ 海运+空运结合</option>
       </select>
     </div>
     <div>
-      <label class="f">采购价（¥/件）<span class="checkbox-default">留空时按内置价格库自动估算</span></label>
+      <label class="f">单件克重（g）<span class="checkbox-default">留空按品类自动估算</span></label>
+      <input type="number" id="weight" step="1" min="0" placeholder="留空 → 品类估算（运费=¥/kg×克重）">
+    </div>
+    <div>
+      <label class="f">采购价（¥/件）<span class="checkbox-default">留空按内置价格库估算</span></label>
       <input type="number" id="purchase" step="0.01" min="0" placeholder="留空 → 自动估算">
     </div>
   </div>
@@ -245,18 +269,40 @@ input:focus,select:focus{outline:2px solid #2E75B6; border-color:#2E75B6;}
 </div>
 
 <script>
-/* ============ 常量配置 ============ */
+/* ============ 常量配置（v3：区域费率/币种/克重） ============ */
+const CURRENCIES={IDR:0.0003782,USD:7.20,MYR:1.65,THB:0.21,VND:0.00029,PHP:0.13,SGD:5.50,CNY:1.0};
+const REGIONS={
+  indonesia:{name:'印尼',seaKg:3.0,localSmall:2.0,localKg:4.0,note:'JNE/J&T'},
+  malaysia:{name:'马来',seaKg:3.0,localSmall:2.0,localKg:2.5,note:'Pos/J&T'},
+  thailand:{name:'泰国',seaKg:3.5,localSmall:2.0,localKg:3.0,note:'Flash Express'},
+  vietnam:{name:'越南',seaKg:3.5,localSmall:2.0,localKg:3.0,note:'GHN/J&T'},
+  philippines:{name:'菲律宾',seaKg:3.5,localSmall:2.0,localKg:3.0,note:'J&T'},
+  singapore:{name:'新加坡',seaKg:4.0,localSmall:2.5,localKg:3.0,note:'J&T'},
+  us:{name:'美国',seaKg:8.0,localSmall:15.0,localKg:15.0,note:'USPS/FedEx'},
+};
+const CATEGORY_WEIGHT=[
+  {p:/鸡蛋|蛋盒|蛋托|egg/i,w:780},
+  {p:/帽|cap|hat|防晒/i,w:150},
+  {p:/脏衣篮|收纳篮|洗衣篮|laundry|basket|hamper/i,w:1100},
+  {p:/收纳盒|收纳箱|storage|box|盒/i,w:350},
+];
 const PLATFORMS = {
-  'shopee-id':  {name:'Shopee 印尼本土店(PT)',  cur:'IDR', fx:0.0003782, com:0.05, trans:0.02, pay:0.01, local:10000},
-  'shopee-id-cb':{name:'Shopee 印尼跨境店(CB)',  cur:'IDR', fx:0.0003782, com:0.08, trans:0.06, pay:0.01, local:8000},
-  'lazada-id':  {name:'Lazada 印尼(LGS)',        cur:'IDR', fx:0.0003782, com:0.06, trans:0.02, pay:0.01, local:10000},
-  'tiktok-id':  {name:'TikTok Shop 印尼',        cur:'IDR', fx:0.0003782, com:0.02, trans:0.02, pay:0.01, local:10000},
-  'amazon-us':  {name:'Amazon 美国站',           cur:'USD', fx:7.20,     com:0.15, trans:0.01, pay:0.01, local:4.5},
+  'shopee-id':  {name:'Shopee 印尼本土店(PT)',  cur:'IDR', region:'indonesia', com:0.05, trans:0.02, pay:0.01},
+  'shopee-id-cb':{name:'Shopee 印尼跨境店(CB)',  cur:'IDR', region:'indonesia', com:0.08, trans:0.06, pay:0.01},
+  'lazada-id':  {name:'Lazada 印尼(LGS)',        cur:'IDR', region:'indonesia', com:0.06, trans:0.02, pay:0.01},
+  'tiktok-id':  {name:'TikTok Shop 印尼',        cur:'IDR', region:'indonesia', com:0.02, trans:0.02, pay:0.01},
+  'shopee-my':  {name:'Shopee 马来(本地店)',      cur:'MYR', region:'malaysia',  com:0.05, trans:0.02, pay:0.01},
+  'lazada-my':  {name:'Lazada 马来',             cur:'MYR', region:'malaysia',  com:0.06, trans:0.02, pay:0.01},
+  'shopee-th':  {name:'Shopee 泰国(本地店)',      cur:'THB', region:'thailand',  com:0.05, trans:0.02, pay:0.01},
+  'shopee-vn':  {name:'Shopee 越南(本地店)',      cur:'VND', region:'vietnam',   com:0.05, trans:0.02, pay:0.01},
+  'shopee-ph':  {name:'Shopee 菲律宾(本地店)',    cur:'PHP', region:'philippines',com:0.05, trans:0.02, pay:0.01},
+  'shopee-sg':  {name:'Shopee 新加坡(本地店)',    cur:'SGD', region:'singapore', com:0.05, trans:0.02, pay:0.01},
+  'amazon-us':  {name:'Amazon 美国站',           cur:'USD', region:'us',         com:0.15, trans:0.01, pay:0.01},
 };
 const LOGISTICS = {
-  sea:   {label:'海运 LCL（20-35天）', intl:3.00},
-  air:   {label:'空运（5-10天）', intl:22.00},
-  mixed: {label:'海运+空运结合（首轮海运+补货空运）', intl:3.00, air:22.00},
+  sea:   {label:'🚢 海运 LCL（20-35天）', intl:3.00},
+  air:   {label:'✈️ 空运（5-10天）', intl:20.00},
+  mixed: {label:'🚢+✈️ 海运+空运结合（首轮海运+补货空运）', intl:3.00, air:20.00},
 };
 const CERT_RULES = [
   {p:/food\s*contact|食品接触|餐盒|奶瓶|水杯|吸管/i, name:'SNI 7323:2008（食品接触塑料强制）'},
@@ -280,19 +326,49 @@ const AUTO_LIB = {
   },
 };
 const DEFAULT_LIB = {mid:5.0, mid1688:5.5, comp1688:[['同类1688款(未匹配内置库)',5.00,'请补充']], compPlat:[['同类平台款',50000,'请补充']]};
-/* ============ 工具函数（带防御） ============ */
+/* ============ 工具函数（v3：币种换算 + 克重计费） ============ */
 function hash(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return (h>>>0).toString(16);}
-function toCNY(a,p){a=Number(a);return p.cur==='CNY'?a:a*p.fx;}
 function num(a){const n=Number(a);return isNaN(n)?0:n;}
-function money(a,p){const n=num(a);if(p.cur==='IDR')return 'Rp'+Math.round(n).toLocaleString('en-US');if(p.cur==='USD')return '$'+n.toFixed(2);return n.toFixed(2);}
+function curFx(cur){return CURRENCIES[cur]||1.0;}
+function toCNY(a,cur){return num(a)*curFx(cur);}
+function fmtCur(a,cur){const n=num(a);
+  if(cur==='IDR')return 'Rp'+Math.round(n).toLocaleString('en-US');
+  if(cur==='USD')return '$'+n.toFixed(2);
+  if(cur==='MYR')return 'RM'+n.toFixed(2);
+  if(cur==='THB')return '฿'+Math.round(n).toLocaleString('en-US');
+  if(cur==='VND')return '₫'+Math.round(n).toLocaleString('en-US');
+  if(cur==='PHP')return '₱'+n.toFixed(2);
+  if(cur==='SGD')return 'S$'+n.toFixed(2);
+  return n.toFixed(2);
+}
 function cny(a){return '¥'+num(a).toFixed(2);}
 function pct(a){const n=num(a);return (n*100).toFixed(1)+'%';}
-function unitCost(purchase,intl,p){
-  const local=p.cur==='IDR'?p.local*p.fx:(p.cur==='USD'?p.local*p.fx:0);
-  return num(purchase)+0.5+intl+2.0+local+1.0;
+function pickWeight(name,weight){
+  if(weight&&weight>0)return weight;
+  for(const c of CATEGORY_WEIGHT){if(c.p.test(name))return c.w;}
+  return 300;
 }
-function profit(price,ad,purchase,p,ship){const rev=toCNY(price,p);const fee=rev*(p.com+p.trans+p.pay+ad);return rev-fee-unitCost(purchase,ship,p);}
-function rate(price,ad,purchase,p,ship){const rev=toCNY(price,p);return rev===0?0:profit(price,ad,purchase,p,ship)/rev;}
+function regionFee(regionKey,wg){
+  const r=REGIONS[regionKey]||REGIONS.indonesia;
+  const kg=num(wg)/1000;
+  const sea=r.seaKg*kg;
+  const local=wg<=500?r.localSmall:r.localKg*kg;
+  return [sea,local,r];
+}
+function unitCost(purchase,ship,cur,regionKey,wg){
+  const [sea,local,r]=regionFee(regionKey,wg);
+  return num(purchase)+0.5+sea+2.0+local+1.0;
+}
+function profit(price,ad,purchase,p,ship,cur,regionKey,wg){const rev=toCNY(price,cur);const fee=rev*(p.com+p.trans+p.pay+ad);return rev-fee-unitCost(purchase,ship,cur,regionKey,wg);}
+function rate(price,ad,purchase,p,ship,cur,regionKey,wg){const rev=toCNY(price,cur);return rev===0?0:profit(price,ad,purchase,p,ship,cur,regionKey,wg)/rev;}
+/* ============ 币种联动 ============ */
+function syncCurrency(){
+  const platKey=document.getElementById('platform').value;
+  const plat=PLATFORMS[platKey];
+  const sel=document.getElementById('currency');
+  sel.value=plat.cur;
+  document.getElementById('cur_hint').textContent='1 '+plat.cur+' = '+curFx(plat.cur)+' CNY（已自动换算人民币）';
+}
 /* ============ 错误提示 ============ */
 function showError(msg){
   const eb=document.getElementById('error_box');
@@ -379,6 +455,9 @@ function generate(){
   const plat=PLATFORMS[platKey], logi=LOGISTICS[logiKey];
   const ship=logiKey==='air'?logi.intl:logi.intl;
   const airShip=logi.air||null;
+  const cur=document.getElementById('currency').value;
+  const wgRaw=document.getElementById('weight').value;
+  const wg=parseFloat(wgRaw)||0;
   // 校验
   if(!name){
     if(images.length>0){
@@ -399,6 +478,8 @@ function generate(){
     purchase=comp.mid1688;
     purchaseAuto=true;
   }
+  // 克重：--weight 优先，否则品类估算
+  const weightG=pickWeight(name,wg);
   document.getElementById('loading').style.display='block';
   setTimeout(()=>{
     try{
@@ -411,17 +492,17 @@ function generate(){
       checks.push({n:'记忆库去重',ok:dupOK,d:dupOK?'✅ 新项目，无重复记录':'❌ 重复使用：该产品在此平台已生成过（清除浏览器 localStorage 可重置）'});
       const comp=pickComp(name);
       checks.push({n:'自动搜索',ok:true,d:'✅ 内置价格库匹配（1688 '+comp.comp1688.length+' 款 / 平台 '+comp.compPlat.length+' 款）'+(purchaseAuto?'，采购价已按中位价自动估算 '+cny(purchase):'')});
-      const flash=Math.round(bench*0.5);
       const mainAd=ads[1]||ads[0];
-      const mainP=profit(flash,mainAd,purchase,plat,ship);
+      // 主力场景：基准原价（日常定价），FLASH 亏本走量单独标注
+      const mainP=profit(bench,mainAd,purchase,plat,ship,cur,plat.region,weightG);
       const profitOK=mainP>0;
-      checks.push({n:'利润判定',ok:profitOK,d:(profitOK?'✅':'❌')+' 主力场景（半价档+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat))});
+      checks.push({n:'利润判定',ok:profitOK,d:(profitOK?'✅':'❌')+' 主力场景（基准原价+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(bench,cur))});
       // 决定是否停止
       const blocked=[];
       if(!certOK && stopCert) blocked.push({check:checks[0],fix:'先完成资质认证或更换产品'});
       if(!dupOK && stopDup) blocked.push({check:checks[1],fix:'清除浏览器 localStorage 后重试（控制台 F12 → Application → Local Storage）'});
       if(!profitOK && stopNeg) blocked.push({check:checks[2],fix:'谈判采购价 / 改物流 / 提高售价或放弃该产品'});
-      last={name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd,purchaseAuto};
+      last={name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,mainP,mainAd,purchaseAuto,cur,weightG};
       renderChecks(checks);
       if(blocked.length>0){
         document.getElementById('block_reason').style.display='block';
@@ -449,8 +530,10 @@ function renderChecks(checks){
   document.getElementById('verdict_badges').innerHTML=checks.map(c=>'<span class="badge '+(c.ok?'badge-ok':'badge-err')+'">'+c.n+'：'+(c.ok?'通过':'未通过')+'</span>').join('');
 }
 function renderAll(){
-  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,flash,mainP,mainAd,purchaseAuto}=last;
-  // 图片对照（按用户标签顺序：product → purchase → platform → other）
+  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,checks,mainP,mainAd,purchaseAuto,cur,weightG}=last;
+  const rg=REGIONS[plat.region];
+  const [seaFee,localFee]=regionFee(plat.region,weightG);
+  // 图片对照（按用户标签顺序）
   const order={product:0,purchase:1,platform:2,other:3};
   const sorted=[...images].sort((a,b)=>order[a.type]-order[b.type]);
   const typeLabel={product:'📦 产品图',purchase:'🏭 1688采购图',platform:'🛍️ 平台售卖图',other:'📎 其他'};
@@ -459,73 +542,84 @@ function renderAll(){
   }else{
     document.getElementById('img_compare').innerHTML='<div class="tooltip" style="grid-column:1/-1;text-align:center;padding:20px;">未上传图片（您可跳过，报表仅含数据）</div>';
   }
-  // 利润明细
-  const hdr=['降价档','售价('+plat.cur+')','售价(CNY)'];
+  // 利润明细（双币种 + 克重）
+  const hdr=['降价档','售价('+cur+')','售价(CNY)'];
   ads.forEach(a=>hdr.push('广告'+Math.round(a*100)+'%净利','利润率'));
   let html='<tr>'+hdr.map(h=>'<th>'+h+'</th>').join('')+'</tr>';
   [0,...disc].forEach(d=>{
     const price=Math.round(bench*(1-d));
     const lab=d===0?'原价':'降'+Math.round(d*100)+'%';
-    let tr='<tr><td><b>'+lab+'</b></td><td>'+money(price,plat)+'</td><td>≈'+cny(toCNY(price,plat))+'</td>';
-    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship);tr+='<td class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</td><td class="'+(p>0?'pos':'neg')+'">'+pct(rate(price,a,purchase,plat,ship))+'</td>';});
+    let tr='<tr><td><b>'+lab+'</b></td><td>'+fmtCur(price,cur)+'</td><td>≈'+cny(toCNY(price,cur))+'</td>';
+    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship,cur,plat.region,weightG);tr+='<td class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</td><td class="'+(p>0?'pos':'neg')+'">'+pct(rate(price,a,purchase,plat,ship,cur,plat.region,weightG))+'</td>';});
     tr+='</tr>';html+=tr;
   });
   if(airShip){
-    const p=profit(flash,mainAd,purchase,plat,airShip);
-    html+='<tr><td><b>空运参考(半价档)</b></td><td>'+money(flash,plat)+'</td><td>≈'+cny(toCNY(flash,plat))+'</td><td colspan="'+(hdr.length-3)+'"><span class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</span>（空运补货，'+pct(p/toCNY(flash,plat))+'）</td></tr>';
+    const p=profit(bench,mainAd,purchase,plat,airShip,cur,plat.region,weightG);
+    html+='<tr><td><b>空运参考(基准原价)</b></td><td>'+fmtCur(bench,cur)+'</td><td>≈'+cny(toCNY(bench,cur))+'</td><td colspan="'+(hdr.length-3)+'"><span class="'+(p>0?'pos':'neg')+'">'+cny(p)+'</span>（空运补货，'+pct(p/toCNY(bench,cur))+'）</td></tr>';
   }
   document.getElementById('profit_table').innerHTML=html;
-  let note='备注：费用=佣金'+Math.round(plat.com*100)+'%+交易费'+Math.round(plat.trans*100)+'%+支付1%+广告率；物流='+logi.label+'（国际段 '+cny(ship)+'/件'+((airShip)?'，空运补货 '+cny(airShip)+'/件':'')+'）。空运半价档一般亏损 → 空运仅补货。';
-  if(purchaseAuto) note+=' ⚠️ 采购价已按内置价格库自动估算 '+cny(purchase)+'。';
+  let note='币种：'+cur+'（1 '+cur+'='+curFx(cur)+' CNY，已自动换算人民币） | 克重：'+weightG+'g/件 | 费用=佣金'+Math.round(plat.com*100)+'%+交易费'+Math.round(plat.trans*100)+'%+支付1%+广告率';
+  note+=' | 物流='+logi.label+'（国际段海运 ¥'+rg.seaKg+'/kg×'+weightG+'g = '+cny(seaFee)+'，本地段'+rg.note+' '+cny(localFee)+'）';
+  if(airShip)note+=' | 空运 ¥20/kg 仅补货';
+  if(purchaseAuto) note+=' ⚠️ 采购价已自动估算 '+cny(purchase)+'。';
   document.getElementById('profit_note').textContent=note;
   // 竞品
-  let ch='<tr><th>序号</th><th>商品/卖家</th><th>1688价(CNY)</th><th>平台价('+plat.cur+')</th><th>折合CNY</th><th>热度/备注</th><th>对标痛点</th></tr>';
-  ch+='<tr style="background:#FFF2CC;"><td><b>本品基准</b></td><td>'+name+'</td><td>'+cny(purchase)+(purchaseAuto?' <span class="tooltip">(自动估算)</span>':'')+'</td><td>'+money(bench,plat)+'</td><td>≈'+cny(toCNY(bench,plat))+'</td><td>★ 待售</td><td>基准锚点</td></tr>';
+  let ch='<tr><th>序号</th><th>商品/卖家</th><th>1688价(CNY)</th><th>平台价('+cur+')</th><th>折合CNY</th><th>热度/备注</th><th>对标痛点</th></tr>';
+  ch+='<tr style="background:#FFF2CC;"><td><b>本品基准</b></td><td>'+name+'</td><td>'+cny(purchase)+(purchaseAuto?' <span class="tooltip">(自动估算)</span>':'')+'</td><td>'+fmtCur(bench,cur)+'</td><td>≈'+cny(toCNY(bench,cur))+'</td><td>★ 待售</td><td>基准锚点</td></tr>';
   comp.comp1688.forEach((r,i)=>{ch+='<tr><td>1688-'+(i+1)+'</td><td>'+r[0]+'</td><td>'+cny(r[1])+'</td><td>—</td><td>—</td><td>—</td><td>'+r[2]+'</td></tr>';});
-  comp.compPlat.forEach((r,i)=>{ch+='<tr><td>平台-'+(i+1)+'</td><td>'+r[0]+'</td><td>—</td><td>'+money(r[1],plat)+'</td><td>≈'+cny(toCNY(r[1],plat))+'</td><td>'+r[2]+'</td><td></td></tr>';});
+  comp.compPlat.forEach((r,i)=>{ch+='<tr><td>平台-'+(i+1)+'</td><td>'+r[0]+'</td><td>—</td><td>'+fmtCur(r[1],cur)+'</td><td>≈'+cny(toCNY(r[1],cur))+'</td><td>'+r[2]+'</td><td></td></tr>';});
   document.getElementById('comp_table').innerHTML=ch;
-  // 物流
-  const localFee=plat.local*plat.fx;
-  const seaTotal=purchase+0.5+3.0+2.0+localFee+1.0;
-  const airTotal=purchase+0.5+22.0+2.0+localFee+1.0;
-  let lh='<tr><th>环节</th><th>说明</th><th>海运方案</th><th>海运费用(CNY/件)</th><th>空运方案</th><th>空运费用(CNY/件)</th><th>备注</th></tr>';
-  const lrows=[['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³；空运¥15-25/kg'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T 1-3天',localFee,'JNE/J&T 1-3天',localFee,'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压']];
-  lrows.forEach(r=>{lh+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+cny(r[3])+'</td><td>'+r[4]+'</td><td>'+cny(r[5])+'</td><td>'+r[6]+'</td></tr>';});
-  lh+='<tr style="background:#FFF2CC;"><td><b>单件物流合计</b></td><td></td><td><b>海运到岸 '+cny(seaTotal)+'</b></td><td></td><td><b>空运到岸 '+cny(airTotal)+'</b></td><td></td><td>'+(logiKey==='mixed'?'<span class="neg">混合建议：首批70%海运+30%空运补货</span>':'差 ¥19/件')+'</td></tr>';
+  // 物流（按克重）
+  const seaTotal=purchase+0.5+seaFee+2.0+localFee+1.0;
+  const airTotal=purchase+0.5+(20.0*weightG/1000)+2.0+localFee+1.0;
+  let lh='<tr><th>环节</th><th>说明</th><th>计费方式</th><th>费用(CNY/件)</th><th colspan="3">备注</th></tr>';
+  const lrows=[
+    ['① 采购','工厂采购','按件',purchase,'采购价 '+cny(purchase)],
+    ['② 国内集运','工厂→集货仓','按件',0.5,'含国内运输'],
+    ['③ 国际段海运','中国→'+rg.name,'¥'+rg.seaKg+'/kg × '+weightG+'g',seaFee,'海运LCL 20-35天'],
+    ['④ 清关+仓','清关入库','按件',2.0,'需进口资质'],
+    ['⑤ 本地配送','仓→买家',(weightG<=500?'≤500g按件 ¥'+rg.localSmall:'¥'+rg.localKg+'/kg × '+weightG+'g'),localFee,rg.note+' 1-3天'],
+    ['⑥ 包装','彩盒+袋','按件',1.0,'防压']
+  ];
+  lrows.forEach(r=>{lh+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+cny(r[3])+'</td><td colspan="3">'+r[4]+'</td></tr>';});
+  lh+='<tr style="background:#FFF2CC;"><td><b>单件到岸成本</b></td><td colspan="2"><b>海运 '+cny(seaTotal)+'</b>'+(airShip?' / 空运 '+cny(airTotal):'')+'</td><td></td><td colspan="3">'+(logiKey==='mixed'?'混合建议首批70%海运+30%空运补货':'全海运为主'+((airShip)?'，空运仅补货':''))+'</td></tr>';
   document.getElementById('logi_table').innerHTML=lh;
   // 决策建议
-  const adv=['✅ 项目可行：主力场景（半价档+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat)),
-    '物流建议：'+logi.label+(logiKey==='mixed'?'，首批 70% 海运 + 30% 空运测款补货。':'；空运仅用于补货/测款。'),
-    '定价建议：半价档 Flash 只在大促/清库存使用；日常成交价建议落在基准价的 60-85% 区间保利润。',
-    '注意事项：印尼语标签（强制）、PT PMA 主体、原产国标注；若用品牌名需授权。',
-    (images.length>0?'已上传 '+images.length+' 张图（'+images.filter(i=>i.type==='product').length+'产品 / '+images.filter(i=>i.type==='purchase').length+'采购 / '+images.filter(i=>i.type==='platform').length+'平台 / '+images.filter(i=>i.type==='other').length+'其他）— 图片对照仅在线查看。':'(未上传图片) 若需图片嵌入报表的 xlsx 版，请用本地 CLI 工具 ecom_report_tool.py 生成。')];
+  const adv=[
+    '✅ 项目可行：主力场景（基准原价+'+Math.round(mainAd*100)+'%广告+'+logiKey+'）单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(bench,cur))+'（币种 '+cur+'，1 '+cur+'='+curFx(cur)+' CNY）',
+    '物流（按克重）：克重 '+weightG+'g（品类估算，可手动填覆盖）| 国际段海运 '+cny(seaFee)+' + 本地段'+rg.note+' '+cny(localFee)+' = 运费 '+cny(seaFee+localFee)+'/件',
+    '定价建议：日常成交价建议落在基准价 60-85% 区间保利润；FLASH 促销价若亏本仅作引流款。',
+    '注意事项：'+rg.name+'本地标签合规、当地公司主体、原产国标注；若用品牌名需授权。',
+    (images.length>0?'已上传 '+images.length+' 张图，图片对照在线查看；xlsx 下载为数据版。':'(未上传图片) 如需图片嵌入 xlsx 请用本地 CLI 工具。')
+  ];
   document.getElementById('advice_box').innerHTML=adv.map(a=>'<div style="margin-bottom:6px;">• '+a+'</div>').join('');
 }
 /* ============ 下载 xlsx ============ */
 function downloadXlsx(){
   if(!last)return;
-  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,flash,mainP,mainAd,purchaseAuto}=last;
+  const {name,platKey,logiKey,purchase,bench,ads,disc,plat,logi,ship,airShip,comp,mainP,mainAd,purchaseAuto,cur,weightG}=last;
+  const rg=REGIONS[plat.region];
+  const [seaFee,localFee]=regionFee(plat.region,weightG);
   const wb=XLSX.utils.book_new();
-  const hdr=['降价档','售价('+plat.cur+')','售价(CNY)'];
+  const hdr=['降价档','售价('+cur+')','售价(CNY)'];
   ads.forEach(a=>hdr.push('广告'+Math.round(a*100)+'%净利(CNY)','利润率'));
   const rows=[hdr];
   [0,...disc].forEach(d=>{
-    const price=Math.round(bench*(1-d));const r=[d===0?'原价':('降'+Math.round(d*100)+'%'),money(price,plat),cny(toCNY(price,plat))];
-    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship);r.push(num(p).toFixed(2),(num(rate(price,a,purchase,plat,ship))*100).toFixed(1)+'%');});
+    const price=Math.round(bench*(1-d));const r=[d===0?'原价':('降'+Math.round(d*100)+'%'),fmtCur(price,cur),cny(toCNY(price,cur))];
+    ads.forEach(a=>{const p=profit(price,a,purchase,plat,ship,cur,plat.region,weightG);r.push(num(p).toFixed(2),(num(rate(price,a,purchase,plat,ship,cur,plat.region,weightG))*100).toFixed(1)+'%');});
     rows.push(r);
   });
-  if(airShip){const p=profit(flash,mainAd,purchase,plat,airShip);rows.push(['空运参考(半价档)',money(flash,plat),cny(toCNY(flash,plat)),num(p).toFixed(2),(num(p/toCNY(flash,plat))*100).toFixed(1)+'%']);}
+  if(airShip){const p=profit(bench,mainAd,purchase,plat,airShip,cur,plat.region,weightG);rows.push(['空运参考(基准原价)',fmtCur(bench,cur),cny(toCNY(bench,cur)),num(p).toFixed(2),(num(p/toCNY(bench,cur))*100).toFixed(1)+'%']);}
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'利润明细');
-  const cr=[['序号','商品/卖家','1688价(CNY)','平台价('+plat.cur+')','折合CNY','热度/备注','对标痛点'],['本品基准',name,cny(purchase)+(purchaseAuto?' (自动估算)':''),money(bench,plat),cny(toCNY(bench,plat)),'★ 待售','基准锚点']];
+  const cr=[['序号','商品/卖家','1688价(CNY)','平台价('+cur+')','折合CNY','热度/备注','对标痛点'],['本品基准',name,cny(purchase)+(purchaseAuto?' (自动估算)':''),fmtCur(bench,cur),cny(toCNY(bench,cur)),'★ 待售','基准锚点']];
   comp.comp1688.forEach((r,i)=>cr.push(['1688-'+(i+1),r[0],cny(r[1]),'—','—','—',r[2]]));
-  comp.compPlat.forEach((r,i)=>cr.push(['平台-'+(i+1),r[0],'—',money(r[1],plat),cny(toCNY(r[1],plat)),r[2],'']));
+  comp.compPlat.forEach((r,i)=>cr.push(['平台-'+(i+1),r[0],'—',fmtCur(r[1],cur),cny(toCNY(r[1],cur)),r[2],'']));
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cr),'竞品全景');
-  const dr=[['检查项','结果'],['资质检查',last.checks[0].d],['记忆库去重',last.checks[1].d],['自动搜索',last.checks[2].d],['利润判定',last.checks[3].d],['',''],['定价建议',mainP>0?'✅ 项目可行，主力场景单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(flash,plat)):'⛔ 负利润，停止']];
+  const dr=[['检查项','结果'],['资质检查',last.checks[0].d],['记忆库去重',last.checks[1].d],['自动搜索',last.checks[2].d],['利润判定',last.checks[3].d],['',''],['定价建议',mainP>0?'✅ 项目可行，主力场景单件净利 '+cny(mainP)+'，利润率 '+pct(mainP/toCNY(bench,cur)):'⛔ 负利润，停止'],['币种',cur+'（1 '+cur+'='+curFx(cur)+' CNY）'],['克重',weightG+' g/件']];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(dr),'决策结论');
-  const localFee=plat.local*plat.fx;
-  const lr=[['环节','说明','海运方案','海运费用(CNY/件)','空运方案','空运费用(CNY/件)','备注'],['① 采购','工厂采购','同左',purchase,'同左',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','头程专线',0.5,'同左',0.5,'含国内运输'],['③ 国际段','中国→印尼/美国','海运LCL 20-35天',3.0,'空运5-10天',22.0,'海运USD15-25/m³'],['④ 清关+仓','清关入库','第三方仓',2.0,'第三方仓',2.0,'需进口资质'],['⑤ 本地配送','仓→买家','JNE/J&T',num(localFee).toFixed(2),'JNE/J&T',num(localFee).toFixed(2),'Rp8k-15k/单'],['⑥ 包装','彩盒+袋','随货',1.0,'随货',1.0,'防压'],['','','海运到岸',num(purchase+0.5+3+2+localFee+1).toFixed(2),'空运到岸',num(purchase+0.5+22+2+localFee+1).toFixed(2),'差 ¥19/件']];
+  const lr=[['环节','说明','计费方式','费用(CNY/件)','备注'],['① 采购','工厂采购','按件',purchase,'采购价 '+cny(purchase)],['② 国内集运','工厂→集货仓','按件',0.5,'含国内运输'],['③ 国际段海运','中国→'+rg.name,'¥'+rg.seaKg+'/kg × '+weightG+'g',num(seaFee).toFixed(2),'海运LCL 20-35天'],['④ 清关+仓','清关入库','按件',2.0,'需进口资质'],['⑤ 本地配送','仓→买家',(weightG<=500?'≤500g按件':'¥'+rg.localKg+'/kg × '+weightG+'g'),num(localFee).toFixed(2),rg.note+' 1-3天'],['⑥ 包装','彩盒+袋','按件',1.0,'防压'],['','','单件到岸成本(海运)',num(purchase+0.5+seaFee+2+localFee+1).toFixed(2),(airShip?'空运到岸 '+num(purchase+0.5+(20*weightG/1000)+2+localFee+1).toFixed(2):'全海运')]];
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(lr),'供应链物流');
-  // 显式用 Blob + a.download，文件名稳定可控（避免 SheetJS 内部用临时 UUID）
+  // 显式用 Blob + a.download，文件名稳定可控
   const safeName=(name||'product').replace(/[\\\/:*?"<>|]/g,'_').trim()||'product';
   const fname=safeName+'_选品分析报表.xlsx';
   const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
