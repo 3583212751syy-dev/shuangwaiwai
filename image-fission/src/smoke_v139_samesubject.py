@@ -1,10 +1,10 @@
-"""v142 大裂变+保细节（本机 ComfyUI / SDXL）：img2img(VAEEncode 锁大构图) + IPAdapter style(锁配色画风)
-+ ControlNet Canny 0.50(防细节崩) + Detail Tweaker XL LoRA(强化细节) + 双 KSampler(denoise 重排) + USM 后处理。
-用户定义"裂变"= 元素角度/大小占比/姿态明显变化，或换成同类相关元素；不是保留原图元素只改纹理。
-构图=整体版式能量保留；元素结构=同类型(鹰还是鹰/骷髅还是骷髅)；配色严格锁死；不换物种/不加新色。
-
-新增(08-29)：Detail Tweaker XL LoRA 从 Civitai 下载(add-detail-xl.safetensors 217MB)；
-            ControlNet Tile 暂不集成（TTPlanet 文件 1.07GB fp32 会让 12G 显存爆 OOM）。
+"""v144 真正大胆重排（本机 ComfyUI / SDXL）：v143 仍像原图的根因修复。
+v143 翻车根因：subject 仍描述原图"heraldic crest"（鹰展翅+三骷髅+包裹火焰+垂链+带字盾牌），
+即便 variant 写"换单骷髅/对角链"，模型权重仍偏向 subject，把 variant 当噪音；
+导致 corr 0.665 > v142 的 0.488（更不像原图的方向走反了），banner 文字也没去掉。
+v144 修复：subject 改为直接描述"新设计"（俯冲鹰+单皇冠骷髅+不对称火焰+对角断链+无banner），
+配合更弱 CN 0.22 / 更弱 IPA 0.18，让新 prompt 压过 img2img latent，生成真正不同的构图。
+保留 v143 的反失真设置：Detail Tweaker 1.0 + 1.2MP + 强 anti-mutation 负向。
 
 用法：python smoke_v139_samesubject.py [ref_id]   (默认 eagle_2)
 输出：jobs/smoke_v139/v139_{id}.jpg
@@ -15,32 +15,44 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 COMFYUI = "http://127.0.0.1:8188"
 
-# v142 调参（修复 eagle_2 v141 局部元素失真：鹰脸/小铁链/徽章中心/小元素崩）：
-# - CN 0.20→0.50：恢复轮廓约束但仍允许重排角度/大小占比（不能再弱 Canny，弱了=细节崩）
-# - 加 Detail Tweaker XL LoRA（0.7）：专防高细节区域失真
-# - denoise 0.78 保持：仍允许元素重排
-# - IPA 0.32 保持
+# v144 调参（v143 仍像原图的反向修复）：
+# - CN 0.35→0.22：极弱边缘约束，让新 prompt 压过 latent（不再锁原图 pose）
+# - IPA 0.22→0.18：少锁原图内容，保留"画风配色相关"即可
+# - denoise 0.85 保持：高重排空间
+# - Detail Tweaker 1.0 + 1.2MP 保持：抗红框失真（v143 这点已 OK，保留）
+# - 关键：eagle_2 的 subject 改为直接描述"新设计"（俯冲鹰+单皇冠骷髅+不对称火焰+对角断链+无banner）
 SEED = 700401
 CKPT = "ProteusV0.4.safetensors"
-DENOISE = 0.78
-CN_STRENGTH = 0.50
-IPA_WEIGHT = 0.32
-LORA_DETAIL = 0.7  # Detail Tweaker XL 权重（+加强细节；负向=减少细节）
+DENOISE = 0.85
+CN_STRENGTH = 0.22
+IPA_WEIGHT = 0.18
+LORA_DETAIL = 1.0
+MEGA_PIXELS = 1.2
 
 # 同主体 prompt：subject 严格描述原图“同一类”元素（鹰还是鹰/棕榈还是棕榈/蝴蝶还是蝴蝶），
 # 不替换为别的主体；palette 锁死原图配色，pos/neg 都强调“不加新色、不换主体”。
 REFS = [
     {"id": "eagle_2", "ref_img": "pinterest_eagle_2.jpg", "weight": IPA_WEIGHT,
-     "subject": ("a bald eagle with spread wings and talons, surrounded by red flames, "
-                 "three human skulls below, draped iron chains, gothic heraldic crest"),
-     "palette": ("gothic tattoo illustration, pure black background, white and silver eagle, "
-                 "red and orange flames, gray iron chains"),
-     "variant": ("RECOMPOSE the layout with BIG changes in ANGLE and SCALE: "
-                 "the eagle is now seen from a SIDE PROFILE diving downward with one wing swept up and one tucked (not symmetric spread), "
-                 "the three skulls are REPLACED by ONE large cracked skull placed at the CENTER as the dominant focal element (much larger proportion), "
-                 "the red flames now ERUPT from the BOTTOM-LEFT corner as a sweeping vertical column instead of wrapping all around, "
-                 "the iron chains are REWOVEN into a DIAGONAL swag across the upper right, "
-                 "keep the same gothic black-red-silver palette and heraldic energy, but the elements are clearly rearranged and re-angled")},
+     # v144：subject 直接描述"新设计"，不再提 heraldic crest / banner（v143 仍提了所以模型没逃掉）
+     "subject": ("a single dynamic bald eagle in a top-down diving pose viewed from above, "
+                 "both wings swept back and talons thrust forward and down, "
+                 "a single large cracked human skull wearing an iron spike crown placed prominently "
+                 "at the lower center as the dominant focal point, "
+                 "three distinct asymmetric flame columns rising from the bottom "
+                 "(one tall flame on the left side, one short flame on the right, one diagonal flame ribbon sweeping across), "
+                 "one long iron chain that breaks the frame running diagonally from the top-right corner to the bottom-left corner, "
+                 "pure decorative iron scrollwork filigree, "
+                 "absolutely no banners, no heraldic shields, no inscriptions, no text, no letters, no words, "
+                 "no readable characters anywhere in the image, "
+                 "dramatic asymmetric dynamic composition"),
+     "palette": ("gothic tattoo illustration, pure black background, red and orange flames, "
+                 "white and silver eagle and skull and chain, no new colors"),
+     "variant": ("RADICAL NEW LAYOUT — completely DIFFERENT from any reference heraldic crest. "
+                 "The reference's symmetric spread-wing eagle + three-skull base + wrapping flames + draped chains + inscribed banner "
+                 "is REPLACED by: a top-down diving eagle, ONE central iron-crown skull, asymmetric flame columns, "
+                 "a diagonal breaking chain, and PURE scrollwork with ZERO text. "
+                 "Same black-red-silver-white gothic palette and same eagle/skull/flame/chain element category, "
+                 "but the composition is DRAMATICALLY RECOMPOSED — do NOT mirror or redraw any reference arrangement")},
     {"id": "camo_4", "ref_img": "pinterest_camo_4.jpg", "weight": IPA_WEIGHT,
      "subject": "palm trees and tropical fronds arranged in a military camouflage pattern",
      "palette": "green brown black camouflage, matte, no text"},
@@ -66,28 +78,36 @@ POS_TAIL = (
     "creative alternative interpretation of the reference design, "
     "KEEP the same color palette and overall graphic energy as the reference, "
     "KEEP the same category of elements (same kind of subjects), "
-    "but RECOMPOSE with MAJOR changes in element ANGLE, SCALE and PROPORTION, "
-    "reposition and re-angle the elements, replace with RELATED same-category elements "
-    "in different poses or different arrangements, "
-    "the result must look like a clearly DIFFERENT design that is still obviously related to the original, "
+    "but RECOMPOSE with MAJOR RADICAL changes in element ANGLE, SCALE and PROPORTION, "
+    "reposition and re-angle the elements dramatically, replace with RELATED same-category elements "
+    "in different poses or completely different arrangements, "
+    "the result must look like a CLEARLY DIFFERENT DESIGN that is only LOOSELY inspired by the original, "
+    "BOLD DYNAMIC ASYMMETRIC composition — DO NOT mirror the reference layout, place subjects in UNEXPECTED positions, "
+    "professional high-end commercial apparel graphic with museum-grade craft, "
     "masterpiece best quality ultra detailed, "
-    "anatomically correct and physically coherent subjects, "
+    "anatomically correct and physically coherent subjects with CLEAN READABLE FORMS, "
     "intricate craftsmanship and fine engraved details on every element, "
-    "ULTRA sharp crisp high-contrast edges, "
+    "every small accessory and detail rendered with PIN-SHARP precision, "
+    "ULTRA sharp crisp high-contrast edges on every element, "
     "every element surrounded by a CLEAR solid-black separating outline silhouette, "
     "elements NEVER bleed into neighbors, "
     "bold graphic t-shirt print composition full bleed edge-to-edge, "
+    "ABSOLUTELY NO text, NO letters, NO words, NO alphabet shapes, NO banner inscription, NO readable characters anywhere, "
     "no halftone no noise no grain no smudge no watercolor no soft airbrush"
 )
 NEG_BASE = (
     "frame, border, white border, edge border, box outline, padding, margin, empty corners, letterbox, "
-    "text, letters, words, writing, typography, signature, caption, label, paragraph, "
+    "text, letters, words, writing, typography, signature, caption, label, paragraph, alphabet, "
+    "banner, banner inscription, engraved lettering, runic text, readable text, glyphs, calligraphy, "
     "3d, photographic, painterly, illustration by child, beginner drawing, "
     "blur, soft focus, smooth shading, smudge, soft airbrush, watercolor, "
     "bleeding borders, fused elements, melted edges, soft halo, gradient transition, "
     "out of focus, dreamy, ethereal, foggy, hazy, low contrast, pastel, "
     "small subject, distant view, zoomed out, far away, miniature, tiny, "
     "noise, grain, pixelated, jagged edges, aliasing, duplicate image, exact copy, watermark, "
+    "mutated, malformed, deformed anatomy, broken bones, extra limbs, missing claws, "
+    "melted, fused, smudged, bleeding, water damaged, anatomically incorrect, "
+    "extra wings, asymmetric error, garbled forms, nonsense, AI artifact, tiling, repeating pattern, "
     "new colors, different color palette, extra colors, color shift"
 )
 
@@ -100,7 +120,7 @@ def build(ref, seed):
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
     g["2"] = {"class_type": "LoadImage", "inputs": {"image": ref["ref_img"]}}
     g["3"] = {"class_type": "ImageScaleToTotalPixels", "inputs": {
-        "image": ["2", 0], "upscale_method": "lanczos", "megapixels": 1.0, "resolution_steps": 64}}
+        "image": ["2", 0], "upscale_method": "lanczos", "megapixels": MEGA_PIXELS, "resolution_steps": 64}}
     g["4"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["3", 0], "vae": ["1", 2]}}
     g["5"] = {"class_type": "IPAdapterUnifiedLoader", "inputs": {"model": ["1", 0], "preset": "PLUS (high strength)"}}
     g["6"] = {"class_type": "IPAdapterAdvanced", "inputs": {
