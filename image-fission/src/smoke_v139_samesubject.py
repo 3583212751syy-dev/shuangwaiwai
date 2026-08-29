@@ -1,5 +1,10 @@
-"""v139 同主体裂变（本机 ComfyUI / SDXL）：img2img(VAEEncode 锁构图) + IPAdapter style 0.55(锁配色)
-+ 双 KSampler(denoise 改内部细节)。新规：同类型主体不变、只改内部细节、配色/构图/结构保留、不加新色。
+"""v142 大裂变+保细节（本机 ComfyUI / SDXL）：img2img(VAEEncode 锁大构图) + IPAdapter style(锁配色画风)
++ ControlNet Canny 0.50(防细节崩) + Detail Tweaker XL LoRA(强化细节) + 双 KSampler(denoise 重排) + USM 后处理。
+用户定义"裂变"= 元素角度/大小占比/姿态明显变化，或换成同类相关元素；不是保留原图元素只改纹理。
+构图=整体版式能量保留；元素结构=同类型(鹰还是鹰/骷髅还是骷髅)；配色严格锁死；不换物种/不加新色。
+
+新增(08-29)：Detail Tweaker XL LoRA 从 Civitai 下载(add-detail-xl.safetensors 217MB)；
+            ControlNet Tile 暂不集成（TTPlanet 文件 1.07GB fp32 会让 12G 显存爆 OOM）。
 
 用法：python smoke_v139_samesubject.py [ref_id]   (默认 eagle_2)
 输出：jobs/smoke_v139/v139_{id}.jpg
@@ -10,52 +15,69 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 COMFYUI = "http://127.0.0.1:8188"
 
+# v142 调参（修复 eagle_2 v141 局部元素失真：鹰脸/小铁链/徽章中心/小元素崩）：
+# - CN 0.20→0.50：恢复轮廓约束但仍允许重排角度/大小占比（不能再弱 Canny，弱了=细节崩）
+# - 加 Detail Tweaker XL LoRA（0.7）：专防高细节区域失真
+# - denoise 0.78 保持：仍允许元素重排
+# - IPA 0.32 保持
+SEED = 700401
+CKPT = "ProteusV0.4.safetensors"
+DENOISE = 0.78
+CN_STRENGTH = 0.50
+IPA_WEIGHT = 0.32
+LORA_DETAIL = 0.7  # Detail Tweaker XL 权重（+加强细节；负向=减少细节）
+
 # 同主体 prompt：subject 严格描述原图“同一类”元素（鹰还是鹰/棕榈还是棕榈/蝴蝶还是蝴蝶），
 # 不替换为别的主体；palette 锁死原图配色，pos/neg 都强调“不加新色、不换主体”。
 REFS = [
-    {"id": "eagle_2", "ref_img": "pinterest_eagle_2.jpg", "weight": 0.42,
+    {"id": "eagle_2", "ref_img": "pinterest_eagle_2.jpg", "weight": IPA_WEIGHT,
      "subject": ("a bald eagle with spread wings and talons, surrounded by red flames, "
                  "three human skulls below, draped iron chains, gothic heraldic crest"),
      "palette": ("gothic tattoo illustration, pure black background, white and silver eagle, "
-                 "red and orange flames, gray iron chains")},
-    {"id": "camo_4", "ref_img": "pinterest_camo_4.jpg", "weight": 0.42,
+                 "red and orange flames, gray iron chains"),
+     "variant": ("RECOMPOSE the layout with BIG changes in ANGLE and SCALE: "
+                 "the eagle is now seen from a SIDE PROFILE diving downward with one wing swept up and one tucked (not symmetric spread), "
+                 "the three skulls are REPLACED by ONE large cracked skull placed at the CENTER as the dominant focal element (much larger proportion), "
+                 "the red flames now ERUPT from the BOTTOM-LEFT corner as a sweeping vertical column instead of wrapping all around, "
+                 "the iron chains are REWOVEN into a DIAGONAL swag across the upper right, "
+                 "keep the same gothic black-red-silver palette and heraldic energy, but the elements are clearly rearranged and re-angled")},
+    {"id": "camo_4", "ref_img": "pinterest_camo_4.jpg", "weight": IPA_WEIGHT,
      "subject": "palm trees and tropical fronds arranged in a military camouflage pattern",
      "palette": "green brown black camouflage, matte, no text"},
-    {"id": "illust_1", "ref_img": "pinterest_illust_1.jpg", "weight": 0.42,
+    {"id": "illust_1", "ref_img": "pinterest_illust_1.jpg", "weight": IPA_WEIGHT,
      "subject": ("ornate black and white scrolling acanthus foliage, flowers and decorative "
                  "leaves, symmetrical border frame"),
      "palette": "monochrome ink line illustration, pure black background, white filigree, no color"},
-    {"id": "denim_3", "ref_img": "pinterest_denim_3.jpg", "weight": 0.42,
+    {"id": "denim_3", "ref_img": "pinterest_denim_3.jpg", "weight": IPA_WEIGHT,
      "subject": ("a butterfly perched on a distressed X-shaped denim patch with fabric wear "
                  "and stitch holes"),
      "palette": "vintage faded denim texture, indigo blue and white only"},
-    {"id": "skull_5", "ref_img": "pinterest_skull_5.jpg", "weight": 0.42,
+    {"id": "skull_5", "ref_img": "pinterest_skull_5.jpg", "weight": IPA_WEIGHT,
      "subject": ("a grim human skull with black eye patch, a red snake coiled around it, "
                  "red feathered wings, a red rose"),
      "palette": "gothic tattoo illustration, pure black background, red and white palette"},
-    {"id": "metal_6", "ref_img": "pinterest_metal_6.jpg", "weight": 0.42,
+    {"id": "metal_6", "ref_img": "pinterest_metal_6.jpg", "weight": IPA_WEIGHT,
      "subject": ("a bald eagle perched on a cracked human skull with horn-like spikes, "
                  "radiating lightning bolts"),
      "palette": "death metal illustration, pure black background, white and bronze palette"},
 ]
 
 POS_TAIL = (
-    "same composition and layout as the reference image, "
-    "redraw ONLY the internal details and micro-patterns of these same subjects, "
-    "keep the exact same color palette as the reference, do not change subject types, "
-    "do not introduce new subjects, do not add new colors, "
-    "masterpiece, best quality, ultra detailed, "
-    "anatomically correct and physically coherent subjects "
-    "(real-looking animal anatomy, real-looking metal chains, real-looking fire, real-looking bone), "
+    "creative alternative interpretation of the reference design, "
+    "KEEP the same color palette and overall graphic energy as the reference, "
+    "KEEP the same category of elements (same kind of subjects), "
+    "but RECOMPOSE with MAJOR changes in element ANGLE, SCALE and PROPORTION, "
+    "reposition and re-angle the elements, replace with RELATED same-category elements "
+    "in different poses or different arrangements, "
+    "the result must look like a clearly DIFFERENT design that is still obviously related to the original, "
+    "masterpiece best quality ultra detailed, "
+    "anatomically correct and physically coherent subjects, "
     "intricate craftsmanship and fine engraved details on every element, "
     "ULTRA sharp crisp high-contrast edges, "
     "every element surrounded by a CLEAR solid-black separating outline silhouette, "
-    "elements NEVER bleed into neighbors (fire does NOT melt into eagle, "
-    "skull does NOT blend into background, chains do NOT dissolve into feathers), "
-    "each major element occupies 75 to 90 percent of its allocated area "
-    "(large dramatic macroperspective), "
-    "bold graphic t-shirt print composition, full bleed edge-to-edge, "
-    "no halftone, no noise, no grain, no smudge, no watercolor, no soft airbrush"
+    "elements NEVER bleed into neighbors, "
+    "bold graphic t-shirt print composition full bleed edge-to-edge, "
+    "no halftone no noise no grain no smudge no watercolor no soft airbrush"
 )
 NEG_BASE = (
     "frame, border, white border, edge border, box outline, padding, margin, empty corners, letterbox, "
@@ -66,16 +88,13 @@ NEG_BASE = (
     "out of focus, dreamy, ethereal, foggy, hazy, low contrast, pastel, "
     "small subject, distant view, zoomed out, far away, miniature, tiny, "
     "noise, grain, pixelated, jagged edges, aliasing, duplicate image, exact copy, watermark, "
-    "new colors, different color palette, extra colors, color shift, changed subject, "
-    "different subject type, new subject, replaced main subject"
+    "new colors, different color palette, extra colors, color shift"
 )
-SEED = 700401
-CKPT = "ProteusV0.4.safetensors"
-DENOISE = 0.58
 
 
 def build(ref, seed):
-    pos = (f"t-shirt graphic design, {ref['subject']}, {ref['palette']}, {POS_TAIL}")
+    variant = ref.get("variant", "")
+    pos = (f"t-shirt graphic design, {ref['subject']}, {ref['palette']}, {POS_TAIL} {variant}")
     neg = NEG_BASE
     g = {}
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
@@ -89,22 +108,27 @@ def build(ref, seed):
         "weight": ref["weight"], "weight_type": "style transfer",
         "combine_embeds": "average", "start_at": 0.0, "end_at": 0.85,
         "noise": 0.05, "embeds_scaling": "V only"}}
-    g["8"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["1", 1], "text": pos}}
-    g["9"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["1", 1], "text": neg}}
-    # ControlNet Canny：锁元素轮廓，防止 IPAdapter 把相邻元素融一起
+    # Detail Tweaker XL LoRA：在 IPAdapter 之后加载，注入细节强化能力，防止局部元素失真
+    g["7"] = {"class_type": "LoraLoader", "inputs": {
+        "model": ["6", 0], "clip": ["1", 1],
+        "lora_name": "add-detail-xl.safetensors",
+        "strength_model": LORA_DETAIL, "strength_clip": LORA_DETAIL}}
+    g["8"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["7", 1], "text": pos}}
+    g["9"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["7", 1], "text": neg}}
+    # ControlNet Canny：强度提升到 0.50 恢复细节约束，仍允许重排角度/大小占比
     g["16"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": "controlnet-canny-sdxl-1.0.safetensors"}}
     g["17"] = {"class_type": "Canny", "inputs": {
         "image": ["2", 0], "low_threshold": 0.06, "high_threshold": 0.20, "resolution": 1024}}
     g["18"] = {"class_type": "ControlNetApply", "inputs": {
         "conditioning": ["8", 0],
         "control_net": ["16", 0], "image": ["17", 0],
-        "strength": 0.40}}
+        "strength": CN_STRENGTH}}
     g["10"] = {"class_type": "KSampler", "inputs": {
-        "model": ["6", 0], "positive": ["18", 0], "negative": ["9", 0],
+        "model": ["7", 0], "positive": ["18", 0], "negative": ["9", 0],
         "latent_image": ["4", 0], "seed": seed, "steps": 32, "cfg": 6.0,
         "sampler_name": "euler", "scheduler": "normal", "denoise": DENOISE}}
     g["11"] = {"class_type": "KSampler", "inputs": {
-        "model": ["6", 0], "positive": ["18", 0], "negative": ["9", 0],
+        "model": ["7", 0], "positive": ["18", 0], "negative": ["9", 0],
         "latent_image": ["10", 0], "seed": seed + 1, "steps": 28, "cfg": 6.0,
         "sampler_name": "euler", "scheduler": "normal", "denoise": 0.20}}
     g["12"] = {"class_type": "VAEDecode", "inputs": {"samples": ["11", 0], "vae": ["1", 2]}}
