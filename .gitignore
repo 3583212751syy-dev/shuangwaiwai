@@ -24,3 +24,8 @@ node_modules/
 # Local/project metadata and nested repos
 .workbuddy/
 codex/ecom_report_memory.db
+
+# Build/diagnostic artifacts (not source)
+*.err
+*.ttf
+diag_*.txt

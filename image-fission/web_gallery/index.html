@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图像裂变 v147 测试台 · 原图 vs 裂变（颜色锁定）</title>
+<style>
+  :root{
+    --bg:#0e0f12; --panel:#16181d; --line:#2a2d34; --txt:#e8eaf0;
+    --muted:#9aa0ab; --accent:#ff6a3d; --accent2:#4dd0e1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;}
+  header{padding:22px 26px 14px;border-bottom:1px solid var(--line);}
+  h1{margin:0 0 6px;font-size:20px;font-weight:650;letter-spacing:.5px;}
+  .sub{color:var(--muted);font-size:13px;line-height:1.6;}
+  .badge{display:inline-block;background:var(--accent);color:#1a0d07;
+    font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));
+    gap:22px;padding:24px 26px 60px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;display:flex;flex-direction:column;}
+  .card h2{margin:0;padding:14px 16px;font-size:15px;font-weight:600;
+    border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .tag{font-size:11px;color:var(--muted);font-weight:400;}
+  .cmp{position:relative;width:100%;aspect-ratio:1/1;background:#000;user-select:none;touch-action:none;cursor:ew-resize;}
+  .cmp img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;}
+  .cmp .top{overflow:hidden;width:50%;border-right:2px solid var(--accent);}
+  .cmp .top img{width:100vw;max-width:none;} /* keep orig full width */
+  .cmp .top img{width:200%;} /* the container is narrower; we use a wrapper instead */
+  .handle{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
+    left:50%;pointer-events:none;}
+  .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:30px;height:30px;border-radius:50%;background:var(--accent);
+    box-shadow:0 2px 8px rgba(0,0,0,.5);border:3px solid #fff;}
+  .lbl{position:absolute;top:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;
+    background:rgba(0,0,0,.55);backdrop-filter:blur(4px);}
+  .lbl.l{left:10px;color:var(--accent2);}
+  .lbl.r{right:10px;color:var(--accent);}
+  .foot{padding:11px 16px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);line-height:1.55;}
+  .foot b{color:var(--txt);font-weight:600;}
+  .note{max-width:1100px;margin:0 26px 8px;padding:12px 16px;border:1px dashed var(--line);
+    border-radius:10px;color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .note b{color:var(--accent2);}
+</style>
+</head>
+<body>
+<header>
+  <h1>图像裂变 v147 测试台 <span class="badge">颜色锁定</span></h1>
+  <div class="sub">
+    左侧 = 原图（pinterest 参考）｜右侧 = v147 管线裂变底图。<b style="color:var(--accent)">拖动中间圆点</b>对比差异。
+    v147 管线参数已锁死（denoise 0.80 / tile 0.60 / canny 0.25 / IPA style 0.18），<b style="color:var(--accent2)">配色与原图一致，不偏移</b>。
+    后续“裂变更大”只改单图的区域提示词，绝不动地基/不动颜色。
+  </div>
+</header>
+
+<div class="note">
+  <b>测试说明：</b>用滑块拖到最左看原图、最右看裂变，中间过渡看差异。重点看三类维度：
+  ① <b>配色</b>是否与原图一致（黑底白线/棕黄/银灰等）；② <b>主体</b>是否保留（鹰还是鹰、骷髅还是骷髅）；
+  ③ <b>裂变内容</b>变化是否明显（骷髅→玫瑰、闪电→水晶等）。看完告诉我要对哪张“再大一点”，我只改那张的区域提示词。
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const items = [
+  {key:"camo_4",   name:"camo_4 迷彩棕榈",   orig:"img/orig_camo_4.jpg",   fiss:"img/fiss_camo_4.jpg",
+   feat:"原：单棵棕榈 + 迷彩底。裂变：多一棵椰子树 + 左下小棕榈 + 底部 6 只排队小棕榈。"},
+  {key:"denim_3",  name:"denim_3 牛仔蝴蝶",  orig:"img/orig_denim_3.jpg",  fiss:"img/fiss_denim_3.jpg",
+   feat:"原：单只蝴蝶 + 牛仔布。裂变：三只蝴蝶 + 连接弧点 + 顶部流苏。"},
+  {key:"illust_1", name:"illust_1 线描花",   orig:"img/orig_illust_1.jpg", fiss:"img/fiss_illust_1.jpg",
+   feat:"原：中央大花。裂变：中央大花 + 对角卷草 + 左下镜像 + 右下点带 + 顶徽章。"},
+  {key:"metal_6",  name:"metal_6 金属鹰骷",  orig:"img/orig_metal_6.jpg",  fiss:"img/fiss_metal_6.jpg",
+   feat:"原：鹰 + 角骷髅 + 闪电。裂变：鹰 + 角骷髅 + 左右闪电 + 底刺带。"},
+  {key:"skull_5",  name:"skull_5 墓碑骷髅",  orig:"img/orig_skull_5.jpg",  fiss:"img/fiss_skull_5.jpg",
+   feat:"原：墓碑骷髅 + 蛇 + 玫瑰 + 文字。裂变：翼分区 + 蛇 + 玫瑰（文字后续 v169e 直贴保留）。"},
+];
+
+const grid = document.getElementById('grid');
+items.forEach(it=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <h2>${it.name}<span class="tag">${it.key}</span></h2>
+    <div class="cmp" data-key="${it.key}">
+      <img class="bottom" src="${it.fiss}" alt="裂变">
+      <div class="top"><img src="${it.orig}" alt="原图"></div>
+      <div class="handle"></div>
+      <span class="lbl l">原图</span>
+      <span class="lbl r">v147 裂变</span>
+    </div>
+    <div class="foot"><b>裂变内容：</b>${it.feat}</div>
+  `;
+  grid.appendChild(card);
+});
+
+// 让 .top 内部 img 与容器等宽（orig 不被压缩）
+document.querySelectorAll('.top img').forEach(img=>{
+  img.style.width = img.parentElement.parentElement.clientWidth + 'px';
+});
+window.addEventListener('resize', ()=>{
+  document.querySelectorAll('.top img').forEach(img=>{
+    img.style.width = img.parentElement.parentElement.clientWidth + 'px';
+  });
+});
+
+// 滑块逻辑
+document.querySelectorAll('.cmp').forEach(cmp=>{
+  const top = cmp.querySelector('.top');
+  const handle = cmp.querySelector('.handle');
+  let dragging = false;
+  function setX(x){
+    const rect = cmp.getBoundingClientRect();
+    let pct = (x - rect.left) / rect.width;
+    pct = Math.max(0, Math.min(1, pct));
+    const w = pct * 100;
+    top.style.width = w + '%';
+    handle.style.left = w + '%';
+    // 同步 orig 图视觉宽度（让它不随容器裁剪而缩放）
+    const orig = top.querySelector('img');
+    orig.style.width = (rect.width / Math.max(w/100,0.001)) + 'px';
+    orig.style.maxWidth = 'none';
+  }
+  function start(e){dragging=true; move(e);}
+  function move(e){
+    if(!dragging) return;
+    const x = (e.touches? e.touches[0].clientX : e.clientX);
+    setX(x);
+  }
+  function end(){dragging=false;}
+  cmp.addEventListener('mousedown', start);
+  cmp.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  cmp.addEventListener('touchstart', start, {passive:true});
+  cmp.addEventListener('touchmove', move, {passive:true});
+  cmp.addEventListener('touchend', end);
+});
+</script>
+</body>
+</html>

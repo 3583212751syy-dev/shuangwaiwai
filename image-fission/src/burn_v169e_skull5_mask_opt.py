@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFilter
 from pathlib import Path
 
 ROOT = Path("E:/Desktop/双接口/image-fission")
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs/skull_5")
 ORIG = ROOT / "ComfyUI" / "input" / "pinterest_skull_5.jpg"
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_skull_5.jpg"
 OUT = DESK / "image-fission-v169e-skull_5-orig-text-clean.jpg"
@@ -54,7 +54,7 @@ def main():
     print(f"[ok] {OUT.name}")
 
     # 四联对照：原图 | v164干净 | v169d 旧 mask | v169e 新 mask
-    v169d = Image.open(DESK / "image-fission-v169d-skull_5-orig-text-pasted.jpg").convert("RGB")
+    # v169d 对照图源文件已丢失，省略该对照格
     H_show = 1450
     gap = 20
 
@@ -65,8 +65,7 @@ def main():
     panels = [
         (fit(orig), "原图 TRUE/NEVER/DIES"),
         (fit(Image.open(BASE)), "v164 裂变底图 (禁词)"),
-        (fit(v169d), "v169d 旧 mask (有背景残留)"),
-        (fit(out_im), "v169e 新 mask (仅红字+紧邻黑边)"),
+        (fit(out_im), "v169e (字体10/10 1:1 原图)"),
     ]
     total_w = sum(p.width for p, _ in panels) + gap * (len(panels) - 1)
     header_h = 70
