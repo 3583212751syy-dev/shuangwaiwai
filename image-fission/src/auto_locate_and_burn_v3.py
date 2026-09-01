@@ -28,9 +28,12 @@ WORD_REPLACE = {
     },
     "camo_armed": {
         "WE SUPPORT THE": ("WE HONOR",   "Rye-Regular.ttf",        (30, 28, 24, 255), "row1"),
+        # OCR 容错（SDXL 把 ARMED 写成 ARRMILEDD）
         "ARMED":          ("THE",        "PirataOne-Regular.ttf",  (30, 28, 24, 255), "row2"),
+        "ARRMILEDD":      ("THE",        "PirataOne-Regular.ttf",  (30, 28, 24, 255), "row2"),
+        # OCR 容错（SDXL 把 FORCES 写成 FODIPEEES）
         "FORCES":         ("BRAVE",      "PirataOne-Regular.ttf",  (30, 28, 24, 255), "row3"),
-        # 整行 OCR 可能合并，需要按 y 位置分行处理
+        "FODIPEEES":      ("BRAVE",      "PirataOne-Regular.ttf",  (30, 28, 24, 255), "row3"),
     },
 }
 
@@ -50,7 +53,7 @@ def inpaint_region(img_rgb, box, radius=5):
     # 扩展 8px 边界让 inpaint 羽化
     pad = 8
     mask[max(0,y1-pad):y2+pad, max(0,x1-pad):x2+pad] = 255
-    img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2)
+    img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
     out = cv2.inpaint(img_bgr, mask, inpaintRadius=radius, flags=cv2.INPAINT_TELEA)
     return cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
 
