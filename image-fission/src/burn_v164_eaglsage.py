@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path("E:/Desktop/双接口/image-fission")
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 
 # 取 v163 eagle_2 裂变图为底图
 BASE = ROOT / "jobs" / "smoke_v163" / "final_eagle_2.jpg"

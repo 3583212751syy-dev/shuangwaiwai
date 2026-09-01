@@ -244,7 +244,7 @@ def main():
         print(f"  [BURN] {burn.name} {burn.stat().st_size/1024/1024:.2f}MB", flush=True)
 
     # 8. 复制到 outputs/ 和桌面
-    desktop = Path("E:/Desktop/image-fission-v162-eagle_2.jpg")
+    desktop = Path("E:/Desktop/双接口/image-fission/outputs/image-fission-v162-eagle_2.jpg")
     shutil.copy(burn, OUTPUTS / "eagle_2_final.jpg")
     shutil.copy(burn, desktop)
     print(f"  [OUT] {desktop}", flush=True)

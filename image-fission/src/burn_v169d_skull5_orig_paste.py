@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFilter
 from pathlib import Path
 
 ROOT = Path("E:/Desktop/双接口/image-fission")
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 ORIG = ROOT / "ComfyUI" / "input" / "pinterest_skull_5.jpg"
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_skull_5.jpg"
 OUT = DESK / "image-fission-v169d-skull_5-orig-text-pasted.jpg"

@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import random
 
 ROOT = Path("E:/Desktop/双接口/image-fission")
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_metal_6.jpg"
 out = DESK / "image-fission-v166b-metal_6-SKULLWING-logo.jpg"

@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 # 桌面交付
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 v167 = Image.open(r"E:\Desktop\双接口\image-fission\jobs\smoke_v167\v167_metal_6.jpg").convert("RGB")
 v167.save(DESK / "image-fission-v167-metal_6.jpg", "JPEG", quality=92, optimize=True)
 print(f"[desk] v167 桌面 {v167.size} {(DESK / 'image-fission-v167-metal_6.jpg').stat().st_size/1024/1024:.2f}MB")

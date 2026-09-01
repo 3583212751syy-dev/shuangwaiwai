@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 ROOT = Path("E:/Desktop/双接口/image-fission")
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_skull_5.jpg"
 
 RED_MAIN = (192, 28, 40)

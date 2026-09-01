@@ -17,7 +17,7 @@ ROOT = Path("E:/Desktop/双接口/image-fission")
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_metal_6.jpg"
 OUT_DIR = ROOT / "jobs" / "smoke_v166d"
 OUT_DIR.mkdir(exist_ok=True, parents=True)
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 
 WORD = "SKULLWING"
 

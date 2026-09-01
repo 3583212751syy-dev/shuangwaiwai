@@ -2,7 +2,7 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 
 # 1) 桌面交付 v168 单图
 v168 = Image.open(r"E:\Desktop\双接口\image-fission\jobs\smoke_v168\v168_skull_5.jpg").convert("RGB")

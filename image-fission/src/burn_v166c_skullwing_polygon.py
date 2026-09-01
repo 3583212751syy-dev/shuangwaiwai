@@ -14,7 +14,7 @@ ROOT = Path("E:/Desktop/双接口/image-fission")
 BASE = ROOT / "jobs" / "smoke_v164" / "v164_metal_6.jpg"  # v164 干净底图，未加我的logo
 OUT_DIR = ROOT / "jobs" / "smoke_v166c"
 OUT_DIR.mkdir(exist_ok=True, parents=True)
-DESK = Path("E:/Desktop")
+DESK = Path("E:/Desktop/双接口/image-fission/outputs")
 
 WORD = "SKULLWING"  # 8 字, 骷髅+翼, 0 侵权
 print(f"[v166c] base={BASE}")
