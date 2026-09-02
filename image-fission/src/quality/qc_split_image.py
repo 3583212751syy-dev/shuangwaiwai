@@ -11,7 +11,7 @@ qc_split_image.py —— 裂变前后拼图对照 自动量化质检
     python qc_split_image.py <图像路径>
 """
 from __future__ import annotations
-import sys, json, math
+import sys, json, math, argparse
 from collections import Counter
 from PIL import Image, ImageFilter, ImageStat
 
@@ -198,7 +198,7 @@ def diagnose(d: dict) -> list[str]:
     return flags
 
 
-def _build_compare_report(orig_img: Image.Image, gen_img: Image.Image, orig_label: str = "ORIG", gen_label: str = "FISSION") -> dict:
+def _build_compare_report(orig_img: Image.Image, gen_img: Image.Image, orig_label: str = "ORIG", gen_label: str = "FISSION", top_thr: float = 0.75, lap_thr: float = 0.75) -> dict:
     """Core analysis: build the same JSON dict as the split-image mode,
     but given two separate images (orig and generated), normalized to same size."""
     if orig_img.size != gen_img.size:
@@ -242,16 +242,22 @@ def _build_compare_report(orig_img: Image.Image, gen_img: Image.Image, orig_labe
         "hist_chi2": round(hist_diff(left, right), 4),
     }
     report["flags"] = diagnose(report)
-    report["passed"] = _gate(report)
+    report["passed"] = _gate(report, top_thr=top_thr, lap_thr=lap_thr)
     return report
 
 
-def _gate(d: dict) -> bool:
-    """Hard gate: must pass ALL of these to be PASS."""
+def _gate(d: dict, top_thr: float = 0.75, lap_thr: float = 0.75) -> bool:
+    """Hard gate: must pass ALL of these to be PASS.
+
+    Args:
+        top_thr: 顶部文字 Laplacian 阈值倍率（默认 0.75 = Didone Display 标准；
+                  humanist serif 上限 0.50 = Lora/Spectral/EBGaramond 等细笔画字体）
+        lap_thr: 整体 Laplacian 阈值倍率（默认 0.75）
+    """
     left = d["left"]; right = d["right"]
-    if right["laplacian_variance"] < left["laplacian_variance"] * 0.75:
+    if right["laplacian_variance"] < left["laplacian_variance"] * lap_thr:
         return False
-    if right["text_top_laplacian_var"] < left["text_top_laplacian_var"] * 0.75:
+    if right["text_top_laplacian_var"] < left["text_top_laplacian_var"] * top_thr:
         return False
     if right["edge_density"] > left["edge_density"] * 1.3:
         return False
@@ -284,20 +290,32 @@ def main():
     #   - 1 arg: split-image mode (existing)
     #   - 2 args: compare mode (orig_path, gen_path)
     #   - 3 args: compare mode + save side-by-side preview
-    if len(sys.argv) < 2:
+    #   --top-thr N: 顶部文字 Laplacian 阈值倍率（默认 0.75 = Didone Display，
+    #                 用 humanist serif / Lora 等细笔画字体时传 0.50）
+    #   --lap-thr N: 整体 Laplacian 阈值倍率（默认 0.75）
+    ap = argparse.ArgumentParser(add_help=False)
+    ap.add_argument("inputs", nargs="*")
+    ap.add_argument("--top-thr", type=float, default=0.75)
+    ap.add_argument("--lap-thr", type=float, default=0.75)
+    args = ap.parse_args()
+
+    if len(args.inputs) == 0:
         print("usage:")
         print("  python qc_split_image.py <split_compare_image>")
         print("  python qc_split_image.py <orig_path> <gen_path> [out_compare.jpg]")
+        print("  [--top-thr 0.50]  # humanist serif 上限")
+        print("  [--lap-thr 0.50]  # 自定义整体阈值")
         sys.exit(1)
 
-    if len(sys.argv) >= 3:
-        orig_path, gen_path = sys.argv[1], sys.argv[2]
-        out_path = sys.argv[3] if len(sys.argv) >= 4 else None
+    if len(args.inputs) >= 2:
+        orig_path, gen_path = args.inputs[0], args.inputs[1]
+        out_path = args.inputs[2] if len(args.inputs) >= 3 else None
         orig = Image.open(orig_path).convert("RGB")
         gen = Image.open(gen_path).convert("RGB")
-        report = _build_compare_report(orig, gen)
+        report = _build_compare_report(orig, gen, top_thr=args.top_thr, lap_thr=args.lap_thr)
         report["orig_path"] = orig_path
         report["gen_path"] = gen_path
+        report["thresholds"] = {"top_thr": args.top_thr, "lap_thr": args.lap_thr}
         if out_path:
             _build_side_by_side(orig_path, gen_path, out_path)
             report["compare_image"] = out_path
@@ -310,7 +328,7 @@ def main():
             sys.exit(0)
 
     # legacy 1-arg split-image mode
-    im = Image.open(sys.argv[1]).convert("RGB")
+    im = Image.open(args.inputs[0]).convert("RGB")
     w, h = im.size
     mid = w // 2
     left = im.crop((0, 0, mid, h))
@@ -351,7 +369,7 @@ def main():
         "hist_chi2": round(hist_diff(left, right), 4),
     }
     report["flags"] = diagnose(report)
-    report["passed"] = _gate(report)
+    report["passed"] = _gate(report, top_thr=args.top_thr, lap_thr=args.lap_thr)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     if not report["passed"]:
         print("\n[GATE] ❌ FAIL")
