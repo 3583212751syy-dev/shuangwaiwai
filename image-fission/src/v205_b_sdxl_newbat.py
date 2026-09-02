@@ -42,41 +42,37 @@ SAVE_PREFIX = f"{JOB_ID}/mode1"
 
 # ---- prompt ----
 POSITIVE = (
-    "a single gothic bat crest emblem centered in frame, "
-    "wings fully spread wide in downward swoop, "
-    "prominent claws extended forward, sharp angular wings with pointed tips, "
-    "vector illustration style, professional badge logo, "
-    "dark purple #5C2A6E base with medium purple #B77697 highlights and dark #2A0F40 shadows, "
-    "isolated on a smooth purple gradient background, "
-    "clean composition, sharp details, vector emblem, 8k quality, "
-    "intricate line work, emblems, medallion, heraldic style, "
-    "no text, no watermark, no logo, no letters, no words"
-)
-NEGATIVE = (
-    "low quality, blurry, deformed, watermark, text, letters, words, "
-    "logo, brand, badge, border, frame, signature, blurry wings, "
-    "extra fingers, mutated, jpeg artifacts, noise"
+    "a single simple gothic heraldic crest centered in frame, "
+    "dusk vintage distillation bottle label style, "
+    "tightly cropped, NO outer frame, NO border, NO filigree, NO castle, "
+    "ONLY the bat itself in center, "
+    "gothic bat with sharp angular spread wings, "
+    "downward swoop dive pose, prominent claws, "
+    "two color monochrome purple duotone only, "
+    "dark #2A0F40 base and #B77697 highlights, "
+    "solid purple gradient background, "
+    "no text, no watermark, no logo letters, no frame ornament"
 )
 
-# ---- workflow（精简版，无 IPAdapter）----
-# 节点编号：
-#   1 = CheckpointLoaderSimple
-#   2 = LoraLoader (DD-vector-v2)
-#   6 = CLIPTextEncode positive (从节点 2 模型走 CLIP)
-#   7 = CLIPTextEncode negative
-#   8 = EmptyLatentImage (1024x1024)
-#   9 = KSampler
-#   10 = VAEDecode (从节点 1 走 VAE，绕过 LoRA 干扰)
-#   11 = SaveImage (前缀 smoke_v205_b/mode1)
+NEGATIVE = (
+    "low quality, blurry, deformed, watermark, text, letters, words, "
+    "logo, brand, badge text, border frame, signature, "
+    "extra fingers, mutated, jpeg artifacts, noise, "
+    "cute, kawaii, cartoon, disney, chibi, anime, "
+    "frame, border, filigree, scroll, castle, building, mountain, sky, moon, sun, "
+    "ornament, decoration, ribbon, banner"
+)
+
+# ---- workflow（最小：ProteusV0.4 + Harrlogos_XL_v2 + prompt 主导）----
 workflow = {
     "1": {"class_type": "CheckpointLoaderSimple",
-          "inputs": {"ckpt_name": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"}},
+          "inputs": {"ckpt_name": "ProteusV0.4.safetensors"}},
     "2": {"class_type": "LoraLoader",
           "inputs": {"model": ["1", 0],
                      "clip": ["1", 1],
-                     "lora_name": "DD-vector-v2.safetensors",
-                     "strength_model": 0.70,
-                     "strength_clip": 0.70}},
+                     "lora_name": "Harrlogos_XL_v2.safetensors",
+                     "strength_model": 0.65,
+                     "strength_clip": 0.65}},
     "6": {"class_type": "CLIPTextEncode",
           "inputs": {"text": POSITIVE, "clip": ["2", 1]}},
     "7": {"class_type": "CLIPTextEncode",
@@ -84,9 +80,9 @@ workflow = {
     "8": {"class_type": "EmptyLatentImage",
           "inputs": {"width": 1024, "height": 1024, "batch_size": 1}},
     "9": {"class_type": "KSampler",
-          "inputs": {"seed": 1860210042,    # 固定种子便于复现
-                     "steps": 32,
-                     "cfg": 6.5,
+          "inputs": {"seed": 1860210042,
+                     "steps": 36,         # 多几步让细节更精致
+                     "cfg": 8.5,          # 高 CFG 强 prompt 主导，避免徽章过装饰
                      "sampler_name": "dpmpp_2m",
                      "scheduler": "karras",
                      "denoise": 1.0,
