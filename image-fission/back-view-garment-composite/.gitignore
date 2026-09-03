@@ -1,0 +1,15 @@
+# 本仓库归档的是脚本+成品，排除大体积产物/环境
+ComfyUI/
+venv/
+catvton_venv/
+CatVTON/
+__pycache__/
+*.log
+*.pyc
+# 排除未筛选的中间结果（results/ 仅保留精选交付，若需全部请手动 add）
+results/**/back_v3[0-9]_*.png
+results/**/back_v4[0-9]_*.png
+results/**/back_view_*.png
+results/**/back_body_*.png
+results/**/back_cleaned_*.png
+results/**/back_flipped_*.png
