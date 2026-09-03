@@ -513,6 +513,7 @@ def main(argv=None):
     ap.add_argument("--auto-search", action="store_true", help="内置价格库匹配")
     ap.add_argument("--output", default="", help="输出 xlsx 路径")
     ap.add_argument("--force", action="store_true", help="跳过记忆库去重")
+    ap.add_argument("--allow-cert", action="store_true", help="豁免资质认证闸（仅标注警告，报表仅供选品可行性参考）")
     args = ap.parse_args(argv)
 
     if args.config and os.path.exists(args.config):
@@ -541,12 +542,19 @@ def main(argv=None):
     # ---------- 禁用条件 ----------
     checks = []
     need_cert, cert_list = check_certification(args.product_name, args.platform)
-    checks.append(("资质检查", not need_cert,
-                   "✅ 无强制资质门槛" if not need_cert else f"❌ 需强制资质：{'、'.join(cert_list)}（停止出表）"))
-    if need_cert:
+    if need_cert and not args.allow_cert:
+        checks.append(("资质检查", False,
+                       f"❌ 需强制资质：{'、'.join(cert_list)}（停止出表）"))
         result_meta = {"checks": checks, "advice": [f"该产品触发强制资质（{'、'.join(cert_list)}），按禁用规则停止生成报表。"]}
         _emit_blocked(args, result_meta, "资质不足", cert_list)
         return 1
+    if need_cert:
+        checks.append(("资质警告", False,
+                       f"⚠️ 需强制资质：{'、'.join(cert_list)}（已豁免，仅供选品参考）"))
+        cert_advice = [f"⚠️ 合规缺口：该产品属{'、'.join(cert_list)}，印尼 Shopee 上架前须取得对应认证，否则不得销售。已按 --allow-cert 豁免资质闸，本报表仅作选品可行性测算。"]
+    else:
+        checks.append(("资质检查", True, "✅ 无强制资质门槛"))
+        cert_advice = []
 
     conn = init_memory()
     dup = None if args.force else check_duplicate(conn, args.product_name, args.platform)
@@ -592,7 +600,7 @@ def main(argv=None):
         f"币种：{args.currency}（1 {args.currency} = {CURRENCIES[args.currency]} CNY），全部金额已换算人民币",
         "定价建议：日常价建议落在基准价 60-85% 区间保利润；FLASH 促销价若亏本仅作引流款。",
     ]
-    result_meta = {"checks": checks, "advice": advice}
+    result_meta = {"checks": checks, "advice": advice + cert_advice}
     out_path = args.output or os.path.join(
         os.path.expanduser("~"), "Desktop", f"{args.product_name}_{args.platform}_选品分析报表.xlsx")
     try:
