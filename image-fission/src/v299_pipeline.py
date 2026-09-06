@@ -132,37 +132,38 @@ def make_clean_source():
     clean[bat_mask_pre > 127] = bat_pixels[bat_mask_pre > 127]
     print(f"[bat] {int((bat_mask_pre>127).sum())}px")
 
-    # 4) 底部矩形清黑字；rect 1450-1550 跳过（留给底三角），蝙蝠下方矩形上沿提高到 1050
+    # 4) 底部矩形清黑字（maxc<70 纯黑字；sum<200 会误杀深紫圆暗部——圆盘下半被抹的元凶）
     rects = [
-        (1080, 1200, 50,   1500),  # 原本 900-1200: 上提避开蝙蝠翅膀下沿
+        (1080, 1200, 50,   1500),
         (1200, 1400, 200,  1350),
         (700,  920,  240,  700),
         (700,  920,  870,  1320),
-        # 1450-1550, 620-930 跳过，保留原图底三角
     ]
     for y0, y1, x0, x1 in rects:
         region = np.zeros((h, w), dtype=bool)
         region[y0:y1, x0:x1] = True
-        black_in_rect = (arr.sum(axis=2) < 200) & region
+        black_in_rect = (arr.max(axis=2) < 70) & region
         clean[black_in_rect] = bg_color
         print(f"[rect] {y0}-{y1},{x0}-{x1} 黑字清除 {int(black_in_rect.sum())}px")
 
-    # 5) y > 940（蝙蝠尾巴以下）分区清除：
-    #    盘外非蝙蝠 → 填外圈紫底（与周围连续）；盘内非蝙蝠字 → 先占位，稍后盘内邻域修复
+    # 5) 盘外 y>940 非蝙蝠 → 填外圈紫底；盘内字残留只在固定小矩形内清（maxc<90 含抗锯齿）
+    #    严禁盘内大面积整块清——会抹掉深紫圆下半，下翼膜弧口失去对比（"翅膀被剪"的真相）
     ys_grid, xs_grid = np.mgrid[0:h, 0:w]
     lower_zone = ys_grid > 940
     not_bat = bat_mask_pre == 0
     inner_badge_bool = inner_badge > 0 if not isinstance(inner_badge, bool) else inner_badge
     outside_disk = ~inner_badge_bool
     clear_outside = lower_zone & not_bat & outside_disk
-    # 盘内 y>940 非蝙蝠区域整块修复（含抗锯齿中间调，否则留字形鬼影）
-    clear_inside = lower_zone & not_bat & inner_badge_bool
     clean[clear_outside] = bg_color
-    clean[clear_inside] = bg_color  # 占位
-    print(f"[lower] 盘外清 {int(clear_outside.sum())}px 盘内待修复 {int(clear_inside.sum())}px")
+    text_rect = np.zeros((h, w), dtype=bool)
+    text_rect[935:1085, 560:990] = True
+    # 字身（maxc<90）+ BACARDÍ 浅色描边（min>195）都清；深紫圆（min 25-60/max 80-140）保留
+    clear_inside = text_rect & not_bat & inner_badge_bool & ((arr.max(axis=2) < 90) | (arr.min(axis=2) > 195))
+    clean[clear_inside] = bg_color  # 占位，稍后 inpaint
+    print(f"[lower] 盘外清 {int(clear_outside.sum())}px 盘内字残留待修复 {int(clear_inside.sum())}px")
 
-    # 6) 圆盘内非蝙蝠暗像素孤立小连通域（杂点）→ 同样收集为待修复
-    stray = ((arr.min(axis=2) < 80) & inner_badge_bool & not_bat).astype(np.uint8)
+    # 6) 圆盘内非蝙蝠纯黑杂点（maxc<70）→ 收集为待修复（min<80 会误判深紫圆暗部）
+    stray = ((arr.max(axis=2) < 70) & inner_badge_bool & not_bat).astype(np.uint8)
     n_lab, labels, stats, _ = cv2.connectedComponentsWithStats(stray, connectivity=8)
     disk_fix = clear_inside.copy()
     removed = 0
@@ -294,7 +295,7 @@ def make_variants(src_img):
 
     variants = {}
     variants["up"] = warp(10, -42, -10, -42)      # 双翅大幅上扬
-    variants["spread"] = warp(-72, -10, 72, -10)  # 双翅完全外展
+    variants["spread"] = warp(-45, -8, 45, -8)    # 双翅外展（72px 会拉出"一字眉"膜条+搅花盘缘纹理）
     variants["fold"] = warp(-14, 8, 14, 8)        # 双翅收拢微沉
     return variants
 
