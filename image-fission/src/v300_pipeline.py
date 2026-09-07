@@ -270,12 +270,24 @@ def _extract_bat_keypoints(bat_m, lm):
     return pts
 
 
-def _rot_warp(layer_pixels, layer_alpha, bat_half, theta, rot_c, h, w):
-    """刚体旋转形变（骨骼式）：半翼绕肩点 rot_c 整体旋转。
-    cover = 原半翼 ∪ 旋转后半翼 —— 两者都必须权重 1：
-      只用原 mask 时，翅膀新位置权重=0 → 输出原像素=背景，翅膀"原地消失"（v300 首跑教训）。
-    刚体 = 翅膀内部像素全部来自原翅膀纯旋转（零拉伸/零失真）；
-    TPS/平移大位移的 backward 采样越界拉入背景=幽灵膜（已证伪，弃用）。"""
+def _rot_warp(layer_in, wing_soft, wing_bin, body_block, body_keep, bg_layer, theta, rot_c, h, w, keep_new=None):
+    """刚体旋转形变（骨骼式）：纯翅膀半翼绕 rot_c 整体旋转，三层混合：
+      out = src_warp*w_new + bg_layer*w_old + layer_in*(1-w_new-w_old)
+      wing_soft = 源空间贴回权重（翼根距身体 0~22px 渐变 0→1）。
+        ★ 翼根渐变必须编码在源空间、随内容一起旋转（v300 十三轮定稿）。
+          输出空间的邻域渐变（prox 系）会罩住新翅膀贴入区（恰在身体邻域），
+          把新位置 w_new 清零 → 新膜消失只剩翼骨 = 纱状膜（十一~十二轮事故）。
+      w_old（旧位置）= bg_layer 平滑背景。
+        ★ 旧位置严禁用 R^{-1} 采样 reveal（v300 七轮教训）：盘内翅膀紧邻浅紫锯齿
+          底座纹理，旋转采样把锯齿"拖拽复制"到旧位置 = 枝状破碎物。
+      keep_new = 前序 pass 的 w_new 区（软权重）。
+        ★ 十六轮教训（up 姿态专属事故）：高扬时翼内段越过中线，撞进对侧翼的
+          旧位置区——pass2 的 w_old 若不扣除该区，会把 pass1 刚贴上的新翼
+          用 bg_layer 整块盖掉（左右翼连环互擦）。keep_new 区强制 rest=1
+          → 原样保留 layer_in（= pass1 成果）。
+      body_block/body_keep 只保护确定部件（脸/耳；躯干翼可自然遮挡——
+      翅膀在身体前面是自然遮挡顺序，十七轮起躯干/尾条不再进 body_block，
+      只留头椭圆，防翼内段越线时被躯干条挖出断口）。"""
     # float32 固定：np.cos(python float) 返回 float64 会污染网格，OpenCV 5 remap 拒收
     cos_t = np.float32(np.cos(theta))
     sin_t = np.float32(np.sin(theta))
@@ -285,20 +297,29 @@ def _rot_warp(layer_pixels, layer_alpha, bat_half, theta, rot_c, h, w):
     # backward 采样：输出点 p 处取源点 R^{-1}(p)
     rx = rot_c[0] + dx * cos_t + dy * sin_t
     ry = rot_c[1] - dx * sin_t + dy * cos_t
-    # 旋转后的半翼 mask（与像素同套映射，等价于 mask 正向旋转）
-    rot_half = cv2.remap(bat_half, rx, ry, cv2.INTER_LINEAR,
+    # 新位置 = 源权重随内容旋转（软权重 + 窄羽化贴边）
+    rot_soft = cv2.remap(wing_soft, rx, ry, cv2.INTER_CUBIC,
                          borderMode=cv2.BORDER_CONSTANT, borderValue=0)
-    cover = np.maximum(bat_half, rot_half)
-    cover = cv2.dilate(cover, np.ones((9, 9), np.uint8), iterations=1)
-    weight = cv2.GaussianBlur(cover, (11, 11), 3).astype(np.float32) / 255.0
-    # 身体保护区：|x-cx|<100 不动，70px 渐变到全动
-    zone_x = np.clip((np.abs(xs - cx) - 100) / 70.0, 0, 1).astype(np.float32)
-    weight = weight * zone_x
-    mapx = rx * weight + xs * (1 - weight)
-    mapy = ry * weight + ys * (1 - weight)
-    wp = cv2.remap(layer_pixels, mapx, mapy, cv2.INTER_LINEAR,
-                   borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
-    return wp, layer_alpha
+    w_new = cv2.GaussianBlur(rot_soft, (5, 5), 1.5).astype(np.float32)
+    w_new = w_new * (np.float32(1.0) - body_block)
+    # 旧位置 = 原翅膀减去新位置重叠与前序成果（重叠区分别由 w_new/layer_in 全权负责）
+    w_old = cv2.GaussianBlur(wing_bin, (3, 3), 0.8).astype(np.float32) / 255.0
+    w_old = np.clip(w_old - w_new, 0, np.float32(1.0))
+    if keep_new is not None:
+        w_old = np.clip(w_old - keep_new, 0, np.float32(1.0))
+    src_warp = cv2.remap(layer_in, rx, ry, cv2.INTER_CUBIC,
+                         borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+    rest = np.float32(1.0) - w_new - w_old
+    if keep_new is not None:
+        # keep 区直接采用 layer_in（pass1 输出原样），压掉 w_new 计算残差
+        rest = np.maximum(rest, keep_new)
+        w_new = w_new * (np.float32(1.0) - keep_new)
+        w_old = w_old * (np.float32(1.0) - keep_new)
+    out = (src_warp * w_new[..., None] + bg_layer * w_old[..., None]
+           + layer_in * rest[..., None])
+    # 输出级身体兜底：确定部件强制原像素（任何上游 mask 缺陷都不该能擦动头/尾）
+    out = out * (np.float32(1.0) - body_keep)[..., None] + layer_in * body_keep[..., None]
+    return out, w_new
 
 
 def make_variants(src_img):
@@ -339,27 +360,114 @@ def make_variants(src_img):
     kp = _extract_bat_keypoints(bat_m, lm)
     print(f"[v300] keypoints: {kp}")
 
-    # 半翼拆分：左右各留 20px 中线重叠；身体在中线附近由 zone_x 保护区兜底
-    xs_col = np.tile(np.arange(w, dtype=np.int32), (h, 1))
-    left_m = bat_m.copy()
-    left_m[xs_col >= cx + 20] = 0
-    right_m = bat_m.copy()
-    right_m[xs_col <= cx - 20] = 0
+    # 实心化（v300 十轮定稿）：CLOSE 21 桥接开口的浅紫骨纹条（宽 10~20px）+
+    # 只填真洞。骨纹不是封闭洞（与外部背景连通），RETR_CCOMP 直接填不到——
+    # 不桥接的话深色膜转走了、骨纹留在原地半透明混 bg_layer = "纱状膜"。
+    # CLOSE 核不能大：翅膀弧口宽 40px+，CLOSE 21 不会误填弧口（大核外轮廓
+    # 填充把弧口全填掉 = 六轮事故，废弃路线）。
+    solid = cv2.morphologyEx(bat_m, cv2.MORPH_CLOSE, np.ones((21, 21), np.uint8))
+    solid_m = solid.copy()
+    cnts, hier = cv2.findContours(solid, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    if hier is not None:
+        for i, h4 in enumerate(hier[0]):
+            if h4[3] != -1:  # 有父轮廓 = 是内部洞
+                cv2.drawContours(solid_m, cnts, i, 255, -1)
 
-    shL = (cx - 120, shoulder_y)
-    shR = (cx + 120, shoulder_y)
+    # —— 身体/翅膀分离 + 源空间翼根渐变（v300 十三轮定稿）——
+    # body_core = 中线 ±48 内的暗色区（躯干两侧缘附近），作剪切线：
+    # wing_m 只含 body_core 之外的翅膀；32° 剪切藏在身体边缘褶皱暗色区。
+    band_b = np.zeros((h, w), np.uint8)
+    band_b[:, cx - 48:cx + 48] = 255
+    body_core = cv2.bitwise_and(bat_m, band_b)
+    wing_m = solid_m.copy()
+    wing_m[body_core > 0] = 0
+    # 源空间翼根渐变：距身体 0~22px 贴回权重 0→1，随翅膀内容一起旋转。
+    # ★ 翼根渐变必须编码在源空间（十三轮定稿）。输出空间的邻域渐变（prox 系）
+    #   会罩住新翅膀贴入区（恰在身体邻域），把新位置 w_new 清零 → 新膜消失
+    #   只剩翼骨 = 纱状膜（十一~十二轮事故）。
+    dist = cv2.distanceTransform(cv2.bitwise_not(body_core), cv2.DIST_L2, 3)
+    wing_soft = (wing_m.astype(np.float32) / 255.0) * np.clip(dist / 22.0, 0, 1).astype(np.float32)
+
+    # 确定不可被翅膀遮挡的部件：只有脸/耳（蝙蝠身份核心）。
+    # ★ 头部椭圆严禁开大（十四轮教训）：(42,46) 把头部两侧膜面划进保护，
+    #   新翅膀内段扫过该区贴回全被清零 = 纱状区。只罩脸，耳旁膜允许按
+    #   "翅膀在身体前"的遮挡逻辑自然覆盖。
+    # ★ 十七轮定稿：躯干/尾条撤出 protect——高扬姿态翼内段自然越过躯干
+    #   （翅膀在身体前面），躯干条会把越线翼段挖出断口（up 事故主因之二）。
+    #   身体像素安全由 w_old 只在翼 mask 内 reveal 保证（身体从不在翼区）。
+    hx, hy = kp["head"]
+    protect = np.zeros((h, w), np.uint8)
+    cv2.ellipse(protect, (int(hx) + 6, int(hy) + 6), (24, 28), 0, 0, 360, 255, -1)
+    protect = cv2.bitwise_and(protect, bat_m)
+    body_block = cv2.GaussianBlur(protect, (5, 5), 1.5).astype(np.float32) / 255.0
+    body_keep = cv2.GaussianBlur(
+        cv2.dilate(protect, np.ones((5, 5), np.uint8)), (7, 7), 2
+    ).astype(np.float32) / 255.0
+
+    # ★ 膜面修复层已废弃（v300 十五轮回退）：CLOSE 桥接的浅紫区（骨纹开放条+
+    #   膜外缝）是一大片连通网络，TELEA 修复色=深膜与浅紫背景的混合=纱色，越修越纱。
+    #   外缝浅紫与骨纹浅紫颜色本就接近，随膜旋转后出现在新膜前缘 = 膜面纹理的一部分，
+    #   直接用原像素采样（wing_src 方案废弃，src_warp 采样 arr/wing_src 均验证）。
+
+    # bg_layer：翅膀挖除后的平滑背景层（旧位置 reveal 用）。
+    # 挖洞 = 蝙蝠膨胀 4px 但避开身体（身体保持原样）。
+    # ★ v300 十六轮教训：1/4 尺度 TELEA 填"整只蝙蝠"大洞会把紫冠深紫/盘缘高光/
+    #   底座锯齿往洞里拖成龟裂白纹（翼后面是紫冠图案而非平滑渐变，TELEA 不识别
+    #   结构）。升到 1/2 尺度 + inpaint 半径 9，拖纹距离减半，斑驳显著收敛；
+    #   旧位置 reveal 的 w_old 本身只是"新翼未覆盖的月牙差集"，非全翼暴露。
+    dig = cv2.dilate(bat_m, np.ones((9, 9), np.uint8), iterations=1)
+    dig[cv2.dilate(body_core, np.ones((3, 3), np.uint8)) > 0] = 0
+    scale = 2
+    small = cv2.resize(arr, (w // scale, h // scale), interpolation=cv2.INTER_AREA)
+    dig_s = cv2.resize(dig, (w // scale, h // scale), interpolation=cv2.INTER_NEAREST)
+    small[dig_s > 0] = 0
+    # TELEA 仅支持 8-bit 3 通道，float32 三通道拒收
+    small_u8 = np.clip(small, 0, 255).astype(np.uint8)
+    small_u8 = cv2.inpaint(small_u8, dig_s, 9, cv2.INPAINT_TELEA)
+    bg_up = cv2.resize(small_u8, (w, h), interpolation=cv2.INTER_CUBIC).astype(np.float32)
+    # 上采样后再做一次 5x5 轻高斯，压掉块状插值纹理
+    bg_up = cv2.GaussianBlur(bg_up, (5, 5), 1.2)
+    bg_layer = arr.copy()
+    bg_layer[dig > 0] = bg_up[dig > 0]
+
+    # 半翼拆分（纯翅膀）：中线分割
+    xs_col = np.tile(np.arange(w, dtype=np.int32), (h, 1))
+    left_m = wing_m.copy()
+    left_m[xs_col >= cx] = 0
+    right_m = wing_m.copy()
+    right_m[xs_col < cx] = 0
+    left_soft = wing_soft.copy()
+    left_soft[xs_col >= cx] = 0
+    right_soft = wing_soft.copy()
+    right_soft[xs_col < cx] = 0
+
+    # 旋转中心 = 翼膜竖向中点（肩点下方 60px），不是肩点本身。
+    # v300 八轮教训：绕肩点旋转时，肩点上方的翼尖上扬、肩点下方的下翼角反向
+    # 下甩 30px+，视觉=身体两侧长出枝状物。中心下移后下翼角贴近转轴几乎不动，
+    # 翼尖照常大幅旋转，全翼一致动作（已验算：up32° 翼尖位移 114px/下翼角 17px）。
+    shL = (cx - 120, shoulder_y + 60)
+    shR = (cx + 120, shoulder_y + 60)
 
     def two_wing(thetaL, thetaR):
-        """左翼绕左肩旋转 thetaL，右翼绕右肩旋转 thetaR（串联，互不越区）。"""
-        wpL, _ = _rot_warp(layer_pixels, layer_alpha, left_m, thetaL, shL, h, w)
-        wp, _ = _rot_warp(wpL, layer_alpha, right_m, thetaR, shR, h, w)
+        """左翼绕左轴旋转 thetaL，右翼绕右轴旋转 thetaR（串联：pass2 以 pass1
+        输出为底层；★ pass2 携带 keep_new=pass1 的 w_new 区，防止右翼旧位置
+        的 bg_layer reveal 把左翼新贴成果盖掉——高扬姿态翼内段越中线必撞）。"""
+        wpL, wnL = _rot_warp(arr, left_soft, left_m, body_block, body_keep, bg_layer, thetaL, shL, h, w)
+        wp, _ = _rot_warp(wpL, right_soft, right_m, body_block, body_keep, bg_layer, thetaR, shR, h, w,
+                          keep_new=cv2.GaussianBlur(wnL, (7, 7), 2))
         return wp, layer_alpha
 
-    # theta>0 = 视觉顺时针（y 向下坐标系）。左翼顺时针=上扬，右翼逆时针=上扬。
+    # theta>0 = 左翼上扬 / 右翼配 -theta 上扬（镜像对：L+θ 与 R-θ 同为扬）。
+    # v300 十七轮定稿三档姿态：
+    #   up     +18° 双翼轻扬 V 形（翼尖位移 ~63px）。★ 32° 翼峰距头仅 32px 怼脸
+    #          （十七轮验算），高扬角上限 ~20°，这是本图几何的硬约束。
+    #   spread -12° 微垂平展（翼尖下移 ~30px）
+    #   fold   -33° 大幅垂翼（翼尖下移 ~96px；-45 会把翼峰甩出盘 30px 硬切，
+    #          -33 翼峰距盘心 364 在羽化容差内，切翅红线不可碰）
     variants = {
-        "up":     two_wing(math.radians(16), math.radians(-16)),   # 双翼上扬 V 形
-        "spread": two_wing(math.radians(-9), math.radians(9)),     # 双翼外压平展
-        "fold":   two_wing(math.radians(-18), math.radians(18)),   # 双翼下垂收拢
+        "up":     two_wing(math.radians(18), math.radians(-18)),   # 双翼轻扬 V 形
+        "spread": two_wing(math.radians(-12), math.radians(12)),   # 微垂平展
+        "fold":   two_wing(math.radians(-33), math.radians(33)),   # 大幅垂翼
     }
     return variants
 
