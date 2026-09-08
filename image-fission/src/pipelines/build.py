@@ -359,11 +359,29 @@ def build_mode3(original_filename: str, params: dict, job_id: str) -> dict:
                                      noise=0.0, combine_embeds="average"))
             model_after_ip = 22
 
+    # 可选 Canny 构图锁（方案2：锁链子走向，不溢出、不垂直长链）：强度 0.4-0.6 中等，
+    # 只约束高频边缘(链子/狗牌轮廓)，低频迷彩纹理不受影响仍可裂变。
+    cn_strength = float(params.get("controlnet_strength", 0.0) or 0.0)
+    samp_pos, samp_neg = 7, 8
+    if cn_strength > 0:
+        cn_name = params.get("controlnet_name",
+                             "controlnet-canny-sdxl-1.0.fp16.safetensors")
+        g.update(_controlnet_loader_node(70, cn_name))
+        g.update(_canny_node(71, 4,
+                             low=params.get("controlnet_low_threshold", 0.4),
+                             high=params.get("controlnet_high_threshold", 0.8)))
+        g.update(_controlnet_apply(72, 7, 8, 70, 71, cn_strength,
+                                   start_percent=params.get("controlnet_start", 0.0),
+                                   end_percent=params.get("controlnet_end", 0.9)))
+        samp_pos, samp_neg = 72, 72
+        print(f"[cn] mode3 Canny lock strength={cn_strength} "
+              f"end={params.get('controlnet_end', 0.9)} (锁原图边缘=链子/狗牌走向)")
+
     # 原图直接 VAEEncode（不下采样，保背景清晰）
     g.update({str(9): {"class_type": "VAEEncode",
                        "inputs": {"pixels": [str(4), 0], "vae": [str(1), 2]}}})
     g.update(_clip_nodes(7, 8, 1, style, neg))
-    g.update(_sampler_node(10, model_after_ip, 7, 8, 9,
+    g.update(_sampler_node(10, model_after_ip, samp_pos, samp_neg, 9,
                            {"seed": params.get("seed", 0),
                             "steps": steps, "cfg": cfg, "denoise": denoise}))
     g.update(_vae_decode(12, 10, 1))

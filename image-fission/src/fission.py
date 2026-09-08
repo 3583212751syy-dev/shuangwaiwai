@@ -99,7 +99,9 @@ def main():
     p.add_argument("--ipadapter-end", type=float, default=0.85,
                    help="IPAdapter 结束步 0-1（默认 0.85，末段放开让内容自由）")
     p.add_argument("--controlnet-strength", type=float, default=0.0,
-                   help="可选 Canny 硬构图锁 0-1（默认 0 关闭；>0 时叠加，强锁原图边缘布局）")
+                   help="可选 Canny 硬构图锁 0-1（默认 0 关闭；>0 时叠加，强锁原图边缘布局；mode3 也支持）")
+    p.add_argument("--controlnet-end", type=float, default=0.9,
+                   help="Canny 锁结束步 0-1（默认 0.9）")
     p.add_argument("--mode", choices=["mode1", "mode2", "mode3"], default="mode1",
                    help="裂变模式：mode1=IPAdapter双锁空白画布(旧)；mode3=img2img保背景保色(同元素重生成)")
     p.add_argument("--redraw-amount", type=float, default=0.13,
@@ -193,8 +195,8 @@ def main():
         base_params["ipadapter_end"] = args.ipadapter_end
         print(f"[ipa] DUAL-LOCK  color(style transfer)={color_w}  "
               f"composition={comp_w}  noise={args.ipadapter_noise}  end={args.ipadapter_end}")
-    # 可选 Canny 硬构图锁（进一步钉死原图边缘布局）
-    if args.mode != "mode3" and args.controlnet_strength and args.controlnet_strength > 0:
+    # 可选 Canny 硬构图锁（进一步钉死原图边缘布局；mode3 也支持，用于锁链子走向）
+    if args.controlnet_strength and args.controlnet_strength > 0:
         base_params["controlnet_name"] = "controlnet-canny-sdxl-1.0.fp16.safetensors"
         base_params["controlnet_strength"] = args.controlnet_strength
         base_params["controlnet_end"] = 0.9
@@ -212,6 +214,13 @@ def main():
             params["negative_prompt"] = MODE3_NEG
             params["steps"] = args.steps
             params["cfg"] = args.cfg
+            # 方案2：Canny 锁原图边缘(链子/狗牌走向)，不溢出、不垂直长链
+            if args.controlnet_strength and args.controlnet_strength > 0:
+                params["controlnet_name"] = "controlnet-canny-sdxl-1.0.fp16.safetensors"
+                params["controlnet_strength"] = args.controlnet_strength
+                params["controlnet_end"] = args.controlnet_end
+                print(f"[cn] mode3 Canny lock strength={args.controlnet_strength} "
+                      f"end={args.controlnet_end}")
             if color_w > 0 or comp_w > 0:
                 params["color_strength"] = color_w
                 params["composition_strength"] = comp_w
