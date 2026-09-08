@@ -28,7 +28,7 @@ import shutil
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from engine.comfy_client import ComfyClient
-from pipelines.build import build_mode1
+from pipelines.build import build_mode1, build_mode3
 from demo_pattern_fission import img_to_b64
 
 # 默认 8 个花卉/植物变体（适合黑白矢量装饰图案风格）
@@ -57,6 +57,11 @@ DEFAULT_VARIANTS = [
 
 COMFYUI_INPUT = r"E:\Desktop\双接口\image-fission\ComfyUI\input"
 JOBS_BASE = r"E:\Desktop\双接口\image-fission\jobs"
+
+# mode3(img2img 保背景保色) 专用负提示：严禁含 color/colorful/text，
+# 否则会把原图配色(迷彩灰)和原图文字(ARMED FORCES)一起抹掉。
+MODE3_NEG = ("blurry, low quality, deformed, watermark, signature, "
+             "extra unwanted text, jpeg artifacts, oversaturated, gradient mesh")
 
 # 通用 negative prompt（治 SDXL 写实底子乱入装饰图）
 NEG = ("color, colorful, photorealistic, photo, photography, "
@@ -95,6 +100,10 @@ def main():
                    help="IPAdapter 结束步 0-1（默认 0.85，末段放开让内容自由）")
     p.add_argument("--controlnet-strength", type=float, default=0.0,
                    help="可选 Canny 硬构图锁 0-1（默认 0 关闭；>0 时叠加，强锁原图边缘布局）")
+    p.add_argument("--mode", choices=["mode1", "mode2", "mode3"], default="mode1",
+                   help="裂变模式：mode1=IPAdapter双锁空白画布(旧)；mode3=img2img保背景保色(同元素重生成)")
+    p.add_argument("--redraw-amount", type=float, default=0.13,
+                   help="mode3 img2img 重绘幅度(denoise)，越低越保原图背景/颜色(默认 0.13)")
     args = p.parse_args()
 
     # 校验
@@ -159,7 +168,18 @@ def main():
     if args.style_strength is not None:
         color_w = args.style_strength
     comp_w = args.composition_strength
-    if args.similarity is not None:
+    if args.mode == "mode3":
+        # mode3：以原图当底图 img2img，可选挂双锁(颜色+构图)做"同概念异细节"裂变。
+        if color_w > 0 or comp_w > 0:
+            base_params["color_strength"] = color_w
+            base_params["composition_strength"] = comp_w
+            base_params["ipadapter_noise"] = args.ipadapter_noise
+            base_params["ipadapter_end"] = args.ipadapter_end
+            print(f"[ipa] mode3 DUAL-LOCK color(style)={color_w} comp={comp_w} "
+                  f"noise={args.ipadapter_noise} end={args.ipadapter_end}")
+        lock_label = f"mode3 img2img(denoise={args.redraw_amount}) + 双锁(color={color_w},comp={comp_w})"
+        print(f"[mode] {lock_label}")
+    elif args.similarity is not None:
         # 旧模式：单 IPAdapter linear（兼容旧用法），关闭双锁
         base_params["similarity"] = args.similarity
         color_w = 0.0
@@ -174,7 +194,7 @@ def main():
         print(f"[ipa] DUAL-LOCK  color(style transfer)={color_w}  "
               f"composition={comp_w}  noise={args.ipadapter_noise}  end={args.ipadapter_end}")
     # 可选 Canny 硬构图锁（进一步钉死原图边缘布局）
-    if args.controlnet_strength and args.controlnet_strength > 0:
+    if args.mode != "mode3" and args.controlnet_strength and args.controlnet_strength > 0:
         base_params["controlnet_name"] = "controlnet-canny-sdxl-1.0.fp16.safetensors"
         base_params["controlnet_strength"] = args.controlnet_strength
         base_params["controlnet_end"] = 0.9
@@ -185,7 +205,23 @@ def main():
         params = dict(base_params)
         params["seed"] = args.seed + i * 313
         params["style_prompt"] = prompt
-        g = build_mode1(seed_name, params, f"fission_{name}")
+        if args.mode == "mode3":
+            # 以原图当底图 img2img：denoise 抬到 0.4-0.5 让狗牌/链/迷彩都做可见变体，
+            # 双锁(颜色+构图)保证仍是同一灰军概念；负提示不含 color/text 避免抹配色/真字。
+            params["redraw_amount"] = args.redraw_amount
+            params["negative_prompt"] = MODE3_NEG
+            params["steps"] = args.steps
+            params["cfg"] = args.cfg
+            if color_w > 0 or comp_w > 0:
+                params["color_strength"] = color_w
+                params["composition_strength"] = comp_w
+                params["ipadapter_noise"] = args.ipadapter_noise
+                params["ipadapter_end"] = args.ipadapter_end
+            g = build_mode3(seed_name, params, f"fission_{name}")
+            print(f"        [mode3] denoise={args.redraw_amount} color={color_w} comp={comp_w} "
+                  f"steps={args.steps} cfg={args.cfg}")
+        else:
+            g = build_mode1(seed_name, params, f"fission_{name}")
         print(f"\n[{i}/{len(prompts)}] {name}")
         print(f"        {prompt[:80]}...")
         t0 = time.time()
@@ -228,7 +264,7 @@ h1{{margin:0 0 8px;font-size:22px;}}
 </style></head><body>
 <h1>图裂变 · 同色同构裂变</h1>
 <div class="sub">原图 → {len(results)} 张「同色同构·异内容」裂变图（颜色/构图锁定原图，内容由 prompt 变化）</div>
-<p><span class="lock">颜色锁 {color_w} · 构图锁 {comp_w}</span></p>
+<p><span class="lock">{lock_label}</span></p>
 <p><span class="params">steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}  noise={args.ipadapter_noise}  end={args.ipadapter_end}</span></p>
 <div class="seed"><img src="data:image/jpeg;base64,{seed_b64}"><div class="cap">原图（参考）</div></div>
 <div class="grid">{cards}</div>

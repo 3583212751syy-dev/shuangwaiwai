@@ -321,6 +321,56 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     return g
 
 
+def build_mode3(original_filename: str, params: dict, job_id: str) -> dict:
+    """img2img 同元素重生成：以原图当底图，denoise 控制裂变强度。
+    无主体类(迷彩标)裂变策略：denoise 抬到 0.4-0.5 → 狗牌/链/迷彩花纹都做可见变体；
+    双 IPAdapter 锁(颜色+构图)保证仍是「同灰军风格 + 居中狗牌+链」同一概念，不换成别的图。
+    可选双锁：color_strength/composition_strength>0 时叠加（与 mode1 同款 _ipadapter_apply）。
+    原图直接 VAEEncode（不下采样），最大化保住背景清晰度。"""
+    style = params.get("style_prompt", "")
+    neg = params.get("negative_prompt",
+                     "blurry, low quality, deformed, watermark, signature, "
+                     "extra unwanted text, jpeg artifacts, oversaturated, gradient mesh")
+    denoise = float(params.get("redraw_amount", 0.45))
+    steps = int(params.get("steps", 28))
+    cfg = float(params.get("cfg", 5.0))
+    g = {}
+    g.update(_checkpoint_node(1))
+    g.update(_load_image_node(4, original_filename))
+
+    # 双 IPAdapter 可选锁（与原图同源，node 4）
+    color_w = float(params.get("color_strength", 0.0) or 0.0)
+    comp_w = float(params.get("composition_strength", 0.0) or 0.0)
+    ipa_noise = params.get("ipadapter_noise", 0.05)
+    ipa_end = params.get("ipadapter_end", 0.9)
+    model_after_ip = 1
+    if color_w > 0 or comp_w > 0:
+        g.update(_ipadapter_loader_node(20, 1))
+        if color_w > 0:
+            g.update(_ipadapter_apply(21, 1, 20, 4, color_w,
+                                     weight_type="style transfer",
+                                     start_at=0.0, end_at=ipa_end,
+                                     noise=ipa_noise, combine_embeds="average"))
+            model_after_ip = 21
+        if comp_w > 0:
+            g.update(_ipadapter_apply(22, model_after_ip, 20, 4, comp_w,
+                                     weight_type="composition",
+                                     start_at=0.0, end_at=max(ipa_end, 0.9),
+                                     noise=0.0, combine_embeds="average"))
+            model_after_ip = 22
+
+    # 原图直接 VAEEncode（不下采样，保背景清晰）
+    g.update({str(9): {"class_type": "VAEEncode",
+                       "inputs": {"pixels": [str(4), 0], "vae": [str(1), 2]}}})
+    g.update(_clip_nodes(7, 8, 1, style, neg))
+    g.update(_sampler_node(10, model_after_ip, 7, 8, 9,
+                           {"seed": params.get("seed", 0),
+                            "steps": steps, "cfg": cfg, "denoise": denoise}))
+    g.update(_vae_decode(12, 10, 1))
+    g.update(_save_node(15, 12, f"{job_id}/mode3"))
+    return g
+
+
 def build_mode2(original_filename: str, params: dict, job_id: str) -> dict:
     """内容重绘：img2img(重绘幅度 denoise) + IP-Adapter(保主体相似度)。"""
     w = params.get("similarity", DEFAULTS["similarity"])
@@ -411,6 +461,8 @@ def build(mode: str, original_filename: str, params: dict, job_id: str) -> dict:
         return build_mode1(original_filename, params, job_id)
     elif mode == "mode2":
         return build_mode2(original_filename, params, job_id)
+    elif mode == "mode3":
+        return build_mode3(original_filename, params, job_id)
     elif mode == "bgswap":
         return build_bgswap(original_filename, params, job_id)
     raise ValueError(f"未知模式: {mode}")
