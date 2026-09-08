@@ -274,8 +274,8 @@ def build_mode1(original_filename: str, params: dict, job_id: str) -> dict:
     if cn_name and cn_strength > 0:
         g.update(_controlnet_loader_node(70, cn_name))
         g.update(_canny_node(71, 5,
-                             low=params.get("controlnet_low_threshold", 100),
-                             high=params.get("controlnet_high_threshold", 200)))
+                             low=params.get("controlnet_low_threshold", 0.4),
+                             high=params.get("controlnet_high_threshold", 0.8)))
         g.update(_controlnet_apply(72, 7, 8, 70, 71, cn_strength,
                                    start_percent=params.get("controlnet_start", 0.0),
                                    end_percent=params.get("controlnet_end", 0.9)))

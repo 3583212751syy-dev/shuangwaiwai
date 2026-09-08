@@ -98,7 +98,7 @@ def main():
     args = p.parse_args()
 
     # 校验
-    if not (0.0 <= args.similarity <= 1.0):
+    if args.similarity is not None and not (0.0 <= args.similarity <= 1.0):
         print(f"[ERROR] similarity 必须在 0-1 之间（当前 {args.similarity}）")
         return
     if not os.path.exists(args.input):
@@ -131,7 +131,7 @@ def main():
         out_dir = os.path.join(JOBS_BASE, f"fission_{base}_s{args.similarity:.2f}_{ts}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"[out]  {out_dir}")
-    print(f"[cfg] color={color_w}  comp={comp_w}  count={len(prompts)}  steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}")
+    print(f"[cfg] count={len(prompts)}  steps={args.steps}  cfg={args.cfg}  size={args.width}x{args.height}")
 
     # 跑
     base_params = {
@@ -190,10 +190,10 @@ def main():
         print(f"        {prompt[:80]}...")
         t0 = time.time()
         try:
-            res = client.run(g, timeout=300)
+            res = client.run(g, timeout=900)
             node_id, imgs = next(iter(res.items()))
             data = imgs[0]
-            out_path = os.path.join(out_dir, f"{i:02d}_{name}_s{args.similarity:.2f}.jpg")
+            out_path = os.path.join(out_dir, f"{i:02d}_{name}.jpg")
             with open(out_path, "wb") as f:
                 f.write(data)
             print(f"[OK] {time.time()-t0:.0f}s -> {os.path.basename(out_path)} ({len(data)} bytes)")
