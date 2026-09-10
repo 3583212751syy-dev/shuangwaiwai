@@ -193,6 +193,8 @@ def main():
         base_params["composition_strength"] = comp_w
         base_params["ipadapter_noise"] = args.ipadapter_noise
         base_params["ipadapter_end"] = args.ipadapter_end
+        lock_label = (f"mode1 IPAdapter双锁 color(style transfer)={color_w} "
+                      f"composition={comp_w} noise={args.ipadapter_noise} end={args.ipadapter_end}")
         print(f"[ipa] DUAL-LOCK  color(style transfer)={color_w}  "
               f"composition={comp_w}  noise={args.ipadapter_noise}  end={args.ipadapter_end}")
     # 可选 Canny 硬构图锁（进一步钉死原图边缘布局；mode3 也支持，用于锁链子走向）
