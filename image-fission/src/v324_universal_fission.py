@@ -119,16 +119,29 @@ CONFIG = {
         ],
     },
 
-    # 13c8b7 红黑佩斯利 (1132x1132, 无文字)
+    # 13c8b7 红黑佩斯利 (1132x1132, 无文字) -- 真裂变: 母题重生但布局/位置不变
+    # element_regen=True: 用 SDXL 重生佩斯利母题 (异内容同构)
+    # 关键调参: 宏观 Canny(res=320) 只锁四宫格+中线大结构, 放掉细母题 -> 细母题可被重画
+    #           Tile 中强度 (0.55) 保画风纹理, denoise 低 (0.48) 只改母题线条不擦结构
+    #           色族内偏移: 深绯红+古金 (原红橙黑 -> 可见差异但关联), LAB 0.70 允许轻微色偏
     "13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg": {
         "src": SRC_DEFAULT / "13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg",
+        "element_regen": True,
+        "lab_alpha": 0.70,
         "stage_a_prompt": (
-            "red orange and black ornate paisley bandana print, intricate damask and baroque "
-            "floral medallions, symmetrical four-quadrant pattern, detailed ornamental, "
-            "preserve exact composition: four-patch bandana layout with center divider, "
-            "RED ORANGE WHITE BLACK palette ONLY, NO purple, NO blue, NO green, NO gray"
+            "ornate paisley bandana print, intricate damask and baroque floral medallions, "
+            "symmetrical four-quadrant pattern, detailed ornamental vintage textile, "
+            "deep crimson red and antique gold and black palette, rich saturated warm tones, "
+            "preserve exact composition: four-patch bandana layout with center divider and "
+            "corner ornaments, NO blue, NO green, NO gray, NO purple"
         ),
-        "neg_extra": "purple, blue, green, gray, brown, beige, washed out, desaturated",
+        "neg_extra": "blue, green, gray, purple, washed out, desaturated, blurry, low quality",
+        "stage_a_params": {
+            "canny_res": 320, "canny_strength": 0.82, "canny_lo": 0.15, "canny_hi": 0.35,
+            "tile_strength": 0.55, "ipa_weight": 0.45, "ipa_end": 0.85, "ipa_noise": 0.10,
+            "lora": 0.45, "denoise1": 0.48, "denoise2": 0.15, "steps1": 26, "steps2": 16,
+            "cfg": 7.0,
+        },
         "regions": [
             {"kind": "element", "bbox": (0.0, 0.0, 1.0, 1.0), "label": "paisley bandana"},
         ],
@@ -225,8 +238,18 @@ def wait_outputs(pid, prefix, timeout=320):
 
 
 # ===================== Stage A: 元素层重生 (RegionalPrompting + Canny + Tile) =====================
-def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, prefix):
-    """regions_prompts: [(bbox_norm, prompt, strength), ...] 覆盖 CONFIG['regions']"""
+def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, prefix, params=None):
+    """regions_prompts: [(bbox_norm, prompt, strength), ...] 覆盖 CONFIG['regions']
+       params: 每图可调 Stage A 超参 (裂变强度/锁结构强度), 默认偏"保元素"."""
+    p = dict(
+        ipa_weight=0.50, ipa_end=0.85, ipa_noise=0.05,
+        lora=0.40,
+        canny_strength=0.55, canny_res=1024, canny_lo=0.10, canny_hi=0.25,
+        tile_strength=0.85,
+        denoise1=0.65, denoise2=0.18, steps1=24, steps2=18, cfg=7.5,
+    )
+    if params:
+        p.update(params)
     g = {}
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
     g["2"] = {"class_type": "LoadImage", "inputs": {"image": orig_name}}
@@ -238,23 +261,24 @@ def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, p
               "inputs": {"model": ["1", 0], "preset": IPA_PRESET}}
     g["6"] = {"class_type": "IPAdapterAdvanced", "inputs": {
         "model": ["1", 0], "ipadapter": ["5", 1], "image": ["3", 0],
-        "weight": 0.5, "weight_type": "style transfer",
-        "combine_embeds": "average", "start_at": 0.0, "end_at": 0.85,
-        "noise": 0.05, "embeds_scaling": "V only"}}
+        "weight": p["ipa_weight"], "weight_type": "style transfer",
+        "combine_embeds": "average", "start_at": 0.0, "end_at": p["ipa_end"],
+        "noise": p["ipa_noise"], "embeds_scaling": "V only"}}
     g["7"] = {"class_type": "LoraLoader", "inputs": {
         "model": ["6", 0], "clip": ["1", 1], "lora_name": LORA,
-        "strength_model": 0.40, "strength_clip": 0.40}}
-    # Canny 边缘
+        "strength_model": p["lora"], "strength_clip": p["lora"]}}
+    # Canny 边缘 (低 resolution = 只锁宏观布局, 放掉细母题 -> 母题可被重画)
     g["20"] = {"class_type": "CannyEdgePreprocessor", "inputs": {
-        "image": ["3", 0], "low_threshold": 0.10, "high_threshold": 0.25, "resolution": 1024}}
+        "image": ["3", 0], "low_threshold": p["canny_lo"], "high_threshold": p["canny_hi"],
+        "resolution": p["canny_res"]}}
     g["21"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": CN_CANNY}}
     g["22"] = {"class_type": "ControlNetApply", "inputs": {
         "conditioning": ["pg", 0], "control_net": ["21", 0],
-        "image": ["20", 0], "strength": 0.55}}
+        "image": ["20", 0], "strength": p["canny_strength"]}}
     g["23"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": CN_TILE}}
     g["24"] = {"class_type": "ControlNetApply", "inputs": {
         "conditioning": ["22", 0], "control_net": ["23", 0],
-        "image": ["3", 0], "strength": 0.85}}
+        "image": ["3", 0], "strength": p["tile_strength"]}}
 
     # Global prompt
     neg = ("text, words, letters, typography, watermark, signature, logo, "
@@ -279,12 +303,12 @@ def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, p
 
     g["10"] = {"class_type": "KSampler", "inputs": {
         "model": ["7", 0], "positive": ["comb", 0], "negative": ["ng", 0],
-        "latent_image": ["4", 0], "seed": seed, "steps": 24, "cfg": 7.5,
-        "sampler_name": "euler", "scheduler": "normal", "denoise": 0.65}}
+        "latent_image": ["4", 0], "seed": seed, "steps": p["steps1"], "cfg": p["cfg"],
+        "sampler_name": "euler", "scheduler": "normal", "denoise": p["denoise1"]}}
     g["11"] = {"class_type": "KSampler", "inputs": {
         "model": ["7", 0], "positive": ["comb", 0], "negative": ["ng", 0],
-        "latent_image": ["10", 0], "seed": seed + 1, "steps": 18, "cfg": 7.5,
-        "sampler_name": "euler", "scheduler": "normal", "denoise": 0.18}}
+        "latent_image": ["10", 0], "seed": seed + 1, "steps": p["steps2"], "cfg": p["cfg"],
+        "sampler_name": "euler", "scheduler": "normal", "denoise": p["denoise2"]}}
     g["12"] = {"class_type": "VAEDecode", "inputs": {"samples": ["11", 0], "vae": ["1", 2]}}
     g["13"] = {"class_type": "SaveImage", "inputs": {"images": ["12", 0], "filename_prefix": prefix}}
     return g
@@ -443,8 +467,9 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
             regions_prompts.append((bn_norm, cfg["stage_a_prompt"], 1.0))
 
         a_prefix = f"v324_{ts}_{ci}_a"
-        g_a = build_stage_a(orig_path.name, cfg["stage_a_prompt"],
-                            cfg["neg_extra"], regions_prompts, seed0, a_prefix)
+        g_a = build_stage_a(orig_name=orig_path.name, stage_a_prompt=cfg["stage_a_prompt"],
+                            neg_extra=cfg["neg_extra"], regions_prompts=regions_prompts,
+                            seed=seed0, prefix=a_prefix, params=cfg.get("stage_a_params"))
         r = submit(g_a, f"v324_{ts}_{ci}_a")
         if not r:
             print(f"  Stage A submit failed, fallback to 原图", flush=True)
@@ -496,7 +521,7 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
         cur_name = f"v324_{ts}_{ci}_r{ri}_texted.png"
         cur.save(COMFY_INPUT / cur_name)
 
-    LAB_ALPHA = 0.85   # LAB 颜色锁强度 (1.0 = 完全锁, 0.85 = 部分锁保细节)
+    LAB_ALPHA = cfg.get("lab_alpha", 0.85)   # 每图可调: 1.0=完全锁, 0.85=部分锁保细节, 低=允许色族内偏差
 
     # Stage D: LAB 颜色锁 (alpha<1.0 保留纹理细节, 但仍硬锁色族)
     final = lab_color_transfer(base_img, cur, alpha=LAB_ALPHA)
