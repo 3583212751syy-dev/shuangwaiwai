@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
 """
 v324_universal_fission.py -- 通用图裂变管线 (元素层重生 + 文字带按位置大小重画新词 + LAB 颜色锁)
-  Stage A 元素层重生:  Canny + Tile 双 ControlNet + RegionalPrompting
-                      按 CONFIG['regions'] 把每个 region(元素/文字带) 用独立 CLIP prompt 约束
-                      KSampler 双段(0.70 + 0.20) 元素姿态+细节重生
-  Stage B 抹旧字:      按 CONFIG['text_regions'] bbox 用 SDXL inpaint denoise=0.25
-                      只抹 bbox 内文字, 位置不动
-  Stage C 新词渲染:    PIL 按 bbox 自动算字号 + CONFIG['font_key'] 渲染新词
-                      文字带位置大小完全照原图
-  Stage D 颜色锁:      Reinhard LAB 色彩迁移 把裂变图色系拉回原图色 (硬锁原图色相)
-  Stage E 4x 上采样:   NMKD-Siax
+  Stage A 元素层重生:  Canny ControlNet + RegionalPrompting + LoRA
+                      按 CONFIG['regions'] 把每个 region 用独立 CLIP prompt 约束
+                      KSampler 双段(denoise1 + denoise2) 元素姿态+细节重生
+  Stage B 抹旧字:      本地 Big-LaMa 按 text_regions  mask 抹除旧字, 保周围纹理
+  Stage C 新词渲染:    PIL 按 bbox / arc 位置大小重画新词, 字体按原图 capH 匹配
+  Stage D 颜色锁:      Reinhard LAB 色彩迁移 把裂变图色系拉回 (硬锁原图色族)
+  Stage E 4x 上采样:   NMKD-Siax (预留, 当前未启用)
+
+v324g 调优 (2026-09-11):
+  - 移除 Tile ControlNet 与 IPAdapter, 仅保留 Canny 锁构图 (适配 12GB VRAM)
+  - Stage A 分辨率降至 0.5 MP 避免 lowvram 补丁导致 25-40 s/it
+  - 修复 Canny 条件未接入 KSampler 的 bug (之前 dangling)
 """
-import argparse, json, time, io, os, shutil, uuid, urllib.request, urllib.error, sys, tempfile
+import argparse, json, time, io, os, shutil, uuid, urllib.request, urllib.error, sys, tempfile, math
 from pathlib import Path
 import numpy as np
 import cv2
 import torch
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, ImageChops
 sys.path.insert(0, str(Path(__file__).parent))
 from v268_lama_clean import load_lama, lama_inpaint   # 本地 LaMa inpaint (v318c 定稿)
+from arc_text import draw_arc_text, fit_arc_text_width  # 弧形文字 (替换 logo 顶弧/横幅)
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC_DEFAULT = Path(r"E:/Desktop/图裂变测试图")
@@ -34,7 +38,6 @@ CN_CANNY = "controlnet-canny-sdxl-1.0.fp16.safetensors"
 CN_TILE = "controlnet-tile-sdxl-1.0.fp16.safetensors"
 LORA = "add-detail-xl.safetensors"
 UPSCALER = "4x_NMKD-Siax_200k.pth"
-IPA_PRESET = "PLUS (high strength)"
 
 # 字体 (含 v319t 用户硬规则定稿: BlackOpsOne (big) + Arial Narrow Bold (small))
 FONTS = {
@@ -66,95 +69,139 @@ FONTS = {
 # ===================== CONFIG =====================
 # 每图独立: regions(元素层 + 文字带坐标) + banks(新词候选) + font_key + stage_a_prompt
 # bbox 全部用绝对像素坐标 (x1, y1, x2, y2)
-# regions 里 "kind" 决定 Stage A RegionalPrompting 是否覆盖; "text" 决定是否走 Stage B/C
+# text_regions 支持两种形式:
+#   - 直线 bbox: {"bbox": (...), "capH": int, "banks": [...], "font_key": ...}
+#   - 弧形文字:   {"arc": {"cx": int, "cy": int, "radius": int, "start": deg, "end": deg,
+#                          "capH": int, "flip_180": bool},
+#                 "banks": [...], "font_key": ..., "dilate": int}
 #
-# 用户硬规则复盘:
-#   - 元素位置大小不能改
-#   - 文字带按位置大小重画新词
-#   - 配色严格锁原图色相 (Reinhard LAB 后处理)
-#   - BACARDÍ 这种注册商标绝不能作为变体, 必须换 NOCTAVEN/DUSKBAT/MOONBAT 等原创
-#   - 字体: 大字 BlackOpsOne (军标) / Playfair-Black (Didone 风) ; 小字 Arial Narrow Bold
+# 用户硬规则复盘 (v324 定稿):
+#   - 文字带按位置大小重画新词 (直线/弧形都支持)
+#   - 主体元素: 同种主体, 同位置/同大小, 但允许角度/细节变化 (element_regen=True + Canny 锁构图)
+#   - 配色严格锁原图色族 (Reinhard LAB 后处理)
+#   - BACARDÍ 等注册商标绝不出现, 必须原位改写
 
 CONFIG = {
     # b78e60 军徽 ARMED FORCES (1556x2000)
-    # 文字带: WE SUPPORT THE / ARMED / FORCES (y=280-720 三段连续)
+    # 元素: 迷彩底 + 居中狗牌/链条 -> 裂变: 狗牌形状/链条细节变化, 迷彩纹理变化
     "b78e60de8dfdf44acda99395326a7298.jpg": {
         "src": SRC_DEFAULT / "b78e60de8dfdf44acda99395326a7298.jpg",
+        "element_regen": True,
+        "lab_alpha": 0.85,
         "stage_a_prompt": (
             "monochrome gray military combat camouflage background, "
-            "tactical dog tags and chain in dead center, matte gray monochrome palette, "
+            "tactical dog tags and ball chain in dead center, dog tag shape slightly varied, "
+            "chain detail varied, same centered composition, matte gray monochrome palette, "
             "strict 2D flat printed military graphic style, NO 3D, NO photorealistic, "
-            "preserve exact composition: top-center text band, center dog tags with chain, "
             "gray camo background pattern, dark gray and light gray ONLY, "
-            "uniform flat gray background, NO color, NO purple, NO red, NO blue"
+            "NO color, NO purple, NO red, NO blue"
         ),
         "neg_extra": "color, color shift, purple, red, blue, green, yellow, orange, brown, gradient",
+        "stage_a_params": {
+            "canny_res": 512, "canny_strength": 0.60, "canny_lo": 0.10, "canny_hi": 0.25,
+            "tile_strength": 0.65, "ipa_weight": 0.45, "ipa_end": 0.85, "ipa_noise": 0.05,
+            "lora": 0.40, "denoise1": 0.45, "denoise2": 0.15, "steps1": 18, "steps2": 10,
+            "cfg": 7.5,
+        },
         "regions": [
-            # 元素层 (迷彩/狗牌/链条 由 SDXL 重生, 位置锁原图)
-            {"kind": "element", "bbox": (0.10, 0.10, 0.90, 0.95), "label": "camo+dogtag+chain"},
+            {"kind": "element", "bbox": (0.05, 0.05, 0.95, 0.95), "label": "camo+dogtag+chain"},
         ],
         "text_regions": [
-            # 拆 3 行独立 bbox (程序化 detect_text_lines 检测精确坐标)
-            # 原图 (1556x2000) 文字带:  WE SUPPORT THE / ARMED / FORCES
-            # band1: y=452-531 h=79 cx=784   "WE SUPPORT THE" (capH 79, 14字细体)
-            # band2: y=535-647 h=112 cx=784  "ARMED"  (capH 112, 5字大字)
-            # FORCES 估:  y=650-755 h=105 cx=784  capH 105 (6字)
-            # 每行独立 bbox + 独立新词 (同位置同高度不同内容)
-            # 关键: word 字符数与原图近似, 保证 capH 不被 width-fit 压扁
-            {"bbox": (517, 452, 1051, 531), "capH": 79, "banks": [
-                "WE HONOR HEROES",        # 14字 填 534px 宽 (匹配原 14字)
-                "WE SALUTE THE BRAVE",    # 18字 (略长)
-                "WE BACK OUR TROOPS",     # 16字
+            {"bbox": (517, 452, 1051, 531), "capH": 79, "dilate": 4, "banks": [
+                "WE HONOR HEROES", "WE SALUTE THE BRAVE", "WE BACK OUR TROOPS",
             ], "font_key": "blackopsone"},
-            {"bbox": (459, 535, 1109, 647), "capH": 112, "banks": [
-                "STEEL",                  # 5字 = 原 ARMED 字符数
-                "VIGIL",                  # 5字
-                "HONOR",                  # 5字
+            {"bbox": (459, 535, 1109, 647), "capH": 112, "dilate": 4, "banks": [
+                "STEEL", "VIGIL", "HONOR",
             ], "font_key": "blackopsone"},
-            {"bbox": (459, 650, 1109, 740), "capH": 105, "banks": [
-                "TROOPS",                 # 6字 = 原 FORCES 字符数
-                "GUARDS",                 # 6字
-                "VALORS",                 # 6字
+            {"bbox": (459, 650, 1109, 750), "capH": 105, "dilate": 4, "banks": [
+                "TROOPS", "GUARDS", "VALORS",
             ], "font_key": "blackopsone"},
         ],
     },
 
-    # 13c8b7 红黑佩斯利 (1132x1132, 无文字) -- 真裂变: 母题重生但布局/位置不变
-    # element_regen=True: 用 SDXL 重生佩斯利母题 (异内容同构)
-    # 关键调参: 宏观 Canny(res=320) 只锁四宫格+中线大结构, 放掉细母题 -> 细母题可被重画
-    #           Tile 中强度 (0.55) 保画风纹理, denoise 低 (0.48) 只改母题线条不擦结构
-    #           色族内偏移: 深绯红+古金 (原红橙黑 -> 可见差异但关联), LAB 0.70 允许轻微色偏
-    "13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg": {
-        "src": SRC_DEFAULT / "13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg",
+    # Pinterest (2).jpg 鹰/骷髅/火焰徽章 (964x1280)
+    # 元素: 展翅鹰 + 3 骷髅 + 火焰 + 链条 -> 裂变: 鹰姿态/骷髅裂纹/火焰形态变化
+        # 文字: 顶部横幅 "JACKE DIANNIES" + 盾顶弧 "JACKE DIANNIES" + 底部横幅 "TALKDAN LANDUK OHI"
+        "Pinterest (2).jpg": {
+        "src": SRC_DEFAULT / "Pinterest (2).jpg",
         "element_regen": True,
-        "lab_alpha": 0.70,
+        "lab_alpha": 0.85,
         "stage_a_prompt": (
-            "ornate paisley bandana print, intricate damask and baroque floral medallions, "
-            "symmetrical four-quadrant pattern, detailed ornamental vintage textile, "
-            "deep crimson red and antique gold and black palette, rich saturated warm tones, "
-            "preserve exact composition: four-patch bandana layout with center divider and "
-            "corner ornaments, NO blue, NO green, NO gray, NO purple"
+            "bold vector illustration, eagle with spread wings perched on skulls, "
+            "chains and flames, eagle pose slightly varied, skull crack patterns varied, "
+            "flame shapes varied, same symmetrical composition, "
+            "red orange black and white palette ONLY, NO 3D, NO photorealistic"
         ),
-        "neg_extra": "blue, green, gray, purple, washed out, desaturated, blurry, low quality",
+        "neg_extra": "purple, blue, green, gray, brown, beige, washed out, desaturated, "
+                     "3D, photorealistic, glossy gradient",
         "stage_a_params": {
-            "canny_res": 320, "canny_strength": 0.82, "canny_lo": 0.15, "canny_hi": 0.35,
-            "tile_strength": 0.55, "ipa_weight": 0.45, "ipa_end": 0.85, "ipa_noise": 0.10,
-            "lora": 0.45, "denoise1": 0.48, "denoise2": 0.15, "steps1": 26, "steps2": 16,
+            "canny_res": 512, "canny_strength": 0.60, "canny_lo": 0.12, "canny_hi": 0.30,
+            "tile_strength": 0.60, "ipa_weight": 0.45, "ipa_end": 0.85, "ipa_noise": 0.05,
+            "lora": 0.45, "denoise1": 0.45, "denoise2": 0.15, "steps1": 18, "steps2": 10,
             "cfg": 7.0,
         },
         "regions": [
-            {"kind": "element", "bbox": (0.0, 0.0, 1.0, 1.0), "label": "paisley bandana"},
+            {"kind": "element", "bbox": (0.0, 0.0, 1.0, 1.0), "label": "eagle+skulls+flames"},
         ],
-        "text_regions": [],   # 无文字
+        "text_regions": [
+            # 顶部横幅 (近似弧形, 用直线 bbox + western 字体)
+            {"bbox": (300, 380, 664, 430), "capH": 42, "dilate": 4, "banks": [
+                "RAVEN CLAW", "IRON WING", "STORM EYE",
+            ], "font_key": "rye", "color": (235, 230, 220, 255)},
+            # 盾顶弧 (light text on black shield; 直线 bbox 近似)
+            {"bbox": (340, 590, 630, 660), "capH": 38, "dilate": 8, "banks": [
+                "IRON EAGLE", "SKULL BORN", "FIRE CLAN",
+            ], "font_key": "rye", "color": (235, 230, 220, 255)},
+            # 底部横幅 (原文字位置 y≈820-900, 扩到 910 覆盖完整)
+            {"bbox": (150, 810, 830, 910), "capH": 55, "dilate": 4, "banks": [
+                "BLOOD OATH", "DARK HARBOR", "ASH & IRON",
+            ], "font_key": "rye", "color": (235, 230, 220, 255)},
+        ],
     },
 
-    # 6978fab BACARDÍ 蝙蝠 (1024x1280, 5 段文字带)
-    # 用户硬规则: BACARDÍ 商标禁用, 换 NOCTAVEN / DUSKBAT / MOONBAT
+    # Pinterest (3).jpg 牛仔蝴蝶 (736x1308)
+    # 元素: 牛仔布蝴蝶 + 小蝴蝶/虚线轨迹 -> 裂变: 蝴蝶翅膀纹理/小蝴蝶姿态变化
+    # 文字: 顶部 "UPGY" 大字母 (denim  varsity 风格)
+    "Pinterest (3).jpg": {
+        "src": SRC_DEFAULT / "Pinterest (3).jpg",
+        "element_regen": True,
+        "lab_alpha": 0.85,
+        "stage_a_prompt": (
+            "denim fabric patch butterfly with frayed edges, butterfly wing pattern varied, "
+            "small butterflies and dotted flight trails, light blue denim texture, "
+            "same centered composition, white background, "
+            "NO 3D, NO photorealistic"
+        ),
+        "neg_extra": "purple, red, green, gray, brown, black background, "
+                     "3D, photorealistic, glossy gradient",
+        "stage_a_params": {
+            "canny_res": 512, "canny_strength": 0.65, "canny_lo": 0.10, "canny_hi": 0.25,
+            "tile_strength": 0.60, "ipa_weight": 0.45, "ipa_end": 0.85, "ipa_noise": 0.05,
+            "lora": 0.40, "denoise1": 0.40, "denoise2": 0.12, "steps1": 18, "steps2": 10,
+            "cfg": 7.5,
+        },
+        "regions": [
+            {"kind": "element", "bbox": (0.0, 0.0, 1.0, 1.0), "label": "denim butterfly+letters"},
+        ],
+        "text_regions": [
+            # 顶部大字母: 原为牛仔布贴 varsity 风格, 现用 rock 粗衬线 + 牛仔蓝, 均匀白底直接 fill
+            {"bbox": (0, 0, 736, 500), "capH": 230, "dilate": 12, "banks": [
+                "DENIM", "PATCH", "STYLE",
+            ], "font_key": "rock", "color": (60, 95, 165, 255), "fill": (245, 245, 245)},
+        ],
+    },
+
+    # 6978fab BACARDÍ 蝙蝠徽章 (1552x2000)
+    # 元素: 蝙蝠 + 圆形徽章 -> 裂变: 蝙蝠翅膀姿态变化, 徽章保持
+    # 文字: 顶弧 LA CASA DEL MURCIELAGO + Est. + 1862 + BACARDÍ + MCKHEART
     "6978fabda2cc99629fa9e81f802762d3.jpg": {
         "src": SRC_DEFAULT / "6978fabda2cc99629fa9e81f802762d3.jpg",
+        "element_regen": False,
+        "lab_alpha": 1.0,
         "stage_a_prompt": (
             "purple vintage craft spirits label with stylized 2D bat silhouette, "
-            "perfectly centered circular badge with thin clean ring outline, "
+            "bat wing pose slightly varied inside perfectly centered circular badge, "
+            "thin clean ring outline, "
             "saturated purple #6B2C8C and deep violet #2A0A3F and black ONLY, "
             "STRICTLY 2D flat printed vintage craft spirits label print style, "
             "preserve exact composition: top arc line + circular badge with bat + bottom triangle"
@@ -164,19 +211,33 @@ CONFIG = {
             "trophy, cup, vase, 3D, photorealistic, glossy, gradient, "
             "gray, beige, brown, green, blue, yellow, desaturated"
         ),
+        "stage_a_params": {
+            "canny_res": 320, "canny_strength": 0.85, "canny_lo": 0.10, "canny_hi": 0.25,
+            "tile_strength": 0.30, "ipa_weight": 0.30, "ipa_end": 0.85, "ipa_noise": 0.00,
+            "lora": 0.45, "denoise1": 0.35, "denoise2": 0.10, "steps1": 18, "steps2": 10,
+            "cfg": 7.5,
+        },
         "regions": [
             {"kind": "element", "bbox": (0.05, 0.10, 0.95, 0.95), "label": "bat badge"},
         ],
         "text_regions": [
-            # 6978fab BACARDÍ 图: 程序化 detect_text_lines 检测精确坐标 (size 1552x2000)
-            # band5: (284, 993, 1256, 1156)  "BACARDÍ"  (capH 163, 数字字体主字)
-            # band6: (465, 1181, 1129, 1334) "MCKHEART" (capH 153, 副字)
-            # 顶弧/底三角保留 (蝙蝠徽章身份)
-            # 修复 v324s bbox 太宽吞掉 ™ 上标 + 紧贴底三角 -> 收紧 + 避免 mask dilate 触及周围
-            {"bbox": (320, 1005, 1220, 1140), "capH": 135, "banks": [
+            # 顶弧弧形文字 (badge center ~950, radius ~520, 覆盖原 LA CASA DEL MURCIELAGO)
+            {"arc": {"cx": 776, "cy": 950, "radius": 520, "start": 215, "end": 325,
+                     "capH": 65, "flip_180": False}, "dilate": 12, "banks": [
+                "LA TUMBA DEL VAMPIRO", "CASA DE LAS SOMBRAS", "EL REINO NOCTURNO",
+            ], "font_key": "playfair_bold"},
+            # Est. / 1862 小字 (badge 左右, 比 badge 中心略高)
+            {"bbox": (410, 840, 590, 990), "capH": 70, "dilate": 16, "banks": [
+                "Set.", "Est.", "Sir.",
+            ], "font_key": "playfair_bold"},
+            {"bbox": (960, 840, 1140, 990), "capH": 70, "dilate": 16, "banks": [
+                "1877", "1888", "1899",
+            ], "font_key": "playfair_bold"},
+            # BACARDÍ / MCKHEART
+            {"bbox": (320, 1005, 1220, 1140), "capH": 135, "dilate": 4, "banks": [
                 "NOCTAVEN", "DUSKBAT", "MOONBAT",
             ], "font_key": "playfair_bold"},
-            {"bbox": (480, 1195, 1110, 1320), "capH": 125, "banks": [
+            {"bbox": (480, 1195, 1110, 1320), "capH": 125, "dilate": 4, "banks": [
                 "MOONHEART", "DARKHEART", "STARLING",
             ], "font_key": "playfair_bold"},
         ],
@@ -202,7 +263,7 @@ def submit(graph, client_id):
     return None
 
 
-def wait_outputs(pid, prefix, timeout=320):
+def wait_outputs(pid, prefix, timeout=1500):
     t0 = time.time()
     while time.time() - t0 < timeout:
         time.sleep(4)
@@ -254,31 +315,20 @@ def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, p
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
     g["2"] = {"class_type": "LoadImage", "inputs": {"image": orig_name}}
     g["3"] = {"class_type": "ImageScaleToTotalPixels", "inputs": {
-        "upscale_method": "lanczos", "megapixels": 1.0, "image": ["2", 0],
+        "upscale_method": "lanczos", "megapixels": 0.5, "image": ["2", 0],
         "resolution_steps": 64}}
     g["4"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["3", 0], "vae": ["1", 2]}}
-    g["5"] = {"class_type": "IPAdapterUnifiedLoader",
-              "inputs": {"model": ["1", 0], "preset": IPA_PRESET}}
-    g["6"] = {"class_type": "IPAdapterAdvanced", "inputs": {
-        "model": ["1", 0], "ipadapter": ["5", 1], "image": ["3", 0],
-        "weight": p["ipa_weight"], "weight_type": "style transfer",
-        "combine_embeds": "average", "start_at": 0.0, "end_at": p["ipa_end"],
-        "noise": p["ipa_noise"], "embeds_scaling": "V only"}}
     g["7"] = {"class_type": "LoraLoader", "inputs": {
-        "model": ["6", 0], "clip": ["1", 1], "lora_name": LORA,
+        "model": ["1", 0], "clip": ["1", 1], "lora_name": LORA,
         "strength_model": p["lora"], "strength_clip": p["lora"]}}
-    # Canny 边缘 (低 resolution = 只锁宏观布局, 放掉细母题 -> 母题可被重画)
+    # Canny 边缘 (锁宏观构图, 允许元素姿态/细节变化); Tile 已移除以节省 VRAM
     g["20"] = {"class_type": "CannyEdgePreprocessor", "inputs": {
         "image": ["3", 0], "low_threshold": p["canny_lo"], "high_threshold": p["canny_hi"],
         "resolution": p["canny_res"]}}
     g["21"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": CN_CANNY}}
     g["22"] = {"class_type": "ControlNetApply", "inputs": {
-        "conditioning": ["pg", 0], "control_net": ["21", 0],
+        "conditioning": ["comb", 0], "control_net": ["21", 0],
         "image": ["20", 0], "strength": p["canny_strength"]}}
-    g["23"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": CN_TILE}}
-    g["24"] = {"class_type": "ControlNetApply", "inputs": {
-        "conditioning": ["22", 0], "control_net": ["23", 0],
-        "image": ["3", 0], "strength": p["tile_strength"]}}
 
     # Global prompt
     neg = ("text, words, letters, typography, watermark, signature, logo, "
@@ -302,7 +352,7 @@ def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, p
     g["comb"] = {"class_type": "RegionalListCombine", "inputs": comb_in}
 
     g["10"] = {"class_type": "KSampler", "inputs": {
-        "model": ["7", 0], "positive": ["comb", 0], "negative": ["ng", 0],
+        "model": ["7", 0], "positive": ["22", 0], "negative": ["ng", 0],
         "latent_image": ["4", 0], "seed": seed, "steps": p["steps1"], "cfg": p["cfg"],
         "sampler_name": "euler", "scheduler": "normal", "denoise": p["denoise1"]}}
     g["11"] = {"class_type": "KSampler", "inputs": {
@@ -315,6 +365,16 @@ def build_stage_a(orig_name, stage_a_prompt, neg_extra, regions_prompts, seed, p
 
 
 # ===================== Stage B: bbox mask inpaint 抹旧字 =====================
+def fill_region(img, mask_rgba, color):
+    """用纯色填充 mask 区域（mask 的 alpha 通道控制填充范围），用于均匀底色文字带清理."""
+    arr = np.array(img.convert("RGB")).astype(np.float32)
+    mask = np.array(mask_rgba.split()[3]).astype(np.float32) / 255.0
+    color_np = np.array(color[:3]).astype(np.float32)
+    for c in range(3):
+        arr[..., c] = arr[..., c] * (1 - mask) + color_np[c] * mask
+    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
+
+
 def build_inpaint(img_name, mask_name, seed, prefix, denoise=0.40):
     g = {}
     g["1"] = {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": CKPT}}
@@ -340,12 +400,71 @@ def make_text_mask(size_wh, bbox, dilate=12):
     w, h = size_wh
     mask = np.zeros((h, w), dtype=np.uint8)
     x1, y1, x2, y2 = [max(0, int(v)) for v in bbox]
+    x1, y1 = min(x1, w-1), min(y1, h-1)
+    x2, y2 = max(x1+1, min(x2, w)), max(y1+1, min(y2, h))
     mask[y1:y2, x1:x2] = 255
-    k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilate*2+1, dilate*2+1))
-    mask = cv2.dilate(mask, k, iterations=1)
+    if dilate > 0:
+        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilate*2+1, dilate*2+1))
+        mask = cv2.dilate(mask, k, iterations=1)
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     rgba[..., 3] = mask
     return Image.fromarray(rgba, "RGBA")
+
+
+def make_arc_text_mask(size_wh, arc, dilate=4):
+    """生成弧形文字带的环形扇区 mask."""
+    w, h = size_wh
+    cx, cy, radius = arc["cx"], arc["cy"], arc["radius"]
+    capH = arc.get("capH", 48)
+    start, end = arc["start"], arc["end"]
+    inner_r = max(0, radius - capH//2 - 8)
+    outer_r = radius + capH//2 + 8
+    img = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(img)
+    # 角度约定与 arc_text.draw_arc_text 保持一致: 0=east, 顺时针增加.
+    d.pieslice([cx-outer_r, cy-outer_r, cx+outer_r, cy+outer_r], start=start, end=end, fill=255)
+    # 挖掉内圆
+    inner = Image.new("L", (w, h), 0)
+    di = ImageDraw.Draw(inner)
+    if inner_r > 0:
+        di.ellipse([cx-inner_r, cy-inner_r, cx+inner_r, cy+inner_r], fill=255)
+    img = ImageChops.subtract(img, inner)
+    if dilate > 0:
+        mask = np.array(img)
+        k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (dilate*2+1, dilate*2+1))
+        mask = cv2.dilate(mask, k, iterations=1)
+        img = Image.fromarray(mask, "L")
+    rgba = np.zeros((h, w, 4), dtype=np.uint8)
+    rgba[..., 3] = np.array(img)
+    return Image.fromarray(rgba, "RGBA")
+
+
+def render_arc_text_at_bbox(img, word, arc, font_key, color=(0, 0, 0, 255), all_caps=True):
+    """用 arc_text.draw_arc_text 在弧形区域渲染新词."""
+    cx, cy, radius = arc["cx"], arc["cy"], arc["radius"]
+    start, end = arc["start"], arc["end"]
+    capH = arc.get("capH", 48)
+    flip = arc.get("flip_180", False)
+    fp = FONTS.get(font_key, FONTS["impact"])
+    text = word.upper() if all_caps else word
+    # 估算字号: 用 capH 与字体 capH 比率
+    try:
+        probe = ImageFont.truetype(fp, 200)
+        probe_capH = probe.getbbox("A")[3] - probe.getbbox("A")[1]
+        ratio = probe_capH / 200
+    except Exception:
+        ratio = 0.70
+    fsize = max(8, int(capH / max(0.30, ratio) * 0.95))
+    # 让文字不超过弧长: 量一下在指定 radius 上占用像素
+    arc_len_px = fit_arc_text_width(text, fp, fsize, radius, char_spacing_px=2)
+    available_px = math.radians((end - start) % 360) * radius
+    if arc_len_px > available_px * 0.95 and fsize > 8:
+        fsize = max(8, int(fsize * (available_px * 0.95 / arc_len_px)))
+    out = draw_arc_text(img, text, fp, fsize, color,
+                        center=(cx, cy), radius=radius,
+                        start_angle_deg=start, end_angle_deg=end,
+                        char_spacing_px=2, flip_180=flip)
+    return out.convert("RGB") if out.mode != "RGB" else out
 
 
 def render_text_at_bbox(img, word, bbox, font_key, color=(0, 0, 0, 255),
@@ -452,9 +571,35 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
     if not src_in.exists() or src_in.stat().st_size != orig_path.stat().st_size:
         shutil.copy2(orig_path, src_in)
 
+    # 前置清理: 先把所有文字带用 LaMa 抹掉, 生成 clean_plate
+    # 这样 Stage A 元素裂变不会把旧字/乱码写进背景, 后续渲染更干净
+    clean_plate = base_img.copy()
+    if cfg["text_regions"]:
+        for ri, tr in enumerate(cfg["text_regions"]):
+            dilate = tr.get("dilate", 6)
+            if "arc" in tr:
+                arc = tr["arc"]
+                ca = {
+                    "cx": arc["cx"], "cy": arc["cy"],
+                    "radius": arc["radius"], "start": arc["start"], "end": arc["end"],
+                    "capH": arc.get("capH", 48), "flip_180": arc.get("flip_180", False),
+                }
+                mask_img = make_arc_text_mask(clean_plate.size, ca, dilate=dilate)
+            else:
+                mask_img = make_text_mask(clean_plate.size, tr["bbox"], dilate=dilate)
+            print(f"  [pre-clean] region{ri} dilate={dilate}", flush=True)
+            mask_l = mask_img.split()[3]
+            if tr.get("fill"):
+                clean_plate = fill_region(clean_plate, mask_img, tr["fill"])
+            else:
+                clean_plate = lama_inpaint(clean_plate, mask_l, removal_strength=230, edge_smoothness=6)
+        clean_name = f"v324_{ts}_{ci}_clean.png"
+        clean_plate.save(COMFY_INPUT / clean_name)
+
     # Stage A: 元素层处理 (CFG['element_regen'] 开关, 默认 False=原图直传保 100% 元素)
     element_regen = cfg.get("element_regen", False)
     if element_regen:
+        orig_name_for_stage_a = f"v324_{ts}_{ci}_clean.png" if cfg["text_regions"] else orig_path.name
         # SDXL 元素层轻重生 (Canny 锁位置 + 轻重生)
         regions_prompts = []
         for r in cfg["regions"]:
@@ -467,7 +612,7 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
             regions_prompts.append((bn_norm, cfg["stage_a_prompt"], 1.0))
 
         a_prefix = f"v324_{ts}_{ci}_a"
-        g_a = build_stage_a(orig_name=orig_path.name, stage_a_prompt=cfg["stage_a_prompt"],
+        g_a = build_stage_a(orig_name=orig_name_for_stage_a, stage_a_prompt=cfg["stage_a_prompt"],
                             neg_extra=cfg["neg_extra"], regions_prompts=regions_prompts,
                             seed=seed0, prefix=a_prefix, params=cfg.get("stage_a_params"))
         r = submit(g_a, f"v324_{ts}_{ci}_a")
@@ -478,7 +623,7 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
         else:
             pid = r["prompt_id"]
             print(f"  Stage A pid={pid[:8]}", flush=True)
-            blob = wait_outputs(pid, a_prefix, timeout=400)
+            blob = wait_outputs(pid, a_prefix, timeout=1500)
             if not blob:
                 print(f"  Stage A failed, fallback to 原图", flush=True)
                 cur = base_img.copy()
@@ -496,30 +641,61 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
 
     words_used = []
     for ri, tr in enumerate(cfg["text_regions"]):
-        bx1, by1, bx2, by2 = tr["bbox"]
-        # scale to cur
-        sx, sy = cur.size[0] / W0, cur.size[1] / H0
-        cb = (int(bx1*sx), int(by1*sy), int(bx2*sx), int(by2*sy))
         word = tr["banks"][ci % len(tr["banks"])]
         words_used.append(word)
-        print(f"  region{ri} '{word}' bbox_norm={tr['bbox']} -> cur={cb}", flush=True)
-
-        # Stage B 用 LaMa (本地) 替代 SDXL inpaint -- v318c 定稿: LaMa 只填 mask 区, 保周围纹理
-        # Stage B: LaMa 抹旧字 (dilate=8 让字外缘精准覆盖, 不吞周围装饰)
-        # capH 约束: 从 tr 取 (有就传, 没就 None 让 render 用二分填满)
+        dilate = tr.get("dilate", 6)
         capH = tr.get("capH")
-        mask_img = make_text_mask(cur.size, cb, dilate=8)
-        print(f"  [B] LaMa inpaint  bbox={cb}  capH={capH}  mask_area={int(np.array(mask_img)[...,3].mean()/255*100)}%", flush=True)
-        mask_l = mask_img.split()[3]   # alpha channel
-        cur = lama_inpaint(cur, mask_l, removal_strength=230, edge_smoothness=6)
-        cur_name = f"v324_{ts}_{ci}_r{ri}_lama.png"
-        cur.save(COMFY_INPUT / cur_name)
-        cur.save(out_dir / f"{fname.replace('.jpg','')}_c{ci}_r{ri}_lama.png")
 
-        # Stage C: PIL 渲染新词 (按 capH 算字号, 严格匹配原字高度)
-        cur = render_text_at_bbox(cur, word, cb, tr["font_key"], target_capH=capH)
-        cur_name = f"v324_{ts}_{ci}_r{ri}_texted.png"
-        cur.save(COMFY_INPUT / cur_name)
+        if "arc" in tr:
+            # ---- 弧形文字带 ----
+            arc = tr["arc"]
+            sx, sy = cur.size[0] / W0, cur.size[1] / H0
+            ca = {
+                "cx": int(arc["cx"] * sx), "cy": int(arc["cy"] * sy),
+                "radius": int(arc["radius"] * (sx+sy)/2),
+                "start": arc["start"], "end": arc["end"],
+                "capH": int(arc.get("capH", capH or 48) * (sx+sy)/2),
+                "flip_180": arc.get("flip_180", False),
+            }
+            print(f"  region{ri} '{word}' arc={ca} (dilate={dilate})", flush=True)
+            mask_img = make_arc_text_mask(cur.size, ca, dilate=dilate)
+            print(f"  [B] LaMa inpaint arc  capH={ca['capH']}  mask_area={int(np.array(mask_img)[...,3].mean()/255*100)}%", flush=True)
+            mask_l = mask_img.split()[3]
+            if tr.get("fill"):
+                cur = fill_region(cur, mask_img, tr["fill"])
+            else:
+                cur = lama_inpaint(cur, mask_l, removal_strength=230, edge_smoothness=6)
+            cur_name = f"v324_{ts}_{ci}_r{ri}_lama.png"
+            cur.save(COMFY_INPUT / cur_name)
+            cur.save(out_dir / f"{fname.replace('.jpg','')}_c{ci}_r{ri}_lama.png")
+
+            cur = render_arc_text_at_bbox(cur, word, ca, tr["font_key"], color=tr.get("color", (0, 0, 0, 255)))
+            cur_name = f"v324_{ts}_{ci}_r{ri}_texted.png"
+            cur.save(COMFY_INPUT / cur_name)
+
+        else:
+            # ---- 直线 bbox 文字带 ----
+            bx1, by1, bx2, by2 = tr["bbox"]
+            sx, sy = cur.size[0] / W0, cur.size[1] / H0
+            cb = (int(bx1*sx), int(by1*sy), int(bx2*sx), int(by2*sy))
+            print(f"  region{ri} '{word}' bbox_norm={tr['bbox']} -> cur={cb} (dilate={dilate})", flush=True)
+
+            # Stage B 用 LaMa (本地) 替代 SDXL inpaint -- v318c 定稿: LaMa 只填 mask 区, 保周围纹理
+            mask_img = make_text_mask(cur.size, cb, dilate=dilate)
+            print(f"  [B] LaMa inpaint  bbox={cb}  capH={capH}  mask_area={int(np.array(mask_img)[...,3].mean()/255*100)}%", flush=True)
+            mask_l = mask_img.split()[3]   # alpha channel
+            if tr.get("fill"):
+                cur = fill_region(cur, mask_img, tr["fill"])
+            else:
+                cur = lama_inpaint(cur, mask_l, removal_strength=230, edge_smoothness=6)
+            cur_name = f"v324_{ts}_{ci}_r{ri}_lama.png"
+            cur.save(COMFY_INPUT / cur_name)
+            cur.save(out_dir / f"{fname.replace('.jpg','')}_c{ci}_r{ri}_lama.png")
+
+            # Stage C: PIL 渲染新词 (按 capH 算字号, 严格匹配原字高度)
+            cur = render_text_at_bbox(cur, word, cb, tr["font_key"], target_capH=capH, color=tr.get("color", (0, 0, 0, 255)))
+            cur_name = f"v324_{ts}_{ci}_r{ri}_texted.png"
+            cur.save(COMFY_INPUT / cur_name)
 
     LAB_ALPHA = cfg.get("lab_alpha", 0.85)   # 每图可调: 1.0=完全锁, 0.85=部分锁保细节, 低=允许色族内偏差
 
@@ -549,6 +725,7 @@ def run_one(fname, cfg, ci, out_dir, ts, seed0):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", nargs="*", default=None)
+    ap.add_argument("--ncands", type=int, default=3, help="每个图像生成几个候选 (默认 3)")
     args = ap.parse_args()
     ts = int(time.time())
     out_dir = ROOT / "jobs" / f"v324_universal_{ts}"
@@ -560,7 +737,7 @@ def main():
     results = []
     for fi, fname in enumerate(names):
         cfg = CONFIG[fname]
-        for ci in range(3):  # 每图 3 候选
+        for ci in range(args.ncands):  # 每图 ncands 候选
             res = run_one(fname, cfg, ci, out_dir, ts, seed0 + fi * 100 + ci * 17)
             if res:
                 results.append(res)
