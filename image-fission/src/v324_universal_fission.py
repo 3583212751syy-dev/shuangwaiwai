@@ -194,10 +194,12 @@ CONFIG = {
     # 6978fab BACARDÍ 蝙蝠徽章 (1552x2000)
     # 元素: 蝙蝠 + 圆形徽章 -> 裂变: 蝙蝠翅膀姿态变化, 徽章保持
     # 文字: 顶弧 LA CASA DEL MURCIELAGO + Est. + 1862 + BACARDÍ + MCKHEART
+    # v324h 调优: 采用 v268 经验 —— 对均匀紫色背景文字带用 fill 采样色平填,
+    #  彻底消除 LaMa 残留 ghost; 扩大 arc 扇区覆盖原弧字; lab_alpha=0 避免全局洗色.
     "6978fabda2cc99629fa9e81f802762d3.jpg": {
         "src": SRC_DEFAULT / "6978fabda2cc99629fa9e81f802762d3.jpg",
         "element_regen": False,
-        "lab_alpha": 1.0,
+        "lab_alpha": 0.0,
         "stage_a_prompt": (
             "purple vintage craft spirits label with stylized 2D bat silhouette, "
             "bat wing pose slightly varied inside perfectly centered circular badge, "
@@ -221,25 +223,22 @@ CONFIG = {
             {"kind": "element", "bbox": (0.05, 0.10, 0.95, 0.95), "label": "bat badge"},
         ],
         "text_regions": [
-            # 顶弧弧形文字 (badge center ~950, radius ~520, 覆盖原 LA CASA DEL MURCIELAGO)
-            {"arc": {"cx": 776, "cy": 950, "radius": 520, "start": 215, "end": 325,
-                     "capH": 65, "flip_180": False}, "dilate": 12, "banks": [
+            # 顶弧弧形文字: 大扇区覆盖原 LA CASA DEL MURCIELAGO, fill 采样 ribbon 色
+            {"arc": {"cx": 776, "cy": 950, "radius": 520, "start": 198, "end": 342,
+                     "capH": 85, "flip_180": False}, "dilate": 28, "fill": (185, 126, 174),
+             "banks": [
                 "LA TUMBA DEL VAMPIRO", "CASA DE LAS SOMBRAS", "EL REINO NOCTURNO",
             ], "font_key": "playfair_bold"},
-            # Est. / 1862 小字 (badge 左右, 比 badge 中心略高)
-            {"bbox": (410, 840, 590, 990), "capH": 70, "dilate": 16, "banks": [
-                "Set.", "Est.", "Sir.",
-            ], "font_key": "playfair_bold"},
-            {"bbox": (960, 840, 1140, 990), "capH": 70, "dilate": 16, "banks": [
-                "1877", "1888", "1899",
-            ], "font_key": "playfair_bold"},
-            # BACARDÍ / MCKHEART
-            {"bbox": (320, 1005, 1220, 1140), "capH": 135, "dilate": 4, "banks": [
-                "NOCTAVEN", "DUSKBAT", "MOONBAT",
-            ], "font_key": "playfair_bold"},
-            {"bbox": (480, 1195, 1110, 1320), "capH": 125, "dilate": 4, "banks": [
-                "MOONHEART", "DARKHEART", "STARLING",
-            ], "font_key": "playfair_bold"},
+            # Est. / 1862 小字 (badge 左右)
+            {"bbox": (410, 840, 590, 990), "capH": 70, "dilate": 24, "fill": (185, 125, 175),
+             "banks": ["Set.", "Est.", "Sir."], "font_key": "playfair_bold"},
+            {"bbox": (960, 840, 1140, 990), "capH": 70, "dilate": 24, "fill": (185, 125, 175),
+             "banks": ["1877", "1888", "1899"], "font_key": "playfair_bold"},
+            # BACARDÍ / MCKHEART: 宽 bbox 覆盖 accent/superscript, fill 采样背景色
+            {"bbox": (180, 980, 1370, 1170), "capH": 135, "dilate": 24, "fill": (184, 125, 175),
+             "banks": ["NOCTAVEN", "DUSKBAT", "MOONBAT"], "font_key": "playfair_bold"},
+            {"bbox": (380, 1180, 1175, 1330), "capH": 125, "dilate": 20, "fill": (185, 125, 175),
+             "banks": ["MOONHEART", "DARKHEART", "STARLING"], "font_key": "playfair_bold"},
         ],
     },
 }
