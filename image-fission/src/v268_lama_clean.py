@@ -149,9 +149,12 @@ def diffusion_inpaint(src_pil, mask_pil, *, prompt="a plain clean background, sm
     if p_mask.size != p_img.size:
         p_mask = p_mask.resize(p_img.size)
     g = torch.Generator(device=pipe.device).manual_seed(seed)
+    # 关键：必须显式传 height/width 用原图尺寸，否则 SD-inpaint 默认把输出
+    # 强制缩放为 512x512，导致回 base.py 后尺寸失配、背景重建错位。
     out = pipe(
         prompt=prompt, negative_prompt=negative_prompt,
         image=p_img, mask_image=p_mask,
+        height=p_img.height, width=p_img.width,
         strength=strength, num_inference_steps=num_inference_steps,
         guidance_scale=guidance_scale, generator=g,
     ).images[0]
