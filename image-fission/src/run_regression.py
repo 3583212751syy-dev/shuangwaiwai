@@ -205,7 +205,7 @@ def main():
         out_dir.mkdir(parents=True, exist_ok=True)
         cat = img_cfg["category"]
         if cat == "no_subject_pattern":
-            mode, similarity, redraw = "mode1", 0.65, None
+            mode, similarity, redraw = "mode1", None, None
         else:
             mode, similarity, redraw = "mode3", None, 0.45
         prompts = img_cfg.get("prompts", [])[:1]  # baseline 只跑 1 个 prompt 求快

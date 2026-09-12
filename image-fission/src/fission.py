@@ -186,6 +186,8 @@ def main():
         base_params["similarity"] = args.similarity
         color_w = 0.0
         comp_w = 0.0
+        lock_label = (f"mode1 IPAdapter LINEAR similarity={args.similarity} "
+                      f"noise={args.ipadapter_noise} end={args.ipadapter_end}")
         print(f"[ipa] LINEAR(similarity) weight={args.similarity} "
               f"noise={args.ipadapter_noise} end={args.ipadapter_end}")
     else:
