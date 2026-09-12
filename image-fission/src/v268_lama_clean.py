@@ -90,6 +90,77 @@ def lama_inpaint(src_pil, mask_pil, removal_strength=230, edge_smoothness=8):
 
 
 # ----------------------------------------------------------------------------
+# 扩散 inpaint（升级版去字 backend，替换 Big-LaMa）
+# 用本地 SD1.5-inpaint 扩散模型彻底擦除旧字并以周围纹理重建背景。
+# 与 LaMa 一样：mask 白=去除区；不使用任何矩形色块填充。
+# ----------------------------------------------------------------------------
+_DIFF_PIPE = None
+_DIFF_MODEL_DIR = None
+
+# 默认指向本地下载的 SD1.5-inpaint 模型目录（见 scripts/download_sd15_inpaint.py）
+_DEFAULT_DIFF_DIR = "E:/Desktop/双接口/image-fission/models/sd15_inpaint"
+
+
+def set_diffusion_model_dir(d):
+    global _DIFF_MODEL_DIR, _DIFF_PIPE
+    _DIFF_MODEL_DIR = d
+    _DIFF_PIPE = None  # 切换目录后重新加载
+
+
+def _load_diff_pipe():
+    global _DIFF_PIPE
+    if _DIFF_PIPE is not None:
+        return _DIFF_PIPE
+    from diffusers import (StableDiffusionInpaintPipeline, DDIMScheduler,
+                           UNet2DConditionModel, AutoencoderKL)
+    from transformers import CLIPTextModel, CLIPTokenizer
+    md = _DIFF_MODEL_DIR or os.environ.get("DIFFUSION_INPAINT_MODEL") or _DEFAULT_DIFF_DIR
+    if not os.path.isdir(md):
+        raise RuntimeError(f"diffusion inpaint 模型目录不存在: {md}；请先下载 SD1.5-inpaint")
+    dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+    # 显式从各子目录加载组件构造 pipeline，绕开可能缺失的 model_index.json
+    pipe = StableDiffusionInpaintPipeline(
+        vae=AutoencoderKL.from_pretrained(md, subfolder="vae", torch_dtype=dtype),
+        text_encoder=CLIPTextModel.from_pretrained(md, subfolder="text_encoder", torch_dtype=dtype),
+        tokenizer=CLIPTokenizer.from_pretrained(md, subfolder="tokenizer"),
+        unet=UNet2DConditionModel.from_pretrained(md, subfolder="unet", torch_dtype=dtype),
+        scheduler=DDIMScheduler.from_pretrained(md, subfolder="scheduler"),
+        safety_checker=None,
+        feature_extractor=None,
+        requires_safety_checker=False,
+    )
+    pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
+    pipe.enable_attention_slicing()
+    _DIFF_PIPE = pipe
+    return pipe
+
+
+def diffusion_inpaint(src_pil, mask_pil, *, prompt="a plain clean background, smooth texture, no text",
+                     negative_prompt="text, letters, words, watermark, logo, sign",
+                     strength=1.0, num_inference_steps=40, guidance_scale=6.5, seed=8888):
+    """src_pil: RGB; mask_pil: 'L'，白=去除区。返回去字后 RGB PIL（背景由扩散重建）。"""
+    pipe = _load_diff_pipe()
+    img = src_pil.convert("RGB")
+    mask = mask_pil.convert("L").resize(img.size)
+    w, h = img.size
+    # 补齐到 8 的倍数（VAE 要求），裁回原尺寸，避免边缘整除报错
+    p_img = pad_image(img)
+    p_mask = pad_image(mask, is_mask=True)
+    if p_mask.size != p_img.size:
+        p_mask = p_mask.resize(p_img.size)
+    g = torch.Generator(device=pipe.device).manual_seed(seed)
+    out = pipe(
+        prompt=prompt, negative_prompt=negative_prompt,
+        image=p_img, mask_image=p_mask,
+        strength=strength, num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale, generator=g,
+    ).images[0]
+    if out.width > w or out.height > h:
+        out = out.crop((0, 0, w, h))
+    return out.convert("RGB")
+
+
+# ----------------------------------------------------------------------------
 # BACARDÍ 蝙蝠图手动文字行 / 弧带多边形
 # ----------------------------------------------------------------------------
 def bat_rows():

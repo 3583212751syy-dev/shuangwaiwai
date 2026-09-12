@@ -168,12 +168,16 @@ def replace_text_plan(img: Image.Image, plan: list[dict], dilate: int = 12) -> I
         mdraw = ImageDraw.Draw(mask)
         mdraw.rectangle([bx1, by1, bx2, by2], fill=255)
         mask = mask.filter(ImageFilter.MaxFilter(item_dilate * 2 + 1))
-        # 2) LaMa 只抹裁剪框内文字区（生成匹配背景的纹理）
+        # 2) 扩散 inpaint 只抹裁剪框内文字区（背景由扩散重建，不用色块盖字）
         try:
-            cleaned_crop = lc.lama_inpaint(out_crop, mask, removal_strength=235, edge_smoothness=6)
+            cleaned_crop = lc.diffusion_inpaint(out_crop, mask)
         except Exception as e:
-            print(f"[base] lama_inpaint failed for {bbox}: {e}")
-            cleaned_crop = out_crop
+            print(f"[base] diffusion_inpaint failed for {bbox}: {e}, 回退 LaMa")
+            try:
+                cleaned_crop = lc.lama_inpaint(out_crop, mask, removal_strength=235, edge_smoothness=6)
+            except Exception as e2:
+                print(f"[base] lama fallback also failed: {e2}")
+                cleaned_crop = out_crop
         # 3) 按原排版重画新词（坐标相对裁剪框）
         cleaned_crop = _render_word(cleaned_crop, word, [bx1, by1, bx2, by2],
                                     item.get("font", "blackopsone"),
@@ -445,15 +449,18 @@ def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
         # 预判断材质权重，决定后续回填策略
         mat_w = float(item.get("material_weight", 0.70 if use_material else 0.0))
         emb = float(item.get("emboss", 0.0))
-        # 2) LaMa 擦除：先彻底擦除原文字（背景由 LaMa 自然重建），绝不用色块盖字。
-        #    removal_strength 越高越激进（mask 阈值 point(x>strength?0:255)）
-        removal_strength = float(item.get("removal_strength", 240))
+        # 2) 扩散 inpaint 擦除：先彻底擦除原文字（背景由扩散重建），绝不用色块盖字。
+        removal_strength = float(item.get("removal_strength", 240))  # 保留字段，扩散 backend 暂未使用
         edge_smoothness = int(item.get("edge_smoothness", 4))
         try:
-            cleaned_crop = lc.lama_inpaint(crop, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
+            cleaned_crop = lc.diffusion_inpaint(crop, mask_pil)
         except Exception as e:
-            print(f"[base] lama_inpaint failed for {bbox}: {e}")
-            cleaned_crop = crop
+            print(f"[base] diffusion_inpaint failed for {bbox}: {e}, 回退 LaMa")
+            try:
+                cleaned_crop = lc.lama_inpaint(crop, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
+            except Exception as e2:
+                print(f"[base] lama fallback also failed: {e2}")
+                cleaned_crop = crop
         cleaned_arr = np.asarray(cleaned_crop, dtype=np.float32)
         # 3) 渲染新词 alpha
         arc = item.get("arc")

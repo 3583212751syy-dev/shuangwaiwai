@@ -11,6 +11,8 @@ ComfyUI/
 # 下载的模型权重（GB 级）
 ComfyUI/models/
 models_extra/
+models/
+**/*.incomplete
 **/*.safetensors
 **/*.ckpt
 **/*.pt
