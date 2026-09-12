@@ -21,7 +21,7 @@ COVERS = ["b78e60", "pinterest4"]
 def default_params() -> dict:
     return {
         "mode": "mode1",                 # 双锁：保整体迷彩构图 + 风格锁
-        "color_strength": 0.62,         # 锁原色族
+        "color_strength": 0.72,         # 强锁原色族（迷彩颜色必须保留）
         "composition_strength": 0.58,
         "ipadapter_noise": 0.10,
         "controlnet_strength": 0.60,    # Canny 中强：锁小元素(棕榈/狗牌)轮廓，放湖泊色块形变
@@ -50,9 +50,12 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     out_dir = Path(out_dir)
     im = base.Image.open(image_path).convert("RGB")
     W, H = im.size
-    # mode1 固定生成 768x1344 -> 4x 超分；用原图 1/4 宽高保比例，避免拉伸
-    w4 = max(64, ((W // 4) // 8) * 8)
-    h4 = max(64, ((H // 4) // 8) * 8)
+    # mode1 用原图 gen_scale 宽高保比例，避免拉伸；默认 1/4，狗牌图可调高以保小元素物种
+    scale = float(base.get_image_cfg(cfg, image_path).get("gen_scale", 0.25))
+    w = max(64, int(W * scale))
+    h = max(64, int(H * scale))
+    w4 = max(64, (w // 8) * 8)
+    h4 = max(64, (h // 8) * 8)
 
     args = [
         "--input", image_path,

@@ -87,7 +87,7 @@
         "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name"
       ],
       "text_plan": [
-        {"bbox": [120, 60, 3423, 700], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 10}
+        {"bbox": [120, 60, 3423, 700], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 22}
       ]
     },
     {
