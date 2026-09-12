@@ -6,33 +6,29 @@
 - 小元素（dog tag / 棕榈树）改角度与内容，但物种不变（狗牌还是狗牌、棕榈还是棕榈）
 - 文字按原图字体 / 排版 / 字号只改内容单词（原位改写，禁色块遮盖）
 
-本模块独立持有该风格的 ComfyUI 参数（camo blob 形变强、色锁强）与文字替换策略。
+本模块独立持有该风格的 ComfyUI 参数与文字替换策略。升级只改本模块，不污染其他风格。
 """
 from __future__ import annotations
+import shutil
 from pathlib import Path
 from . import base
 
 STYLE_KEY = "camo_pattern"
 DESCRIPTION = "迷彩类：改湖泊色块形变、小元素物种不变、文字按原排版替换"
-# 该风格覆盖的回归图 id（用于路由回查）
 COVERS = ["b78e60", "pinterest4"]
 
 
 def default_params() -> dict:
     return {
         "mode": "mode1",                 # 双锁：保整体迷彩构图 + 风格锁
-        "canny_res": 512,                # 中分 Canny 锁大块边界
-        "canny_strength": 0.78,
-        "tile_strength": 0.50,
-        "ipa_weight": 0.45,
+        "color_strength": 0.62,         # 锁原色族
+        "composition_strength": 0.58,
         "ipadapter_noise": 0.10,
-        "denoise1": 0.50,                # 略高让色块形状/角度/大小裂变
-        "denoise2": 0.15,
+        "controlnet_strength": 0.60,    # Canny 中强：锁小元素(棕榈/狗牌)轮廓，放湖泊色块形变
+        "controlnet_end": 0.90,
+        "lab_alpha": 0.80,              # 强锁原色族（迷彩颜色必须保留）
         "steps": 28,
         "cfg": 5.0,
-        "color_strength": 0.62,
-        "composition_strength": 0.58,
-        "lab_alpha": 0.80,               # 强锁原色族（迷彩颜色必须保留）
         "count": 1,
         "seed": 8888,
     }
@@ -48,10 +44,16 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     p.update({k: v for k, v in (cfg.get("comfyui_params", {}).get("camo_pattern", {}) or {}).items()})
     if seed is not None:
         p["seed"] = seed
-    prompts = cfg.get("prompts") or ["tropical camouflage pattern with palm silhouettes, lake-like blobs reshaped, original palette preserved, no text"]
+    prompts = base.get_image_cfg(cfg, image_path).get("prompts") or ["urban gray camouflage poster, military dog tag pendant, black ops stencil typography, monochrome tactical pattern, no text"]
     prompt = prompts[0]
 
     out_dir = Path(out_dir)
+    im = base.Image.open(image_path).convert("RGB")
+    W, H = im.size
+    # mode1 固定生成 768x1344 -> 4x 超分；用原图 1/4 宽高保比例，避免拉伸
+    w4 = max(64, ((W // 4) // 8) * 8)
+    h4 = max(64, ((H // 4) // 8) * 8)
+
     args = [
         "--input", image_path,
         "--mode", p["mode"],
@@ -61,41 +63,39 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
         "--seed", str(p["seed"]),
         "--steps", str(p["steps"]),
         "--cfg", str(p["cfg"]),
+        "--width", str(w4),
+        "--height", str(h4),
         "--color-strength", str(p["color_strength"]),
         "--composition-strength", str(p["composition_strength"]),
         "--ipadapter-noise", str(p["ipadapter_noise"]),
+        "--controlnet-strength", str(p["controlnet_strength"]),
+        "--controlnet-end", str(p["controlnet_end"]),
     ]
     rc = base.run_fission_cli(args)
 
-    out_paths = sorted(out_dir.glob("*.jpg")) if out_dir.exists() else []
+    out_paths = sorted({p for p in out_dir.rglob("*.jpg") if p.is_file()}) if out_dir.exists() else []
     if out_paths:
         ref = base.Image.open(image_path).convert("RGB")
         for op in out_paths:
-            gen = base.Image.open(op).convert("RGB")
+            # 4x 超分图 -> resize 回原图尺寸，使 text_plan 的 bbox 坐标对齐
+            gen = base.Image.open(op).convert("RGB").resize((W, H), base.Image.LANCZOS)
             locked = base.lab_color_lock(gen, ref, alpha=p["lab_alpha"])
-            # 文字原位替换（若有）：按 set.json text_replacements 逐条 LaMa 抹 + PIL 重画
-            locked = _replace_text(locked, cfg)
+            locked = _replace_text(locked, image_path, cfg)
             base.save_variant(locked, out_dir, op.name)
     print(f"[camo_pattern] done rc={rc} variants={len(out_paths)}")
     return out_paths
 
 
-def _replace_text(img: Image.Image, cfg: dict) -> Image.Image:
-    """迷彩类文字替换：检测文字带 → LaMa 抹旧字 → 按原排版/字号/字体重画新词。
-
-    字体选择：military display（dog tag 类）→ BlackOpsOne；其余按检测。目前用 BlackOpsOne 兜底。
-    """
-    tr = cfg.get("text_replacements") or {}
-    if not tr:
+def _replace_text(img: "base.Image.Image", image_path: str, cfg: dict) -> "base.Image.Image":
+    """文字原位替换：按 set.json text_plan 逐条 LaMa 抹旧字 + PIL 重画新词。"""
+    plan = base.get_text_plan_for(cfg, image_path)
+    if not plan:
         return img
-    # TODO(per-style): 接入 detect_text_lines + lama_inpaint + render_text_band
-    # 当前仅占位，避免阻塞出图；后续本风格单独升级时实现
-    print("[camo_pattern] text replacement: not yet implemented (placeholder)")
-    return img
+    return base.replace_text_plan(img, plan, dilate=10)
 
 
 def selfcheck_notes() -> str:
     return (
         "自检要点：① 迷彩'湖泊'色块已改变形状/角度/大小/选取范围；② 原色族保留（LAB 0.80）；"
-        "③ 小元素物种不变（棕榈仍是棕榈、狗牌仍是狗牌）仅角度/内容变；④ 文字按原字体/排版/字号只改内容词。"
+        "③ 小元素物种不变（棕榈仍是棕榈、狗牌仍是狗牌）仅角度/内容变；④ 文字按原字体/排版/字号只改内容词，无矩形色块遮字。"
     )

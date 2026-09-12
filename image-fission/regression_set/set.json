@@ -1,9 +1,9 @@
 {
   "name": "image-fission-regression-v6",
-  "version": "v324-baseline",
+  "version": "v325-upgrade",
   "description": "image-fission 永久回归测试集。6 张图覆盖 4 大风格：pattern_no_subject（无主体图案）/ camo_pattern（迷彩类）/ subject_badge_text（有主体+文字）/ subject_badge_textless（有主体+文字缺失）。每风格独立代码模块（image-fission/styles/<style_key>.py）。每次管线/模型升级后，用本集合跑一轮，生成 before/after 对比。",
   "created": "2026-09-12",
-  "note": "2026-09-12 用户定稿：由 5 图扩为 6 图，新增 Pinterest (4).jpg（迷彩棕榈，camo_pattern）。Pinterest (2).jpg 已退出。每图显式 style_key 对应独立代码模块。",
+  "note": "2026-09-12 用户定稿：由 5 图扩为 6 图，新增 Pinterest (4).jpg（迷彩棕榈，camo_pattern）。Pinterest (2).jpg 已退出。每图显式 style_key 对应独立代码模块。text_plan 为文字原位替换的真实执行计划（bbox 原图像素坐标）。",
   "styles": {
     "pattern_no_subject": {
       "desc": "无主体、全是小元素（佩斯利/头巾/底纹）。保留颜色与布局，只改小元素母题（重生/变体）。禁止改 4-patch/整体排版。",
@@ -38,12 +38,12 @@
       "path": "E:/Desktop/图裂变测试图/13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg",
       "style_key": "pattern_no_subject",
       "category": "no_subject_pattern",
-      "strategy": "STAGE_A: ComfyUI Canny(res=320)+Tile+IPAdapter 锁大结构/保 4-patch; 只重生小佩斯利母题; 保留颜色与布局",
+      "strategy": "STAGE_A: mode3 img2img + Canny(0.5) 锁 4-patch 布局; 只重生小佩斯利母题; 保留颜色与布局; LAB 0.82 锁色",
       "elements": ["paisley motifs", "borders", "small eye shapes", "4-patch layout"],
       "prompts": [
         "warm orange ornamental paisley bandana, symmetrical 4-patch layout, intricate damask motifs, terracotta and cream, decorative borders, no text"
       ],
-      "text_replacements": []
+      "text_plan": []
     },
     {
       "id": "b78e60",
@@ -51,16 +51,16 @@
       "path": "E:/Desktop/图裂变测试图/b78e60de8dfdf44acda99395326a7298.jpg",
       "style_key": "camo_pattern",
       "category": "camo",
-      "strategy": "STAGE_A: 改迷彩色块形状/角度/大小(湖泊形变); 保留原色族; dog tag 改角度内容但物种不变; 文字按 BlackOpsOne 原排版替换",
+      "strategy": "STAGE_A: mode1 + Canny(0.6) 锁布局让迷彩湖泊色块形变; 保留原色族; dog tag 改角度内容但物种不变; STAGE_B/C: 文字按 BlackOpsOne 原排版替换",
       "elements": ["camo background", "dog tag", "chain", "military display text", "small fragments"],
       "prompts": [
-        "urban gray camouflage poster, military dog tag pendant, black ops stencil typography, monochrome tactical pattern, no text"
+        "urban gray camouflage background with irregular lake-like blobs, single military dog tag pendant, black ops stencil typography, monochrome tactical palette, no text"
       ],
-      "text_replacements": {
-        "top_line": {"orig": "WE SUPPORT THE", "candidates": ["WE HONOR THE", "WE BACK THE", "SALUTE TO THE"]},
-        "main_line": {"orig": "ARMED FORCES", "candidates": ["IRON WOLVES", "STEEL HAWKS", "WOLF PACK", "DARK OPS"]},
-        "dog_tag_text": {"orig": "", "candidates": ["VOLKOV", "BAXTER", "REZNOR", "HARLAN"]}
-      }
+      "text_plan": [
+        {"bbox": [517, 452, 1051, 531], "word": "WE HONOR THE", "font": "blackopsone", "color": [30, 30, 30]},
+        {"bbox": [459, 535, 1109, 647], "word": "STEEL HAWKS", "font": "blackopsone", "color": [30, 30, 30]},
+        {"bbox": [500, 780, 1050, 900], "word": "VOLKOV", "font": "blackopsone", "color": [30, 30, 30]}
+      ]
     },
     {
       "id": "pinterest4",
@@ -68,12 +68,12 @@
       "path": "E:/Desktop/图裂变测试图/Pinterest (4).jpg",
       "style_key": "camo_pattern",
       "category": "camo",
-      "strategy": "STAGE_A: 改迷彩'湖泊'色块不同角度/长度/大小(形变); 保留原色族; 棕榈树小元素改角度内容但物种(棕榈)不变; 如有文字按原排版替换",
+      "strategy": "STAGE_A: mode1 + Canny(0.6) 锁小元素位置让湖泊色块形变; 保留原色族; 棕榈树小元素改角度内容但物种(棕榈)不变; 本图无明显文字",
       "elements": ["camo background", "palm trees", "small leaves/branches", "tropical camo blobs"],
       "prompts": [
         "tropical camouflage pattern with palm tree silhouettes, lake-like color blobs reshaped at varied angles and sizes, original color palette preserved, no text"
       ],
-      "text_replacements": {}
+      "text_plan": []
     },
     {
       "id": "pinterest6",
@@ -81,14 +81,14 @@
       "path": "E:/Desktop/图裂变测试图/Pinterest (6).jpg",
       "style_key": "subject_badge_textless",
       "category": "subject_badge",
-      "strategy": "STAGE_A: 沿用当前主体裂变效果(用户点赞,保留); STAGE_B/C: 补金属尖刺字体文字, 按原排版/字号替换内容词(ARCHOR→候选)",
+      "strategy": "STAGE_A: mode1 出主体裂变(用户点赞,保留); Canny(0.5) 锁主体轮廓; STAGE_B/C: 补金属尖刺字体文字, 按原排版/字号替换内容词(ARCHOR→RAVEN)",
       "elements": ["bald eagle", "horned skull", "lightning bolts", "thorny metal title text", "tribal spikes"],
       "prompts": [
         "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name"
       ],
-      "text_replacements": {
-        "top_title": {"orig": "ARCHOR", "candidates": ["SHADOW", "RAVEN", "STORM", "THORN", "WRAITH"]}
-      }
+      "text_plan": [
+        {"bbox": [120, 60, 3423, 700], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 10}
+      ]
     },
     {
       "id": "pinterest3",
@@ -96,14 +96,15 @@
       "path": "E:/Desktop/图裂变测试图/Pinterest (3).jpg",
       "style_key": "subject_badge_text",
       "category": "subject_badge",
-      "strategy": "STAGE_A: 蝴蝶物种不变, 改角度/姿态/细节裂变; STAGE_B/C: UPCY 按原字体/排版/字号只改内容词(蝴蝶/牛仔类)",
+      "strategy": "STAGE_A: mode1 + Canny(0.5) 蝴蝶物种不变, 改角度/姿态/细节裂变; STAGE_B/C: UPCY 按原字体/排版/字号只改内容词(→FLUTTER); gen_scale=0.5 保牛仔纹理",
       "elements": ["denim butterfly patch", "UPCY applique letters", "small butterflies", "dotted flight paths"],
       "prompts": [
         "denim fabric butterfly patch collage, light gray background, blue jeans applique letters, embroidered frayed edges, no text"
       ],
-      "text_replacements": {
-        "main": {"orig": "UPCY", "candidates": ["BUTTERFLY", "DENIM", "FLUTTER", "PATCH"]}
-      }
+      "gen_scale": 0.5,
+      "text_plan": [
+        {"bbox": [195, 108, 548, 331], "word": "FLUTTER", "font": "denim", "color": [60, 85, 150], "dilate": 10}
+      ]
     },
     {
       "id": "6978",
@@ -111,18 +112,18 @@
       "path": "E:/Desktop/图裂变测试图/6978fabda2cc99629fa9e81f802762d3.jpg",
       "style_key": "subject_badge_text",
       "category": "subject_badge",
-      "strategy": "STAGE_A: 蝙蝠物种不变, 改角度/姿态/细节裂变; STAGE_B/C: BACARDÍ/MCKHEART 按原 Didone 字体/排版/字号只改内容词(原位改写,禁色块)",
+      "strategy": "STAGE_A: mode1 + Canny(0.5) 蝙蝠物种不变, 改角度/姿态/细节裂变; STAGE_B/C: 所有品牌字(BACARDÍ/MCKHEART/弧/年份)按原 Didone 字体/排版/字号只改内容词(原位改写,禁色块)",
       "elements": ["bat emblem", "circular badge", "arc text", "serif brand text", "est/year text"],
       "prompts": [
         "purple bat emblem vintage badge poster, distressed texture, gothic didone serif typography, dark violet and black, no real brand"
       ],
-      "text_replacements": {
-        "arc_band": {"orig": "LA CASA DEL MURCIELAGO", "candidates": ["NOCTAVEN DARK HOUSE", "DUSKBAT ESTATE", "MOONBAT SANCTUARY"]},
-        "est": {"orig": "Est.", "candidates": ["Est."]},
-        "year": {"orig": "1862", "candidates": ["1877", "1903", "1888"]},
-        "brand_main": {"orig": "BACARDI", "candidates": ["NOCTAVEN", "DUSKBAT", "MOONBAT"]},
-        "brand_sub": {"orig": "MCKHEART", "candidates": ["MOONHEART", "DARKHEART", "STARLING"]}
-      }
+      "text_plan": [
+        {"bbox": [393, 551, 1156, 669], "word": "NOCTAVEN DARK HOUSE", "font": "playfair", "color": [235, 225, 240], "dilate": 14},
+        {"bbox": [284, 993, 1256, 1156], "word": "NOCTAVEN", "font": "playfair", "color": [235, 225, 240], "dilate": 14},
+        {"bbox": [465, 1181, 1129, 1334], "word": "MOONHEART", "font": "playfair", "color": [235, 225, 240], "dilate": 12},
+        {"bbox": [260, 975, 350, 1055], "word": "SET", "font": "playfair", "color": [235, 225, 240], "dilate": 10},
+        {"bbox": [1200, 975, 1295, 1055], "word": "1888", "font": "playfair", "color": [235, 225, 240], "dilate": 10}
+      ]
     }
   ],
   "criteria": [
@@ -131,7 +132,7 @@
     "配色锁原图色族，LAB alpha=0.85 保留纹理",
     "无主体图案类需 4-patch/布局 100% 保留，只改小元素母题",
     "迷彩类色块形变(湖泊不同角度/大小)、小元素物种不变",
-    "字体风格一致（military → BlackOpsOne；Didone serif → PlayfairDisplay-Bold）",
+    "字体风格一致（military → BlackOpsOne；Didone serif → PlayfairDisplay-Bold；denim → LeagueSpartan；metal → MetalMania）",
     "逐元素裂变覆盖 dog tag/链条/小佩斯利/棕榈/边框/小蝴蝶/闪电"
   ],
   "comfyui_params": {

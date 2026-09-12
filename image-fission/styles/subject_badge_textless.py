@@ -9,6 +9,7 @@
 因此该风格**必须用 mode1**（txt2img + IPAdapter 双锁）来得到用户点赞的主体裂变效果。
 """
 from __future__ import annotations
+import shutil
 from pathlib import Path
 from . import base
 
@@ -20,18 +21,14 @@ COVERS = ["pinterest6"]
 def default_params() -> dict:
     return {
         "mode": "mode1",                 # 关键：Pinterest(6) mode3 会挂死，必须用 mode1
-        "canny_res": 512,
-        "canny_strength": 0.75,
-        "tile_strength": 0.45,
-        "ipa_weight": 0.55,
+        "color_strength": 0.60,
+        "composition_strength": 0.55,
         "ipadapter_noise": 0.10,
-        "denoise1": 0.52,
-        "denoise2": 0.15,
+        "controlnet_strength": 0.50,    # Canny 中强：锁主体轮廓，保留用户点赞的裂变形态
+        "controlnet_end": 0.90,
+        "lab_alpha": 0.85,
         "steps": 28,
         "cfg": 5.0,
-        "color_strength": 0.6,
-        "composition_strength": 0.55,
-        "lab_alpha": 0.85,
         "count": 1,
         "seed": 8888,
     }
@@ -47,10 +44,15 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     p.update({k: v for k, v in (cfg.get("comfyui_params", {}).get("subject_badge", {}) or {}).items()})
     if seed is not None:
         p["seed"] = seed
-    prompts = cfg.get("prompts") or ["black metal poster, eagle on horned skull, lightning, spiked gothic typography, no real band name"]
+    prompts = base.get_image_cfg(cfg, image_path).get("prompts") or ["black metal poster, eagle on horned skull, lightning, spiked gothic typography, no real band name"]
     prompt = prompts[0]
 
     out_dir = Path(out_dir)
+    im = base.Image.open(image_path).convert("RGB")
+    W, H = im.size
+    w4 = max(64, ((W // 4) // 8) * 8)
+    h4 = max(64, ((H // 4) // 8) * 8)
+
     args = [
         "--input", image_path,
         "--mode", p["mode"],
@@ -60,31 +62,34 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
         "--seed", str(p["seed"]),
         "--steps", str(p["steps"]),
         "--cfg", str(p["cfg"]),
+        "--width", str(w4),
+        "--height", str(h4),
         "--color-strength", str(p["color_strength"]),
         "--composition-strength", str(p["composition_strength"]),
         "--ipadapter-noise", str(p["ipadapter_noise"]),
+        "--controlnet-strength", str(p["controlnet_strength"]),
+        "--controlnet-end", str(p["controlnet_end"]),
     ]
     rc = base.run_fission_cli(args)
 
-    out_paths = sorted(out_dir.glob("*.jpg")) if out_dir.exists() else []
+    out_paths = sorted({p for p in out_dir.rglob("*.jpg") if p.is_file()}) if out_dir.exists() else []
     if out_paths:
         ref = base.Image.open(image_path).convert("RGB")
         for op in out_paths:
-            gen = base.Image.open(op).convert("RGB")
+            gen = base.Image.open(op).convert("RGB").resize((W, H), base.Image.LANCZOS)
             locked = base.lab_color_lock(gen, ref, alpha=p["lab_alpha"])
-            locked = _add_text(locked, cfg)
+            locked = _add_text(locked, image_path, cfg)
             base.save_variant(locked, out_dir, op.name)
     print(f"[subject_badge_textless] done rc={rc} variants={len(out_paths)}")
     return out_paths
 
 
-def _add_text(img: Image.Image, cfg: dict) -> Image.Image:
-    """补文字：金属尖刺字体按原排版/字号替换内容（ARCHOR→候选）。当前占位。"""
-    tr = cfg.get("text_replacements") or {}
-    if not tr:
+def _add_text(img: "base.Image.Image", image_path: str, cfg: dict) -> "base.Image.Image":
+    """补文字：按 set.json text_plan（金属尖刺字体按原排版/字号替换内容）。"""
+    plan = base.get_text_plan_for(cfg, image_path)
+    if not plan:
         return img
-    print("[subject_badge_textless] text add: not yet implemented (placeholder)")
-    return img
+    return base.replace_text_plan(img, plan, dilate=10)
 
 
 def selfcheck_notes() -> str:
