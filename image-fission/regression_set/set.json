@@ -87,7 +87,7 @@
         "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name"
       ],
       "text_plan": [
-        {"bbox": [120, 60, 3423, 700], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 22, "material_weight": 0.75}
+        {"bbox": [120, 60, 3423, 650], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 22, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.75}
       ]
     },
     {
@@ -118,7 +118,7 @@
         "purple bat emblem vintage badge poster, distressed texture, gothic didone serif typography, dark violet and black, no real brand"
       ],
       "text_plan": [
-        {"bbox": [150, 150, 1400, 430], "word": "NOCTAVEN DARK HOUSE", "font": "playfair", "color": [40, 30, 45], "dilate": 20, "arc": "up", "arc_center": [776, 820], "arc_radius": 520, "removal_strength": 245, "edge_smoothness": 4, "material_weight": 0.0},
+        {"bbox": [80, 130, 1500, 430], "word": "NOCTAVEN DARK HOUSE", "font": "playfair", "color": [40, 30, 45], "dilate": 24, "arc": "up", "arc_center": [776, 820], "arc_radius": 520, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.0},
         {"bbox": [250, 800, 370, 920], "word": "SET", "font": "playfair", "color": [40, 30, 45], "dilate": 16, "removal_strength": 240, "material_weight": 0.0},
         {"bbox": [1160, 800, 1300, 920], "word": "1888", "font": "playfair", "color": [40, 30, 45], "dilate": 16, "removal_strength": 240, "material_weight": 0.0},
         {"bbox": [190, 920, 1360, 1170], "word": "NOCTAVEN", "font": "playfair", "color": [40, 30, 45], "dilate": 20, "removal_strength": 240, "material_weight": 0.0},

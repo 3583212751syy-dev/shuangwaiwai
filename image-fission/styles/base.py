@@ -190,33 +190,69 @@ def replace_text_plan(img: Image.Image, plan: list[dict], dilate: int = 12) -> I
 def _detect_text_mask(crop_arr: np.ndarray, bbox) -> np.ndarray:
     """在 crop 的 bbox 区域内检测旧字笔画（返回 0-255 mask）。
 
-    改用梯度/边缘检测 + closing：文字必有强边缘，而均匀丝带/背景被排除。
-    对黑底白字、白底黑字、紫底黑字、牛仔贴布字均适用。
+    综合三种线索：
+      1) Sobel 梯度（强边缘）
+      2) Otsu 亮度分割（黑字/白字/彩字与背景分离）
+      3) 全局亮度异常值兜底（极端黑/白/彩色字）
+    bbox 会外扩 5%，确保略有外溢的旧字笔画也被包含。
     """
     from scipy import ndimage
     x1, y1, x2, y2 = [int(v) for v in bbox]
     H, W = crop_arr.shape[:2]
-    x1, y1 = max(0, x1), max(0, y1)
-    x2, y2 = min(W, x2), min(H, y2)
+    bw, bh = max(1, x2 - x1), max(1, y2 - y1)
+    pad = max(8, int(min(bw, bh) * 0.05))
+    x1, y1 = max(0, x1 - pad), max(0, y1 - pad)
+    x2, y2 = min(W, x2 + pad), min(H, y2 + pad)
     if x2 <= x1 or y2 <= y1:
         return np.zeros((H, W), dtype=np.uint8)
     roi = crop_arr[y1:y2, x1:x2].astype(np.float32)
     lum = 0.299 * roi[:, :, 0] + 0.587 * roi[:, :, 1] + 0.114 * roi[:, :, 2]
-    # Sobel 梯度
+    # 1) Sobel 梯度
     gx = ndimage.sobel(lum, axis=1)
     gy = ndimage.sobel(lum, axis=0)
     grad = np.hypot(gx, gy)
-    # 取梯度前 25% 作为边缘；再保留明显偏离局部中位数的异常值（兜底）
-    thr_grad = np.percentile(grad, 80)
+    thr_grad = np.percentile(grad, 75)
     edge = grad > thr_grad
-    # 兜底：亮度离全局中位数很远的像素也纳入（黑字/白字/浅字）
+    # 2) Otsu 分割（要求双峰，用双峰性过滤避免纯背景误检）
+    from skimage.filters import threshold_otsu
+    from skimage.exposure import histogram
+    otsu_mask = np.zeros_like(lum, dtype=bool)
+    try:
+        # 双峰性：计算灰度直方图显著峰值数；少于 2 个峰值时放弃 Otsu
+        hist, bin_centers = histogram(lum.astype(np.uint8), nbins=64)
+        peaks = (hist[1:-1] > hist[:-2]) & (hist[1:-1] > hist[2:])
+        if peaks.sum() >= 2:
+            thr = threshold_otsu(lum)
+            # 文字通常只占 bbox 的一小部分，Otsu 分割后取面积较小的那类作为文字。
+            # 若两类面积过于接近，再按梯度投票：与边缘 mask 重合度高的为文字。
+            dark = lum < thr
+            light = lum > thr
+            if dark.sum() == 0:
+                otsu_mask = light
+            elif light.sum() == 0:
+                otsu_mask = dark
+            else:
+                ratio_dark = dark.sum() / (dark.sum() + light.sum())
+                if 0.35 < ratio_dark < 0.65:
+                    # 接近 1:1，按与梯度边缘的重合度判断
+                    edge_small = ndimage.sobel(lum) > np.percentile(ndimage.sobel(lum), 80)
+                    ed = edge_small & dark
+                    el = edge_small & light
+                    score_dark = ed.sum() / max(1, dark.sum())
+                    score_light = el.sum() / max(1, light.sum())
+                    otsu_mask = dark if score_dark > score_light else light
+                else:
+                    otsu_mask = dark if dark.sum() < light.sum() else light
+    except Exception:
+        pass
+    # 3) 全局亮度异常值兜底
     bg = np.percentile(lum, 50)
     diff = np.abs(lum - bg)
     mad = np.median(np.abs(diff - np.median(diff))) + 1e-6
-    outlier = diff > max(mad * 2.5, 20.0)
-    m = (edge | outlier).astype(np.uint8) * 255
+    outlier = diff > max(mad * 2.5, 12.0)
+    m = (edge | otsu_mask | outlier).astype(np.uint8) * 255
     # closing：多次膨胀把笔画填实，再轻微腐蚀
-    m = ndimage.binary_dilation(m > 0, iterations=4).astype(np.uint8) * 255
+    m = ndimage.binary_dilation(m > 0, iterations=6).astype(np.uint8) * 255
     m = ndimage.binary_erosion(m > 0, iterations=1).astype(np.uint8) * 255
     full = np.zeros((H, W), dtype=np.uint8)
     full[y1:y2, x1:x2] = m
@@ -224,11 +260,21 @@ def _detect_text_mask(crop_arr: np.ndarray, bbox) -> np.ndarray:
 
 
 def _letter_stats(crop_arr: np.ndarray, mask: np.ndarray):
-    """返回 (letter_mean_rgb, bg_mean_rgb)。"""
+    """返回 (letter_mean_rgb, bg_mean_rgb)。
+
+    对 mask 大幅膨胀后再取 mean，确保把旧字实心笔画内部也纳入采样，
+    避免只采到边缘像素导致材质色偏暗/偏灰。
+    """
+    from scipy import ndimage
     mask_b = mask > 127
     if mask_b.sum() < 8:
         return None, None
-    letter_mean = crop_arr[mask_b].mean(axis=0)
+    # 膨胀填充字内部，再腐蚀回笔画轮廓附近，尽量只保留字像素
+    solid = ndimage.binary_dilation(mask_b, iterations=10)
+    solid = ndimage.binary_erosion(solid, iterations=2)
+    if solid.sum() < 8:
+        solid = mask_b
+    letter_mean = crop_arr[solid].mean(axis=0)
     # 背景：取 crop 四边 10px 边带的中位数
     H, W = crop_arr.shape[:2]
     edge = np.zeros((H, W), bool)
@@ -362,7 +408,12 @@ def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
         x1, y1, x2, y2 = [int(v) for v in bbox]
         item_dilate = int(item.get("dilate", dilate))
         bh = y2 - y1
-        margin = max(int(bh * 0.9), 40)
+        # margin：默认给 LaMa 足够上下文重建背景纹理；对超大字号/高对比度字
+        # 可显式传小 margin 避免模型把原字“联想”回来。
+        if "margin" in item:
+            margin = int(item["margin"])
+        else:
+            margin = max(int(bh * 0.7), 40)
         cx1 = max(0, x1 - margin)
         cy1 = max(0, y1 - margin)
         cx2 = min(W, x2 + margin)
@@ -370,43 +421,40 @@ def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
         crop = out.crop((cx1, cy1, cx2, cy2))
         original_crop = np.asarray(crop, dtype=np.float32)
         bx1, by1, bx2, by2 = x1 - cx1, y1 - cy1, x2 - cx1, y2 - cy1
-        # 1) mask = 笔画级检测 + bbox 矩形兜底，确保旧字带完整覆盖
+        # 1) mask = 笔画级检测（含小范围外扩）后膨胀 + bbox 矩形兜底。
+        #    bbox 兜底确保旧字带完整被 LaMa 擦除；它不是色块，LaMa 会用周围纹理
+        #    自然重建。只当检测失败或旧字外溢时才真正依赖 bbox 兜底。
         detected = _detect_text_mask(original_crop, [bx1, by1, bx2, by2])
         from scipy import ndimage
-        detected = ndimage.binary_dilation(detected > 0, iterations=max(item_dilate, 6)).astype(np.uint8) * 255
+        # 基础膨胀覆盖笔画边缘；dilate 参数再追加
+        detected = ndimage.binary_dilation(detected > 0, iterations=6).astype(np.uint8) * 255
+        if item_dilate > 6:
+            detected = ndimage.binary_dilation(detected > 0, iterations=item_dilate - 6).astype(np.uint8) * 255
         bbox_mask = np.zeros_like(detected)
         bbox_mask[by1:by2, bx1:bx2] = 255
-        stroke_mask = np.maximum(detected, bbox_mask)
+        # 优先只擦检测到的旧字笔画，最大程度保留文字带之间的原背景纹理。
+        # 仅当检测面积极小（< 2% bbox）时才用 bbox 兜底，防止漏擦。
+        bbox_area = (bbox_mask > 127).sum()
+        detected_area = (detected > 127).sum()
+        detected_ratio = detected_area / max(1, bbox_area)
+        if detected_ratio >= 0.02:
+            stroke_mask = detected
+        else:
+            stroke_mask = np.maximum(detected, bbox_mask)
         mask_pil = Image.fromarray(stroke_mask, mode="L")
         # 预判断材质权重，决定后续回填策略
         mat_w = float(item.get("material_weight", 0.70 if use_material else 0.0))
         emb = float(item.get("emboss", 0.0))
-        # 1.5) 预填：把 detected 旧字笔画先填成局部中位背景色。LaMa 起点更干净，
-        #      复杂底纹（迷彩/黑底白字）下旧字残留显著减少；只填笔画，不扩到 bbox 兜底。
-        prefilled_arr = np.asarray(crop, dtype=np.float32)
-        # 预填 detected 旧字笔画为局部中位背景色。LaMa 起点更干净，
-        # 复杂底纹下旧字残留减少；只填笔画，不扩到 bbox 兜底。
-        safe_for_prefill = detected <= 127
-        if safe_for_prefill.sum() > 0:
-            bg_prefill = np.median(prefilled_arr[safe_for_prefill].reshape(-1, 3), axis=0)
-            prefilled_arr[detected > 127] = bg_prefill
-        crop_prefilled = Image.fromarray(np.clip(prefilled_arr, 0, 255).astype(np.uint8), "RGB")
-        # 2) LaMa 擦除：removal_strength 越高越激进（mask 阈值 point(x>strength?0:255)）
-        removal_strength = float(item.get("removal_strength", 230))
-        edge_smoothness = int(item.get("edge_smoothness", 5))
+        # 2) LaMa 擦除：先彻底擦除原文字（背景由 LaMa 自然重建），绝不用色块盖字。
+        #    removal_strength 越高越激进（mask 阈值 point(x>strength?0:255)）
+        removal_strength = float(item.get("removal_strength", 240))
+        edge_smoothness = int(item.get("edge_smoothness", 4))
         try:
-            cleaned_crop = lc.lama_inpaint(crop_prefilled, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
+            cleaned_crop = lc.lama_inpaint(crop, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
         except Exception as e:
             print(f"[base] lama_inpaint failed for {bbox}: {e}")
-            cleaned_crop = crop_prefilled
+            cleaned_crop = crop
         cleaned_arr = np.asarray(cleaned_crop, dtype=np.float32)
-        # 2b) 平涂文字：用未 masked 区域的中位背景色回填 detected 旧字笔画，
-        #     避免整张 bbox 被填成单色块；LaMa 已按 stroke_mask（含 bbox 兜底）跑过。
-        if mat_w <= 0:
-            safe = detected <= 127
-            if safe.sum() > 0:
-                bg_median = np.median(cleaned_arr[safe].reshape(-1, 3), axis=0)
-                cleaned_arr[detected > 127] = bg_median
         # 3) 渲染新词 alpha
         arc = item.get("arc")
         if arc == "up":
