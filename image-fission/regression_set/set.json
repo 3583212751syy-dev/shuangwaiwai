@@ -1,152 +1,142 @@
 {
-  "name": "image-fission-regression-v5",
+  "name": "image-fission-regression-v6",
   "version": "v324-baseline",
-  "description": "image-fission 永久回归测试集。5 张图覆盖：无主体图案类（佩斯利头巾、迷彩狗牌）+ 有主体类（蝙蝠徽章、牛仔蝴蝶、鹰骷髅金属）。每次管线/模型升级后，用本集合跑一轮元素裂变 + 文本裂变，生成 before/after 对比。",
+  "description": "image-fission 永久回归测试集。6 张图覆盖 4 大风格：pattern_no_subject（无主体图案）/ camo_pattern（迷彩类）/ subject_badge_text（有主体+文字）/ subject_badge_textless（有主体+文字缺失）。每风格独立代码模块（image-fission/styles/<style_key>.py）。每次管线/模型升级后，用本集合跑一轮，生成 before/after 对比。",
   "created": "2026-09-12",
-  "note": "原 4 图集（含 Pinterest (2).jpg）已替换为当前 5 图集。Pinterest (2).jpg 不再作为回归图。",
+  "note": "2026-09-12 用户定稿：由 5 图扩为 6 图，新增 Pinterest (4).jpg（迷彩棕榈，camo_pattern）。Pinterest (2).jpg 已退出。每图显式 style_key 对应独立代码模块。",
+  "styles": {
+    "pattern_no_subject": {
+      "desc": "无主体、全是小元素（佩斯利/头巾/底纹）。保留颜色与布局，只改小元素母题（重生/变体）。禁止改 4-patch/整体排版。",
+      "module": "styles.pattern_no_subject",
+      "keep": ["color_palette", "layout", "4_patch_grid", "element_positions"],
+      "mutate": ["small_motif_identity", "motif_drawing", "motif_variation"]
+    },
+    "camo_pattern": {
+      "desc": "迷彩类（军绿/灰/橙斑）。保留原色族，把'湖泊'色块改变形状/角度/大小/选取范围；小元素（dog tag/棕榈树）改角度与内容但物种不变；文字按原字体/排版/字号只改内容词。",
+      "module": "styles.camo_pattern",
+      "keep": ["color_palette", "species_of_small_elements", "text_typography_layout_size"],
+      "mutate": ["camo_blob_shape_angle_size", "blob_selection_range", "small_element_angle_content"]
+    },
+    "subject_badge_text": {
+      "desc": "有主体+文字（蝙蝠/蝴蝶徽章）。主体物种不变，改角度/姿态/细节裂变；文字按原图字体/字号/排版位置只改内容单词（原位改写，禁色块遮盖）。",
+      "module": "styles.subject_badge_text",
+      "keep": ["subject_species", "text_typography", "text_layout", "text_size"],
+      "mutate": ["subject_angle_pose_detail", "text_content_words"]
+    },
+    "subject_badge_textless": {
+      "desc": "有主体+本应带文字但裂变后文字缺失（鹰骷髅金属）。主体裂变风格即用户所需（保留），补上文字（金属尖刺字体按原排版/字号替换内容）。",
+      "module": "styles.subject_badge_textless",
+      "keep": ["subject_fission_style"],
+      "mutate": ["add_text_content"],
+      "note": "Pinterest(6) 主体裂变效果被用户明确点赞，作为黄金样例记住。"
+    }
+  },
   "images": [
     {
       "id": "13c8b7",
       "filename": "13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg",
       "path": "E:/Desktop/图裂变测试图/13c8b7bf8dae757e6c2d4b3d6a860f9d.jpg",
+      "style_key": "pattern_no_subject",
       "category": "no_subject_pattern",
-      "strategy": "stage_A_comfy_element_regen + stage_B_lama_text + stage_C_pil_text",
-      "style": "orange_paisley_bandana_4patch",
-      "size_hint": "portrait_tall",
+      "strategy": "STAGE_A: ComfyUI Canny(res=320)+Tile+IPAdapter 锁大结构/保 4-patch; 只重生小佩斯利母题; 保留颜色与布局",
       "elements": ["paisley motifs", "borders", "small eye shapes", "4-patch layout"],
       "prompts": [
-        "warm orange ornamental paisley bandana, symmetrical 4-patch layout, intricate damask motifs, terracotta and cream, decorative borders, no text",
-        "burnt orange paisley headscarf, vintage boho pattern, symmetrical patches, floral teardrop motifs, no text"
+        "warm orange ornamental paisley bandana, symmetrical 4-patch layout, intricate damask motifs, terracotta and cream, decorative borders, no text"
       ],
       "text_replacements": []
-    },
-    {
-      "id": "6978",
-      "filename": "6978fabda2cc99629fa9e81f802762d3.jpg",
-      "path": "E:/Desktop/图裂变测试图/6978fabda2cc99629fa9e81f802762d3.jpg",
-      "category": "subject_badge",
-      "strategy": "detect_bands + lama_inpaint + arc_text/pil_text + keep_bat_subject",
-      "style": "purple_bacardi_bat_badge",
-      "size_hint": "portrait_tall",
-      "elements": ["bat emblem", "circular badge", "arc text", "serif brand text", "est/year text"],
-      "prompts": [
-        "purple bat emblem vintage badge poster, distressed texture, gothic didone serif typography, dark violet and black, no real brand",
-        "violet bat medallion retro poster, cracked texture, elegant serif lettering, monochrome purple palette"
-      ],
-      "text_replacements": {
-        "arc_band": {
-          "orig": "LA CASA DEL MURCIELAGO",
-          "candidates": ["NOCTAVEN DARK HOUSE", "DUSKBAT ESTATE", "MOONBAT SANCTUARY"]
-        },
-        "est": {"orig": "Est.", "candidates": ["Est."]},
-        "year": {"orig": "1862", "candidates": ["1877", "1903", "1888"]},
-        "brand_main": {
-          "orig": "BACARDI",
-          "candidates": ["NOCTAVEN", "DUSKBAT", "MOONBAT"]
-        },
-        "brand_sub": {
-          "orig": "MCKHEART",
-          "candidates": ["MOONHEART", "DARKHEART", "STARLING"]
-        }
-      }
     },
     {
       "id": "b78e60",
       "filename": "b78e60de8dfdf44acda99395326a7298.jpg",
       "path": "E:/Desktop/图裂变测试图/b78e60de8dfdf44acda99395326a7298.jpg",
-      "category": "no_subject_pattern",
-      "strategy": "stage_A_comfy_element_regen + stage_B_lama_text + stage_C_pil_text + per_element_fx",
-      "style": "urban_gray_camo_dogtag",
-      "size_hint": "portrait_tall",
-      "elements": ["camo background", "dog tag", "chain", "military display text", "small paisley/camo fragments"],
+      "style_key": "camo_pattern",
+      "category": "camo",
+      "strategy": "STAGE_A: 改迷彩色块形状/角度/大小(湖泊形变); 保留原色族; dog tag 改角度内容但物种不变; 文字按 BlackOpsOne 原排版替换",
+      "elements": ["camo background", "dog tag", "chain", "military display text", "small fragments"],
       "prompts": [
-        "urban gray camouflage poster, military dog tag pendant, black ops stencil typography, monochrome tactical pattern, no text",
-        "grayscale camo background with dog tag badge, cracked concrete texture, heavy military display font, no real brand"
+        "urban gray camouflage poster, military dog tag pendant, black ops stencil typography, monochrome tactical pattern, no text"
       ],
       "text_replacements": {
-        "top_line": {
-          "orig": "WE SUPPORT THE",
-          "candidates": ["WE HONOR THE", "WE BACK THE", "SALUTE TO THE"]
-        },
-        "main_line": {
-          "orig": "ARMED FORCES",
-          "candidates": ["IRON WOLVES", "STEEL HAWKS", "WOLF PACK", "DARK OPS"]
-        },
-        "dog_tag_text": {
-          "orig": "",
-          "candidates": ["VOLKOV", "BAXTER", "REZNOR", "HARLAN"]
-        }
+        "top_line": {"orig": "WE SUPPORT THE", "candidates": ["WE HONOR THE", "WE BACK THE", "SALUTE TO THE"]},
+        "main_line": {"orig": "ARMED FORCES", "candidates": ["IRON WOLVES", "STEEL HAWKS", "WOLF PACK", "DARK OPS"]},
+        "dog_tag_text": {"orig": "", "candidates": ["VOLKOV", "BAXTER", "REZNOR", "HARLAN"]}
+      }
+    },
+    {
+      "id": "pinterest4",
+      "filename": "Pinterest (4).jpg",
+      "path": "E:/Desktop/图裂变测试图/Pinterest (4).jpg",
+      "style_key": "camo_pattern",
+      "category": "camo",
+      "strategy": "STAGE_A: 改迷彩'湖泊'色块不同角度/长度/大小(形变); 保留原色族; 棕榈树小元素改角度内容但物种(棕榈)不变; 如有文字按原排版替换",
+      "elements": ["camo background", "palm trees", "small leaves/branches", "tropical camo blobs"],
+      "prompts": [
+        "tropical camouflage pattern with palm tree silhouettes, lake-like color blobs reshaped at varied angles and sizes, original color palette preserved, no text"
+      ],
+      "text_replacements": {}
+    },
+    {
+      "id": "pinterest6",
+      "filename": "Pinterest (6).jpg",
+      "path": "E:/Desktop/图裂变测试图/Pinterest (6).jpg",
+      "style_key": "subject_badge_textless",
+      "category": "subject_badge",
+      "strategy": "STAGE_A: 沿用当前主体裂变效果(用户点赞,保留); STAGE_B/C: 补金属尖刺字体文字, 按原排版/字号替换内容词(ARCHOR→候选)",
+      "elements": ["bald eagle", "horned skull", "lightning bolts", "thorny metal title text", "tribal spikes"],
+      "prompts": [
+        "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name"
+      ],
+      "text_replacements": {
+        "top_title": {"orig": "ARCHOR", "candidates": ["SHADOW", "RAVEN", "STORM", "THORN", "WRAITH"]}
       }
     },
     {
       "id": "pinterest3",
       "filename": "Pinterest (3).jpg",
       "path": "E:/Desktop/图裂变测试图/Pinterest (3).jpg",
+      "style_key": "subject_badge_text",
       "category": "subject_badge",
-      "strategy": "detect_bands + lama_inpaint + material_transfer_text + keep_butterfly_subject",
-      "style": "denim_butterfly_patch_upcy",
-      "size_hint": "portrait_tall",
+      "strategy": "STAGE_A: 蝴蝶物种不变, 改角度/姿态/细节裂变; STAGE_B/C: UPCY 按原字体/排版/字号只改内容词(蝴蝶/牛仔类)",
       "elements": ["denim butterfly patch", "UPCY applique letters", "small butterflies", "dotted flight paths"],
       "prompts": [
-        "denim fabric butterfly patch collage, light gray background, blue jeans applique letters, embroidered frayed edges, no text",
-        "upcycled denim butterfly design, varsity patch style, soft blue palette, scattered small butterflies, no real brand"
+        "denim fabric butterfly patch collage, light gray background, blue jeans applique letters, embroidered frayed edges, no text"
       ],
       "text_replacements": {
-        "main": {
-          "orig": "UPCY",
-          "candidates": ["BUTTERFLY", "DENIM", "FLUTTER", "PATCH"]
-        }
+        "main": {"orig": "UPCY", "candidates": ["BUTTERFLY", "DENIM", "FLUTTER", "PATCH"]}
       }
     },
     {
-      "id": "pinterest6",
-      "filename": "Pinterest (6).jpg",
-      "path": "E:/Desktop/图裂变测试图/Pinterest (6).jpg",
+      "id": "6978",
+      "filename": "6978fabda2cc99629fa9e81f802762d3.jpg",
+      "path": "E:/Desktop/图裂变测试图/6978fabda2cc99629fa9e81f802762d3.jpg",
+      "style_key": "subject_badge_text",
       "category": "subject_badge",
-      "strategy": "detect_bands + lama_inpaint + metal_text + keep_eagle_skull_subject",
-      "style": "eagle_skull_lightning_metal",
-      "size_hint": "portrait_tall",
-      "elements": ["bald eagle", "horned skull", "lightning bolts", "thorny metal title text", "tribal spikes"],
+      "strategy": "STAGE_A: 蝙蝠物种不变, 改角度/姿态/细节裂变; STAGE_B/C: BACARDÍ/MCKHEART 按原 Didone 字体/排版/字号只改内容词(原位改写,禁色块)",
+      "elements": ["bat emblem", "circular badge", "arc text", "serif brand text", "est/year text"],
       "prompts": [
-        "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name",
-        "dark tattoo art, eagle with spread wings on cracked skull, thunder and thorn ornaments, aggressive metal lettering, no text"
+        "purple bat emblem vintage badge poster, distressed texture, gothic didone serif typography, dark violet and black, no real brand"
       ],
       "text_replacements": {
-        "top_title": {
-          "orig": "ARCHOR",
-          "candidates": ["SHADOW", "RAVEN", "STORM", "THORN", "WRAITH"]
-        }
+        "arc_band": {"orig": "LA CASA DEL MURCIELAGO", "candidates": ["NOCTAVEN DARK HOUSE", "DUSKBAT ESTATE", "MOONBAT SANCTUARY"]},
+        "est": {"orig": "Est.", "candidates": ["Est."]},
+        "year": {"orig": "1862", "candidates": ["1877", "1903", "1888"]},
+        "brand_main": {"orig": "BACARDI", "candidates": ["NOCTAVEN", "DUSKBAT", "MOONBAT"]},
+        "brand_sub": {"orig": "MCKHEART", "candidates": ["MOONHEART", "DARKHEART", "STARLING"]}
       }
     }
   ],
   "criteria": [
     "所有文字带替换无残留，禁止矩形色块遮字",
-    "主体元素同位置同大小但角度/细节裂变（主体身份不变）",
+    "主体元素物种不变，角度/姿态/细节裂变",
     "配色锁原图色族，LAB alpha=0.85 保留纹理",
-    "无主体图案类需 4-patch/布局 100% 保留，母题线条重生",
+    "无主体图案类需 4-patch/布局 100% 保留，只改小元素母题",
+    "迷彩类色块形变(湖泊不同角度/大小)、小元素物种不变",
     "字体风格一致（military → BlackOpsOne；Didone serif → PlayfairDisplay-Bold）",
-    "逐元素裂变覆盖 dog tag/链条/小佩斯利/边框/小蝴蝶/闪电"
+    "逐元素裂变覆盖 dog tag/链条/小佩斯利/棕榈/边框/小蝴蝶/闪电"
   ],
   "comfyui_params": {
-    "subject_badge": {
-      "canny_res": 768,
-      "canny_strength": 0.55,
-      "tile_strength": 0.40,
-      "ipa_weight": 0.55,
-      "denoise1": 0.42,
-      "denoise2": 0.12,
-      "lab_alpha": 0.85,
-      "lama_dilate": 8
-    },
-    "no_subject_pattern": {
-      "canny_res": 320,
-      "canny_strength": 0.82,
-      "tile_strength": 0.55,
-      "ipa_weight": 0.45,
-      "denoise1": 0.48,
-      "denoise2": 0.15,
-      "lab_alpha": 0.70,
-      "lama_dilate": 8
-    }
+    "subject_badge": {"canny_res": 768, "canny_strength": 0.55, "tile_strength": 0.40, "ipa_weight": 0.55, "denoise1": 0.42, "denoise2": 0.12, "lab_alpha": 0.85, "lama_dilate": 8},
+    "no_subject_pattern": {"canny_res": 320, "canny_strength": 0.82, "tile_strength": 0.55, "ipa_weight": 0.45, "denoise1": 0.48, "denoise2": 0.15, "lab_alpha": 0.70, "lama_dilate": 8},
+    "camo_pattern": {"canny_res": 512, "canny_strength": 0.78, "tile_strength": 0.50, "ipa_weight": 0.45, "denoise1": 0.50, "denoise2": 0.15, "lab_alpha": 0.80, "lama_dilate": 8}
   }
 }
