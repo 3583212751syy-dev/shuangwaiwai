@@ -24,9 +24,8 @@ COMFYUI_LAUNCH = [
     "--cuda-device", "0",
     "--listen", "127.0.0.1",
     "--port", "8188",
-    # 12G 显存保护：限队列 + 中低显存模式
-    "--max-queue-size", "20",
-    "--medvram",
+    # 12G 显存（RTX 4070 Ti）：新版 ComfyUI 已移除 --max-queue-size / --medvram，
+    # 用默认自适应显存管理；若实测 OOM 改加 "--lowvram"。
 ]
 
 # ---------- 模型路径（ComfyUI/models 下）----------
