@@ -11,6 +11,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from skimage.color import rgb2lab, lab2rgb
+from scipy import ndimage as ndi
 
 # 项目根（styles/ 的上两级：image-fission/）
 ROOT = Path(__file__).resolve().parent.parent
@@ -70,6 +71,81 @@ def lab_color_lock(img: Image.Image, ref: Image.Image, alpha: float = 0.85) -> I
     blended = np.clip(blended, [0, -128, -128], [100, 127, 127])
     rgb = (lab2rgb(blended) * 255).astype(np.uint8)
     return Image.fromarray(rgb, "RGB")
+
+
+# ---------------------------------------------------------------------------
+# 迷彩「湖泊」色块保色几何形变（用户新增需求 2026-09-14）
+# ---------------------------------------------------------------------------
+
+def camo_blob_morph(img: "Image.Image", seed: int = 8888,
+                    strength: float = 0.025, freq: int = 3,
+                    exclude_bboxes: list | None = None) -> "Image.Image":
+    """对迷彩类图片做**保色**弹性形变：只平移像素、不重绘，因此原色族 100% 保留。
+
+    作用：把「湖泊」色块的形状/角度/长度/大小整体变换成不同选取范围（每次 seed 不同 → 不同裂变），
+    同时让小元素（狗牌/棕榈）跟着发生轻微角度/位移变化（物种不变）。
+
+    实现：多频正弦位移场（不同频率/相位/振幅随机），对整图做 map_coordinates 重采样。
+    - strength 控制最大位移占图宽比例（默认 2.5%，肉眼可见但不崩坏布局）
+    - 边缘保护：用梯度幅值检测结构/文字/狗牌轮廓，膨胀后做羽化；形变只作用于低梯度「湖泊」内部，
+      不拖歪高对比边缘，也不覆盖文字 bbox
+    - exclude_bboxes：文字 bbox 列表，这些区域位移强制为 0，保证 LaMa+重绘的坐标对齐
+
+    注意：这是几何层面的「元素裂变」，与 ComfyUI 结构级重生互补；颜色由像素搬运保证不变。
+    """
+    arr = np.asarray(img.convert("RGB"), dtype=np.float32)
+    H, W = arr.shape[:2]
+    rng = np.random.default_rng(seed)
+
+    # ---- 边缘保护掩膜：高梯度/结构区保留原位置 ----
+    gray = np.asarray(img.convert("L"), dtype=np.float32) / 255.0
+    grad = ndi.gaussian_gradient_magnitude(gray, sigma=1.2)
+    # 阈值用百分位，只把最强边缘视为结构；迷彩内部 blob 边缘梯度较低，仍允许形变
+    edge_mask = grad > np.percentile(grad, 82)
+    # 文字区也加入保护
+    if exclude_bboxes:
+        for bb in exclude_bboxes:
+            x1, y1, x2, y2 = [max(0, min(W, int(v))) for v in bb]
+            if x2 > x1 and y2 > y1:
+                edge_mask[y1:y2, x1:x2] = True
+    # 膨胀 + 羽化，使过渡平滑，避免明显分界线
+    edge_mask = ndi.maximum_filter(edge_mask, size=int(max(W, H) * 0.018) + 3)
+    protect = ndi.gaussian_filter(edge_mask.astype(np.float32), sigma=max(W, H) * 0.015)
+    protect = np.clip(protect, 0, 1)
+    morph_weight = 1.0 - protect  # 越接近结构越不动
+
+    # ---- 多频位移场 ----
+    phx = rng.uniform(0, 2 * np.pi, size=freq + 1)
+    phy = rng.uniform(0, 2 * np.pi, size=freq + 1)
+    axx = rng.uniform(0.5, 1.5, size=freq + 1)
+    axy = rng.uniform(0.5, 1.5, size=freq + 1)
+    yy, xx = np.meshgrid(np.linspace(0, 1, H, dtype=np.float32),
+                         np.linspace(0, 1, W, dtype=np.float32), indexing="ij")
+    disp_x = np.zeros((H, W), dtype=np.float32)
+    disp_y = np.zeros((H, W), dtype=np.float32)
+    for k in range(1, freq + 1):
+        amp = strength * (1.0 / k)
+        disp_x += amp * np.sin(2 * np.pi * k * xx + phx[k]) * np.cos(2 * np.pi * k * yy * 0.5 + axy[k]) * W
+        disp_y += amp * np.cos(2 * np.pi * k * yy + phy[k]) * np.sin(2 * np.pi * k * xx * 0.5 + axx[k]) * H
+    # 加权：结构区位移清零
+    disp_x *= morph_weight
+    disp_y *= morph_weight
+
+    map_x = (xx * W + disp_x).astype(np.float32)
+    map_y = (yy * H + disp_y).astype(np.float32)
+    # 文字区再次强制 identity（硬边界）
+    if exclude_bboxes:
+        for bb in exclude_bboxes:
+            x1, y1, x2, y2 = [max(0, min(W, int(v))) for v in bb]
+            if x2 > x1 and y2 > y1:
+                map_x[y1:y2, x1:x2] = xx[y1:y2, x1:x2] * W
+                map_y[y1:y2, x1:x2] = yy[y1:y2, x1:x2] * H
+    coords = np.stack([map_y.ravel(), map_x.ravel()], axis=0)
+    out = np.empty_like(arr)
+    for c in range(3):
+        out[..., c] = ndi.map_coordinates(arr[..., c], coords, order=1,
+                                          mode="reflect").reshape(H, W)
+    return Image.fromarray(out.clip(0, 255).astype(np.uint8), "RGB")
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +237,7 @@ def replace_text_plan(img: Image.Image, plan: list[dict], dilate: int = 12) -> I
         cx2 = min(W, x2 + margin)
         cy2 = min(H, y2 + margin)
         out_crop = out.crop((cx1, cy1, cx2, cy2))
+        crop_w, crop_h = out_crop.size
         # 文字 bbox 相对裁剪框的坐标
         bx1, by1, bx2, by2 = x1 - cx1, y1 - cy1, x2 - cx1, y2 - cy1
         # 1) 构建文字区 mask（白=去除），膨胀覆盖笔画边缘
@@ -169,10 +246,17 @@ def replace_text_plan(img: Image.Image, plan: list[dict], dilate: int = 12) -> I
         mdraw.rectangle([bx1, by1, bx2, by2], fill=255)
         mask = mask.filter(ImageFilter.MaxFilter(item_dilate * 2 + 1))
         # 2) 扩散 inpaint 只抹裁剪框内文字区（背景由扩散重建，不用色块盖字）
-        try:
-            cleaned_crop = lc.diffusion_inpaint(out_crop, mask)
-        except Exception as e:
-            print(f"[base] diffusion_inpaint failed for {bbox}: {e}, 回退 LaMa")
+        #    OOM 防护：裁剪区过大（近整图宽 / 面积超阈值）时 12GB 显存放不下扩散 inpaint，
+        #    直接走 LaMa，避免反复 CUDA OOM。
+        crop_area = crop_w * crop_h
+        use_diffusion = crop_area <= 1_200_000 and crop_w <= int(W * 0.6)
+        if use_diffusion:
+            try:
+                cleaned_crop = lc.diffusion_inpaint(out_crop, mask)
+            except Exception as e:
+                print(f"[base] diffusion_inpaint failed for {bbox}: {e}, 回退 LaMa")
+                use_diffusion = False
+        if not use_diffusion:
             try:
                 cleaned_crop = lc.lama_inpaint(out_crop, mask, removal_strength=235, edge_smoothness=6)
             except Exception as e2:
@@ -389,15 +473,29 @@ def _compose_material(cleaned_arr: np.ndarray, texture_src: np.ndarray,
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
+def _default_inpaint_prompt(font_key: str) -> str:
+    """根据字体风格返回默认扩散 inpaint prompt。"""
+    prompts = {
+        "blackopsone": "urban gray camouflage fabric, military tactical texture, irregular lake-like blobs, monochrome, no text",
+        "playfair": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, no text",
+        "metal": "black metal poster background, dark steel texture, bald eagle feathers, horned skull, lightning bolts, thorns, no text",
+        "denim": "denim fabric texture, light gray background, blue jeans applique, embroidered frayed edges, no text",
+    }
+    return prompts.get(font_key, "background texture matching the image, no text")
+
+
 def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
                          use_material: bool = True) -> Image.Image:
-    """文字替换 v2：笔画级 mask 精准擦除 + 弧形文字 + 原字材质迁移。
+    """文字替换 v2：彻底擦除旧字 + 按原字体/位置重画新词，禁止色块盖字。
 
     plan 每条可额外包含：
-      - "arc": "up"  表示沿向上弧线排版（用于 6978 顶弧）
-      - "dilate": int  笔画 mask 膨胀量
-      - "color": [r,g,b]  仅当材质采样失败时回退用
-    背景 100% 不动，只替换文字像素。
+      - "arc": "up"  表示沿向上弧线排版
+      - "dilate": int  文字区 mask 膨胀量
+      - "color": [r,g,b]
+      - "inpaint_prompt": str  扩散 inpaint 用的背景纹理描述（必须具体，禁止 plain）
+      - "inpaint_steps": int  默认 50
+      - "inpaint_strength": float  默认 1.0
+      - "inpaint_guidance": float  默认 7.5
     """
     if not plan:
         return img
@@ -412,12 +510,12 @@ def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
         x1, y1, x2, y2 = [int(v) for v in bbox]
         item_dilate = int(item.get("dilate", dilate))
         bh = y2 - y1
-        # margin：默认给 LaMa 足够上下文重建背景纹理；对超大字号/高对比度字
-        # 可显式传小 margin 避免模型把原字“联想”回来。
+        font_key = item.get("font", "blackopsone")
+        # margin：给扩散模型足够上下文；弧形/超大字号给更多上下文避免联想回旧字
         if "margin" in item:
             margin = int(item["margin"])
         else:
-            margin = max(int(bh * 0.7), 40)
+            margin = max(int(bh * 1.2), 80)
         cx1 = max(0, x1 - margin)
         cy1 = max(0, y1 - margin)
         cx2 = min(W, x2 + margin)
@@ -425,73 +523,59 @@ def replace_text_plan_v2(img: Image.Image, plan: list[dict], dilate: int = 8,
         crop = out.crop((cx1, cy1, cx2, cy2))
         original_crop = np.asarray(crop, dtype=np.float32)
         bx1, by1, bx2, by2 = x1 - cx1, y1 - cy1, x2 - cx1, y2 - cy1
-        # 1) mask = 笔画级检测（含小范围外扩）后膨胀 + bbox 矩形兜底。
-        #    bbox 兜底确保旧字带完整被 LaMa 擦除；它不是色块，LaMa 会用周围纹理
-        #    自然重建。只当检测失败或旧字外溢时才真正依赖 bbox 兜底。
-        detected = _detect_text_mask(original_crop, [bx1, by1, bx2, by2])
+        # 1) mask：必须覆盖整个文字 bbox + 大 dilate，保证旧字完整被擦除。
         from scipy import ndimage
-        # 基础膨胀覆盖笔画边缘；dilate 参数再追加
+        from skimage import morphology
+        mask_arr = np.zeros((crop.height, crop.width), dtype=np.uint8)
+        pad_x = max(4, int((bx2 - bx1) * 0.10))
+        pad_y = max(4, int((by2 - by1) * 0.10))
+        mx1, my1 = max(0, bx1 - pad_x), max(0, by1 - pad_y)
+        mx2, my2 = min(crop.width, bx2 + pad_x), min(crop.height, by2 + pad_y)
+        mask_arr[my1:my2, mx1:mx2] = 255
+        # 再膨胀覆盖笔画边缘与残影
+        selem = morphology.disk(max(item_dilate, 8))
+        mask_arr = ndimage.binary_dilation(mask_arr > 0, structure=selem).astype(np.uint8) * 255
+        mask_pil = Image.fromarray(mask_arr, mode="L")
+        # 1b) 笔画级检测只用于材质采样，不用于决定擦除范围
+        detected = _detect_text_mask(original_crop, [bx1, by1, bx2, by2])
         detected = ndimage.binary_dilation(detected > 0, iterations=6).astype(np.uint8) * 255
-        if item_dilate > 6:
-            detected = ndimage.binary_dilation(detected > 0, iterations=item_dilate - 6).astype(np.uint8) * 255
-        bbox_mask = np.zeros_like(detected)
-        bbox_mask[by1:by2, bx1:bx2] = 255
-        # 优先只擦检测到的旧字笔画，最大程度保留文字带之间的原背景纹理。
-        # 仅当检测面积极小（< 2% bbox）时才用 bbox 兜底，防止漏擦。
-        bbox_area = (bbox_mask > 127).sum()
-        detected_area = (detected > 127).sum()
-        detected_ratio = detected_area / max(1, bbox_area)
-        if detected_ratio >= 0.02:
-            stroke_mask = detected
-        else:
-            stroke_mask = np.maximum(detected, bbox_mask)
-        mask_pil = Image.fromarray(stroke_mask, mode="L")
-        # 预判断材质权重，决定后续回填策略
-        mat_w = float(item.get("material_weight", 0.70 if use_material else 0.0))
-        emb = float(item.get("emboss", 0.0))
-        # 2) 扩散 inpaint 擦除：先彻底擦除原文字（背景由扩散重建），绝不用色块盖字。
-        removal_strength = float(item.get("removal_strength", 240))  # 保留字段，扩散 backend 暂未使用
+        # 2) LaMa 擦除：先彻底擦除原文字，背景由 LaMa 用周围真实纹理重建，禁色块盖字。
+        #    扩散模型已验证不适用（生成伪文字/OOM），改回 Big-LaMa 全带 mask 处理。
+        removal_strength = float(item.get("removal_strength", 240))
         edge_smoothness = int(item.get("edge_smoothness", 4))
         try:
-            cleaned_crop = lc.diffusion_inpaint(crop, mask_pil)
+            cleaned_crop = lc.lama_inpaint(crop, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
         except Exception as e:
-            print(f"[base] diffusion_inpaint failed for {bbox}: {e}, 回退 LaMa")
-            try:
-                cleaned_crop = lc.lama_inpaint(crop, mask_pil, removal_strength=removal_strength, edge_smoothness=edge_smoothness)
-            except Exception as e2:
-                print(f"[base] lama fallback also failed: {e2}")
-                cleaned_crop = crop
+            print(f"[base] lama_inpaint failed for {bbox}: {e}, 回退原图")
+            cleaned_crop = crop
         cleaned_arr = np.asarray(cleaned_crop, dtype=np.float32)
-        # 3) 渲染新词 alpha
+        # 3) 渲染新词 alpha（弧线或平面）
         arc = item.get("arc")
         if arc == "up":
-            # 弧线圆心常在 bbox 下方很远（如 6978 cy=820），必须在整图上渲染再裁剪，
-            # 否则 crop 装不下圆心会导致弧字偏移/被裁。
             arc_center_full = item.get("arc_center")
             full_alpha = _render_arc_word_alpha((W, H), word, [x1, y1, x2, y2],
-                                               item.get("font", "blackopsone"), arc="up",
+                                               font_key, arc="up",
                                                arc_center=arc_center_full,
                                                arc_radius=item.get("arc_radius"),
                                                start_angle=float(item.get("arc_start", 225)),
                                                end_angle=float(item.get("arc_end", 315)))
             alpha = full_alpha[cy1:cy2, cx1:cx2]
         else:
-            alpha = _render_word_alpha(crop.size, word, [bx1, by1, bx2, by2],
-                                       item.get("font", "blackopsone"))
-        # 4) 材质迁移 or 平涂 fallback
+            alpha = _render_word_alpha(crop.size, word, [bx1, by1, bx2, by2], font_key)
+        # 4) 材质迁移 or 平涂
+        mat_w = float(item.get("material_weight", 0.70 if use_material else 0.0))
+        emb = float(item.get("emboss", 0.0))
         if use_material and mat_w > 0:
-            # 材质采样只取笔画级 detected，避免 bbox 兜底区把背景色混进 letter_mean
             letter_mean, _ = _letter_stats(original_crop, detected)
             if letter_mean is None:
                 letter_mean = np.array(item.get("color", [0, 0, 0]), dtype=np.float32)
-            # 自动判断文字是否“平涂”：若旧字高频纹理很弱，降低材质权重
             texture = _highpass_texture(original_crop, sigma=2.0)
-            mask_b = stroke_mask > 127
+            mask_b = detected > 127
             if mask_b.sum() > 20:
                 tex_std = texture[mask_b].reshape(-1, 3).std(axis=0).mean()
                 if tex_std < 12.0:
                     mat_w = min(mat_w, 0.25)
-            composed = _compose_material(cleaned_arr, original_crop, alpha, letter_mean,
+            composed = _compose_material(cleaned_arr, cleaned_arr, alpha, letter_mean,
                                          material_weight=mat_w, emboss_strength=emb)
         else:
             color = np.array(item.get("color", [0, 0, 0]), dtype=np.float32)
