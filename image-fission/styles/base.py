@@ -24,6 +24,7 @@ COMFYUI_URL = "http://127.0.0.1:8188"
 FONTS = {
     "blackopsone": ROOT / "fonts" / "BlackOpsOne-Regular.ttf",   # military / stencil display
     "playfair":    ROOT / "fonts" / "PlayfairDisplay-Bold.ttf",  # Didone serif (BACARDÍ 类)
+    "playfair_black": ROOT / "fonts" / "PlayfairDisplay-Black.ttf",  # Didone serif 重字重（原字为 Heavy 时用）
     "metal":       ROOT / "fonts" / "MetalMania-Regular.ttf",    # spiky gothic metal (ARCHOR 类)
     "denim":       ROOT / "fonts" / "LeagueSpartan-Black.ttf",   # bold blocky (UPCY 类)
 }
@@ -442,8 +443,9 @@ def _render_arc_word_alpha(img_size: tuple[int, int], word: str, bbox, font_key:
         font_size = int(font_size * 0.92)
 
     tmp = Image.new("RGB", (W, H), (0, 0, 0))
-    arc_text.draw_arc_text(tmp, word, str(fp), font_size, (255, 255, 255),
-                           (cx, cy), r, start_angle, end_angle, char_spacing_px=2)
+    # ⚠️ arc_text.draw_arc_text 返回新图（不原地修改），必须接返回值，否则画出来是空的
+    tmp = arc_text.draw_arc_text(tmp, word, str(fp), font_size, (255, 255, 255),
+                                 (cx, cy), r, start_angle, end_angle, char_spacing_px=2)
     gray = np.asarray(tmp.convert("L"), dtype=np.float32) / 255.0
     return gray
 

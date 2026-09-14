@@ -1,9 +1,9 @@
 {
   "name": "image-fission-regression-v6",
-  "version": "v325-upgrade",
+  "version": "v326-2-camo-blob-morph",
   "description": "image-fission 永久回归测试集。6 张图覆盖 4 大风格：pattern_no_subject（无主体图案）/ camo_pattern（迷彩类）/ subject_badge_text（有主体+文字）/ subject_badge_textless（有主体+文字缺失）。每风格独立代码模块（image-fission/styles/<style_key>.py）。每次管线/模型升级后，用本集合跑一轮，生成 before/after 对比。",
   "created": "2026-09-12",
-  "note": "2026-09-12 用户定稿：由 5 图扩为 6 图，新增 Pinterest (4).jpg（迷彩棕榈，camo_pattern）。Pinterest (2).jpg 已退出。每图显式 style_key 对应独立代码模块。text_plan 为文字原位替换的真实执行计划（bbox 原图像素坐标）。",
+  "note": "2026-09-12 用户定稿：由 5 图扩为 6 图，新增 Pinterest (4).jpg（迷彩棕榈，camo_pattern）。Pinterest (2).jpg 已退出。每图显式 style_key 对应独立代码模块。text_plan 为文字原位替换的真实执行计划（bbox 原图像素坐标）。2026-09-14 升级 v326：新增迷彩「湖泊」色块保色几何形变(camo_blob_morph)——改色块区域/角度/长度/大小，原色不变；无主体图案逐小元素裂变；主体 logo 改角度内容但物种不变、文字按原排版只改词。本次向用户演示 5 张：6978/b78e60/pinterest3/pinterest4/pinterest6。",
   "styles": {
     "pattern_no_subject": {
       "desc": "无主体、全是小元素（佩斯利/头巾/底纹）。保留颜色与布局，只改小元素母题（重生/变体）。禁止改 4-patch/整体排版。",
@@ -51,15 +51,26 @@
       "path": "E:/Desktop/图裂变测试图/b78e60de8dfdf44acda99395326a7298.jpg",
       "style_key": "camo_pattern",
       "category": "camo",
-      "strategy": "STAGE_A: mode1 + Canny(0.6) 锁布局让迷彩湖泊色块形变; 保留原色族; dog tag 改角度内容但物种不变; STAGE_B/C: 文字按 BlackOpsOne 原排版替换",
+      "strategy": "STAGE_A: mode3 img2img(denoise=0.38)+双锁 保原图灰军底色与狗牌位置; gen_scale=0.5 保细节; Canny=0 防挂; 湖泊色块经 camo_blob_morph 几何形变; 文字按 BlackOpsOne 原排版替换",
       "elements": ["camo background", "dog tag", "chain", "military display text", "small fragments"],
+      "gen_scale": 0.5,
+      "comfyui_params": {
+        "camo_pattern": {
+          "mode": "mode3",
+          "redraw_amount": 0.38,
+          "color_strength": 0.75,
+          "composition_strength": 0.65,
+          "controlnet_strength": 0.0,
+          "ipadapter_noise": 0.05
+        }
+      },
       "prompts": [
         "urban gray camouflage background with irregular lake-like blobs, single military dog tag pendant, black ops stencil typography, monochrome tactical palette, no text"
       ],
       "text_plan": [
-        {"bbox": [517, 452, 1051, 535], "word": "WE HONOR THE", "font": "blackopsone", "color": [30, 30, 30], "dilate": 14, "removal_strength": 235, "material_weight": 0.0},
-        {"bbox": [459, 535, 1109, 620], "word": "STEEL", "font": "blackopsone", "color": [30, 30, 30], "dilate": 16, "removal_strength": 235, "material_weight": 0.0},
-        {"bbox": [459, 620, 1109, 705], "word": "HAWKS", "font": "blackopsone", "color": [30, 30, 30], "dilate": 16, "removal_strength": 235, "material_weight": 0.0}
+        {"bbox": [517, 452, 1051, 535], "word": "WE HONOR THE", "font": "blackopsone", "color": [30, 30, 30], "dilate": 24, "margin": 120, "removal_strength": 235, "material_weight": 0.0, "inpaint_prompt": "urban gray camouflage fabric, military tactical texture, irregular lake-like blobs, monochrome, dog tag chain, no text"},
+        {"bbox": [459, 535, 1109, 620], "word": "STEEL", "font": "blackopsone", "color": [30, 30, 30], "dilate": 28, "margin": 120, "removal_strength": 235, "material_weight": 0.0, "inpaint_prompt": "urban gray camouflage fabric, military tactical texture, irregular lake-like blobs, monochrome, dog tag chain, no text"},
+        {"bbox": [459, 620, 1109, 705], "word": "HAWKS", "font": "blackopsone", "color": [30, 30, 30], "dilate": 28, "margin": 120, "removal_strength": 235, "material_weight": 0.0, "inpaint_prompt": "urban gray camouflage fabric, military tactical texture, irregular lake-like blobs, monochrome, dog tag chain, no text"}
       ]
     },
     {
@@ -87,7 +98,7 @@
         "black metal poster, bald eagle perched on horned skull, white lightning bolts, brown white black palette, spiked gothic typography, no real band name"
       ],
       "text_plan": [
-        {"bbox": [120, 60, 3423, 650], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 22, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.75}
+        {"bbox": [120, 60, 3423, 650], "word": "RAVEN", "font": "metal", "color": [215, 215, 220], "dilate": 36, "margin": 220, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.85, "inpaint_prompt": "black metal poster, dark steel texture, bald eagle feathers, horned skull, lightning bolts, thorny tribal spikes, no text"}
       ]
     },
     {
@@ -103,7 +114,7 @@
       ],
       "gen_scale": 0.5,
       "text_plan": [
-        {"bbox": [10, 50, 726, 360], "word": "FLUTTER", "font": "denim", "color": [60, 85, 150], "dilate": 14, "removal_strength": 235, "edge_smoothness": 4, "material_weight": 0.85}
+        {"bbox": [10, 50, 726, 360], "word": "FLUTTER", "font": "denim", "color": [60, 85, 150], "dilate": 24, "margin": 140, "removal_strength": 235, "edge_smoothness": 4, "material_weight": 0.85, "inpaint_prompt": "denim fabric texture, light gray background, blue jeans applique, embroidered frayed edges, butterfly wing patch, no text"}
       ]
     },
     {
@@ -118,11 +129,11 @@
         "purple bat emblem vintage badge poster, distressed texture, gothic didone serif typography, dark violet and black, no real brand"
       ],
       "text_plan": [
-        {"bbox": [80, 130, 1500, 430], "word": "NOCTAVEN DARK HOUSE", "font": "playfair", "color": [40, 30, 45], "dilate": 24, "arc": "up", "arc_center": [776, 820], "arc_radius": 520, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.0},
-        {"bbox": [250, 800, 370, 920], "word": "SET", "font": "playfair", "color": [40, 30, 45], "dilate": 16, "removal_strength": 240, "material_weight": 0.0},
-        {"bbox": [1160, 800, 1300, 920], "word": "1888", "font": "playfair", "color": [40, 30, 45], "dilate": 16, "removal_strength": 240, "material_weight": 0.0},
-        {"bbox": [190, 920, 1360, 1170], "word": "NOCTAVEN", "font": "playfair", "color": [40, 30, 45], "dilate": 20, "removal_strength": 240, "material_weight": 0.0},
-        {"bbox": [270, 1160, 1280, 1360], "word": "MOONHEART", "font": "playfair", "color": [40, 30, 45], "dilate": 18, "removal_strength": 240, "material_weight": 0.0}
+        {"bbox": [80, 130, 1500, 430], "word": "NOCTAVEN DARK HOUSE", "font": "playfair", "color": [40, 30, 45], "dilate": 36, "margin": 180, "arc": "up", "arc_center": [776, 820], "arc_radius": 520, "removal_strength": 250, "edge_smoothness": 3, "material_weight": 0.0, "inpaint_prompt": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, ribbon arc, no text"},
+        {"bbox": [250, 800, 370, 920], "word": "SET", "font": "playfair", "color": [40, 30, 45], "dilate": 20, "margin": 100, "removal_strength": 240, "material_weight": 0.0, "inpaint_prompt": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, no text"},
+        {"bbox": [1160, 800, 1300, 920], "word": "1888", "font": "playfair", "color": [40, 30, 45], "dilate": 20, "margin": 100, "removal_strength": 240, "material_weight": 0.0, "inpaint_prompt": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, no text"},
+        {"bbox": [190, 920, 1360, 1170], "word": "NOCTAVEN", "font": "playfair", "color": [40, 30, 45], "dilate": 30, "margin": 160, "removal_strength": 240, "material_weight": 0.0, "inpaint_prompt": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, no text"},
+        {"bbox": [270, 1160, 1280, 1360], "word": "MOONHEART", "font": "playfair", "color": [40, 30, 45], "dilate": 26, "margin": 140, "removal_strength": 240, "material_weight": 0.0, "inpaint_prompt": "purple vintage badge background, distressed texture, dark violet and black, ornate decorative frame, no text"}
       ]
     }
   ],
