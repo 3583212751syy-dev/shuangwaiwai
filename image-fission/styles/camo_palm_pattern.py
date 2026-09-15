@@ -169,7 +169,7 @@ def _palm_specs(W: int, H: int, cols: int, rows: int, seed: int,
                 h_lo: float, h_hi: float) -> list[dict]:
     """按抖动网格布置 N 棵树：每棵独立 style/tilt/高度；边缘的树允许被画框裁切。"""
     rng = np.random.default_rng(int(seed) * 31337 + 5)
-    styles = ["droopy", "upright", "bushy", "palm_short"]
+    styles = ["auto", "auto", "auto", "line", "solid"]
     specs = []
     cw, ch = W / cols, H / rows
     for r in range(rows):

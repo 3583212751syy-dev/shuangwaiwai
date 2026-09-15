@@ -118,8 +118,9 @@ def do_pinterest3():
     ② 文字材质平铺重画（同材质/同描边，不同单词）。"""
     ic = BY['pinterest3']
     src_img = Image.open(ic['path']).convert('RGB')
-    sub = VIS / '_p3_lockA_0.jpg'
-    img = _p3_subject_swap(src_img, sub) if sub.exists() else src_img
+    # v330: 不再用 ComfyUI 蝴蝶（_p3_lockA_0.jpg 带大量噪点/糊边），
+    # 改用原图干净蝴蝶（零噪点）。后续可在此处接 subject_morph 做姿态裂变。
+    img = src_img
     W, H = img.size
     band = (0, 60, W, 348)                       # 只取字母带，排除下方小蝴蝶
     det = src_img                                # 字母检测/取材质一律用**原图**：
@@ -142,7 +143,10 @@ def do_pinterest3():
                                 jitter_deg=1.5, seed=3, fit='squeeze', mat_mode='tile',
                                 swatch_size=64, swatch_erode=7, swatch_gap=3,
                                 swatch_min_cov=0.96, detail_sigma=12, swatch_full=False,
-                                width_frac=1.0)
+                                width_frac=1.0,
+                                shadow=dict(dx=7, dy=7, blur=7.0, color=(130, 130, 130), strength=0.55),
+                                inner_ring=6, inner_ring_col=(200, 205, 215),
+                                ring_dark=0.58, seam_px=3)
     res.save(OUT / 'pinterest3_variant.jpg', quality=93)
     print(f'[pinterest3] letters={len(letters)} word={word!r} -> {OUT}')
     return res
@@ -205,11 +209,15 @@ def do_6978():
     for bb in [(1150, 930, 1300, 1010), (1120, 1170, 1200, 1235)]:
         brand |= v328.extra_specks(img, bb, exclude=excl_brand)
 
-    # ---- 蝙蝠擦除掩膜（近黑 + 徽章椭圆内）----
+    # ---- 蝙蝠擦除掩膜（v330：深色主体 + 浅色描边，全 footprint 擦除后贴回形变层）----
     arr = np.asarray(img, np.float32)
     mx = arr.max(2)
+    lum = arr @ np.array([0.299, 0.587, 0.114], np.float32)
     ell = ((xx - 815) / 252.0) ** 2 + ((yy - 742) / 262.0) ** 2 <= 1.0
-    bat = (mx < 58) & ell
+    core = (mx < 58) & ell
+    # 浅色描边（lum>118 且在核心膨胀范围内 = 原图蝙蝠的 lavender 轮廓线）
+    edge_rgn = (lum > 118) & tf.ndi.binary_dilation(core, structure=tf._disk(10))
+    bat = (core | edge_rgn)
     lab, n = tf.ndi.label(bat, structure=np.ones((3, 3), bool))
     if n:
         sz = tf.ndi.sum(np.ones_like(lab), lab, range(1, n + 1))
@@ -217,7 +225,7 @@ def do_6978():
         bat = keep[lab]
     bat = tf.ndi.binary_dilation(bat, structure=tf._disk(3))
     vis = np.asarray(img).copy(); vis[bat] = [255, 0, 0]
-    Image.fromarray(vis).save(VIS / 'v329_6978_bat_mask.png')
+    Image.fromarray(vis).save(VIS / 'v330_6978_bat_mask.png')
 
     out = img
     # 碟面内允许取样区（蝙蝠以外的碟面像素）：蝙蝠填充只从**碟面自身**取色，
@@ -239,17 +247,17 @@ def do_6978():
         out = tf.erase(out, mdd, **kw)
     out.save(VIS / 'v329_6978_erased.jpg', quality=95)
 
-    # ---- 重画：新姿态蝙蝠（span 受徽章椭圆约束：翼尖半径须 <260，否则会戳到弧字）----
-    span = 175.0
-    dk, lt = bat_art.draw_bat((W, H), 815.0, 742.0, span, seed=17, pose='wing_up', edge_px=6.0)
-    a_dk = np.asarray(dk, np.float32) / 255.0
-    a_lt = np.asarray(lt, np.float32) / 255.0
-    body_col = np.array([38, 14, 52], np.float32)
-    edge_col = np.array([196, 158, 222], np.float32)
-    o = np.asarray(out, np.float32)
-    o = o * (1 - a_dk[..., None]) + body_col[None, None, :] * a_dk[..., None]
-    o = o * (1 - a_lt[..., None]) + edge_col[None, None, :] * a_lt[..., None]
-    out = Image.fromarray(np.clip(o, 0, 255).astype(np.uint8), 'RGB')
+    # ---- v330 重画：从原图蝙蝠做结构保持形变（subject_morph），保留原材质/描边/解剖结构 ----
+    from styles import subject_morph as smod
+    rgba, box = smod.make_layer(img, bat, feather=1.5, pad=14)
+    # 形变参数：翼微展+翼尖上勾+尾部拉长 → 同构异姿，anatomy 100% 来自原图
+    disp = smod.wing_pose(rgba.shape[:2][::-1], cx=815.0, cy=635.0,
+                          theta=-0.12, pivot_dx=80.0, ramp=(28.0, 235.0),
+                          k_up=10.0, span=1.04, tip_flick=8.0,
+                          tip_ramp=(180.0, 250.0), tail_stretch=18.0, tail_y=780.0)
+    warped = smod.warp_layer(rgba, disp, order=1)
+    out = smod.paste_layer(out, warped, box)
+    Image.fromarray(np.clip(np.asarray(warped[..., :3], np.float32), 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v330_6978_morphed.jpg', quality=95)
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
     for (w, b, m) in lines:
@@ -295,12 +303,15 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
         if len(ys) and ys.min() < int(300 // DS) and int(m.sum()) > bA:
             bA = int(m.sum()); best = m
     best = tf.ndi.binary_fill_holes(best)
-    best = tf.ndi.binary_dilation(best, structure=tf._disk(10))
+    # v330 fix: diffuse（Laplace 平滑梯度）替代 nn（最近邻会把下方鹰/骷髅色拉进标题区）
+    # 同时缩小膨胀半径（disk(6) 替代 disk(10)），减少 mask 吃进插图区的风险
+    best = tf.ndi.binary_dilation(best, structure=tf._disk(6))
     mask = np.asarray(Image.fromarray((best * 255).astype(np.uint8), 'L')
                       .resize((W, H), Image.NEAREST)) > 128
     vis = np.asarray(img).copy(); vis[mask] = [255, 0, 0]
     Image.fromarray(vis).save(VIS / 'v329_p6_mask.png')
-    out = tf.erase(img, mask, method='const', const_color=(2, 2, 6), const_feather=22)
+    # v330: diffuse 平滑填充（从四边界混合渐变），不再用 nn（会拉进下方插图色）或 const（黑色色块）
+    out = tf.erase(img, mask, method='diffuse', diffuse_down=4)
     out.save(VIS / 'v329_p6_erased.jpg', quality=95)
 
     # ---- 字标贴回 ----

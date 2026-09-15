@@ -1,159 +1,187 @@
-"""palm_art.py — 程序化"手绘线稿棕榈树"生成器（pinterest4 专用）。
+"""palm_art.py — 程序化棕榈（v330：按原图 Pinterest(4) 放大 2 倍逐棵量测重写）
 
-为什么不用 SDXL 重画：实测 SDXL 出的是**实心黑剪影**，而原图是**手绘线稿**，
-风格完全不同。程序化线稿能按原图的"墨线"语言（线宽/笔触/结构）复刻，同时每棵树的
-倾斜角、树干弯度、叶片数量/长度/下垂度、树冠朝向都按 seed 独立生成 —— 真正做到
-"裂变成不同角度构图的树木元素"，而不是复制同一棵树。
+原图的棕榈是**两种画法混排**：
 
-⚠️ 2026-09-15 重新标定（对照原图逐特征量测，v329 首版树干过细过长、叶片过稀过小）：
-  原图（1242×1754）典型树总高 330~440px，其中
-    树干长 ≈ 0.62×总高，树干宽 ≈ 0.042×总高（两侧描边 + 密排横梯格）
-    树冠半径 ≈ 0.45×总高，叶脉宽 ≈ 0.024×总高，叶片为**边缘带锯齿的实心羽状条**
-  → 全部线宽按 tree_height 的比例给，与分辨率无关。
+  A. **线稿型**（约 2/3）
+     · 树干 = 紧贴的**锯齿线**（振幅 ≈1.3 线宽、步距 ≈1.7 线宽，压成弹簧状）——不是"绳梯"。
+     · 叶  = 一条**中脉细线** + 两侧**短叶枝**（每根叶枝是独立短线，彼此留空隙），
+             叶枝长 ≈ 叶长 16%~28%、与中脉夹角 36°~58°、向叶尖递减；部分整叶画成锯齿折线。
+     · 线宽 ≈ 7~8px（1242px 宽原图上 2*mean(EDT)≈4.6~7）。
+  B. **剪影型**（约 1/3）
+     · 整棵是实心图标：锥形粗树干 + 披针形**实心长矛状**下垂叶。
+
+两型都**没有大片填充** —— v329 那种"实心风车/蒲公英"正是因为把叶画成了带锯齿的实心多边形，
+覆盖率超标、与原图笔触语言完全不符（用户 2026-09-15 反馈"元素长得好看吗，跟原图有什么关系"）。
+
+API 与旧版一致：draw_palm(size, cx, base_y, height, seed, lw_scale, style) / palm_layer(...)
 """
 from __future__ import annotations
+
 import math
+
 import numpy as np
 from PIL import Image, ImageDraw
 
-SS = 3  # 超采样
+SS = 3          # 超采样倍率
 
 
-def _frond(d: ImageDraw.ImageDraw, base, ang: float, length: float, droop: float,
-           w0: float, rng, teeth_scale: float = 1.0):
-    """一根叶片 = **边缘带锯齿的实心羽状条**（原图笔触语言）。
+def _unit(dx: float, dy: float):
+    n = math.hypot(dx, dy) or 1.0
+    return dx / n, dy / n
 
-    中心线沿 ang 起，末端按下垂 droop 弯；宽度包络中间最宽、两端收细；
-    两侧交替外凸形成锯齿（sawtooth）——即原图那种"羽状/锯片状"叶形。
-    """
-    steps = max(12, int(length / (3.0 * SS)))
-    jit = float(rng.uniform(-4.0, 4.0))          # 每根叶片只给**一个**角度抖动
-    a0 = math.radians(ang + jit)
-    pts = []
-    for i in range(steps + 1):
-        t = i / steps
-        a = a0 + math.radians(droop * (t ** 1.9))
-        pts.append((base[0] + math.cos(a) * length * t,
-                    base[1] + math.sin(a) * length * t))
 
-    def wid(t: float) -> float:
-        env = math.sin(math.pi * min(1.0, max(0.03, t))) ** 0.42
-        return max(1.0, w0 * env * (1.0 - 0.52 * t))
+def _perp(tx, ty):
+    ux, uy = _unit(tx, ty)
+    return -uy, ux
 
+
+def _rope_zigzag(a, b, amp: float, step: float):
+    """a→b 的锯齿点列（左右交替偏移 → 弹簧状树干）。"""
+    ax, ay = a
+    dx, dy = b[0] - ax, b[1] - ay
+    L = math.hypot(dx, dy)
+    nx, ny = _perp(dx, dy)
+    n = max(2, int(L / max(1e-6, step)))
+    return [(ax + dx * (i / n) + nx * (amp if i % 2 else -amp),
+             ay + dy * (i / n) + ny * (amp if i % 2 else -amp)) for i in range(n + 1)]
+
+
+def _spine(x0, y0, ang, length, steps, droop, wobble=0.0, rng=None):
+    """从 (x0,y0) 沿 ang 出发、逐步加大下垂角度的脊线点列。"""
+    pts = [(x0, y0)]
+    a = ang
+    seg = length / steps
+    x, y = x0, y0
+    for i in range(1, steps + 1):
+        a += droop * (i / steps) ** 1.15
+        if wobble and rng is not None:
+            a += float(rng.uniform(-wobble, wobble))
+        x += math.cos(a) * seg
+        y += math.sin(a) * seg
+        pts.append((x, y))
+    return pts
+
+
+def _taper_poly(pts, wfun, side_w):
+    """脊线 + 宽度函数 → 闭合多边形（实心叶/实心树干用）。"""
     left, right = [], []
-    for i in range(steps + 1):
-        t = i / steps
-        j, k = min(steps, i + 1), max(0, i - 1)
-        tx, ty = pts[j][0] - pts[k][0], pts[j][1] - pts[k][1]
-        nl = math.hypot(tx, ty) or 1.0
-        nx, ny = -ty / nl, tx / nl
-        w = wid(t)
-        # 锯齿：两侧交替外凸（羽状/锯片语言）
-        odd = (i % 2 == 1)
-        wl = w * (1.38 if odd else 1.0)
-        wr = w * (1.0 if odd else 1.38)
-        left.append((pts[i][0] + nx * wl * teeth_scale, pts[i][1] + ny * wl * teeth_scale))
-        right.append((pts[i][0] - nx * wr * teeth_scale, pts[i][1] - ny * wr * teeth_scale))
-    d.polygon(left + right[::-1], fill=255)
+    n = max(1, len(pts) - 1)
+    for i, (x, y) in enumerate(pts):
+        t = i / n
+        j, k = min(len(pts) - 1, i + 1), max(0, i - 1)
+        nx, ny = _perp(pts[j][0] - pts[k][0], pts[j][1] - pts[k][1])
+        w = max(0.6, wfun(t) * side_w)
+        left.append((x + nx * w, y + ny * w))
+        right.append((x - nx * w, y - ny * w))
+    return left + right[::-1]
 
 
-def draw_palm(size, cx: float, base_y: float, height: float, seed: int,
-              lw_scale: float = 1.0, style: str = "auto",
-              tilt: float | None = None) -> Image.Image:
-    """画一棵手绘线稿棕榈，返回 L 掩膜（size 像素坐标系，非超采样）。
+# ------------------------------------------------------------------ 叶
+def _frond_line(d, ox, oy, ang, length, lw, rng, droop):
+    """线稿叶：中脉 + 两侧短叶枝（像梳齿，彼此留空隙）；少数整叶为锯齿折线。
 
-    坐标：cx 树干根部横坐标，base_y 树根纵坐标，height 为**整树总高**（含树冠）。
+    ⚠️ 密度控制是这版的关键：叶枝必须**隔段画**、且叶枝长 < 段长，否则整棵树冠会缠成
+    一团黑线（v330 首版 30% 锯齿 + 每段都画 → 树冠糊成一个墨疙瘩）。
     """
-    rng = np.random.default_rng(int(seed) * 7919 + 13)
+    steps = 10
+    pts = _spine(ox, oy, ang, length, steps, droop, wobble=0.02, rng=rng)
+    d.line(pts, fill=255, width=max(1, int(round(lw))), joint="curve")
+    zig = rng.random() < 0.10
+    seg = length / steps
+    for i in range(2, steps + 1, 2):
+        t = i / steps
+        px, py = pts[i]
+        qx, qy = pts[i - 1]
+        pa = math.atan2(py - qy, px - qx)
+        if zig:
+            ll, lw2 = seg * 1.15 * (1.0 - 0.3 * t), lw * 0.80
+        else:
+            ll = min(length * float(rng.uniform(0.26, 0.38)) * (1.0 - 0.40 * t), seg * 0.92)
+            lw2 = lw * 0.58
+        for s in (-1, 1):
+            la = pa + s * math.radians(float(rng.uniform(40, 60)))
+            d.line([(px, py), (px + math.cos(la) * ll, py + math.sin(la) * ll)],
+                   fill=255, width=max(1, int(round(lw2))))
+
+
+def _frond_solid(d, ox, oy, ang, length, rng, droop, wmax):
+    """剪影叶：实心披针形长矛（基部宽、尖端收细）。"""
+    pts = _spine(ox, oy, ang, length, 12, droop, wobble=0.015, rng=rng)
+    side = wmax * (1.0 + 0.22 * float(rng.uniform(-1, 1)))
+
+    def wf(t):
+        return (0.35 + 0.65 * math.sin(math.pi * min(1.0, t * 1.6)) ** 0.6) * (1.0 - t) ** 0.55
+    d.polygon(_taper_poly(pts, wf, side), fill=255)
+
+
+# ------------------------------------------------------------------ 单棵
+def draw_palm(size, cx, base_y, height, seed, lw_scale: float = 1.0, style: str = "auto"):
+    """画一棵棕榈，返回与原图同尺寸的 L 掩膜。"""
     W, H = size
-    S = SS
-    img = Image.new("L", (W * S, H * S), 0)
-    d = ImageDraw.Draw(img)
-    if style == "auto":
-        style = ["droopy", "upright", "bushy", "palm_short"][int(rng.integers(0, 4))]
+    rng = np.random.default_rng(int(seed))
+    if style in ("auto", None):
+        style = "line" if rng.random() < 0.66 else "solid"
 
-    hs = height * S                                  # 超采样下的总高
-    trunk_len = hs * (0.60 + 0.09 * float(rng.random()))      # 0.58~0.68
-    trunk_w = max(2.0, hs * 0.040 * lw_scale)                 # 树干宽
-    edge_w = max(1.0, hs * 0.015 * lw_scale)                  # 描边线宽
+    lw = max(2.0, 0.0062 * W * lw_scale)
+    canopy_r = height * float(rng.uniform(0.34, 0.46))
+    trunk_len = height * float(rng.uniform(0.52, 0.66))
+    top_y = base_y - trunk_len
+    pad = int(canopy_r + 40 + lw * 4)
+    x0, y0 = int(cx - pad), int(top_y - pad)
+    x0c, y0c = max(0, x0), max(0, y0)
+    x1c, y1c = min(W, int(cx + pad)), min(H, int(base_y + pad))
+    if x1c - x0c <= 2 or y1c - y0c <= 2:
+        return Image.new("L", size, 0)
 
-    if tilt is None:
-        tilt = float(rng.uniform(-20, 20))
-    curve = float(rng.uniform(-0.26, 0.26)) * (1.0 if rng.random() < 0.7 else 1.5)
+    lwS = lw * SS
+    im = Image.new("L", ((x1c - x0c) * SS, (y1c - y0c) * SS), 0)
+    d = ImageDraw.Draw(im)
+    T = lambda p: ((p[0] - x0c) * SS, (p[1] - y0c) * SS)      # noqa: E731
 
-    bx, by = cx * S, base_y * S
-    top_x = bx + math.sin(math.radians(tilt)) * trunk_len
-    top_y = by - trunk_len
-    steps = 26
-    cen = []
-    for i in range(steps + 1):
-        t = i / steps
-        x = bx + (top_x - bx) * t + math.sin(math.pi * t) * curve * trunk_len * 0.55
-        y = by + (top_y - by) * t
-        cen.append((x, y))
+    # ---- 树干 ----
+    sway = canopy_r * float(rng.uniform(-0.10, 0.10))
+    top = (cx + sway, top_y)
+    if style == "line":
+        pts = _rope_zigzag((cx, base_y), top, amp=max(1.2, lw * 1.35), step=max(2.0, lw * 1.7))
+        d.line([T(p) for p in pts], fill=255, width=max(1, int(round(lwS))), joint="curve")
+    else:
+        pts = _spine(cx, base_y, -math.pi / 2 + float(rng.uniform(-0.07, 0.07)),
+                     trunk_len, 10, 0.10, wobble=0.01, rng=rng)
+        pts = [(cx + (p[0] - cx) * 0.35, p[1]) for p in pts]
+        d.polygon(_taper_poly(pts, lambda t: 0.55 + 0.95 * (1.0 - t) ** 1.1, lwS * 1.9), fill=255)
 
-    # ---- 树干：两侧描边 + 密排横"梯格"（原图绳梯语言）----
-    nor = []
-    for i in range(steps + 1):
-        j = min(steps, i + 1)
-        tx, ty = cen[j][0] - cen[i][0], cen[j][1] - cen[i][1]
-        nl = math.hypot(tx, ty) or 1.0
-        t = i / steps
-        nor.append((-ty / nl, tx / nl, (trunk_w * (1.0 - 0.45 * t)) / 2.0))
-    edge_l = [(cen[i][0] + nor[i][0] * nor[i][2], cen[i][1] + nor[i][1] * nor[i][2])
-              for i in range(steps + 1)]
-    edge_r = [(cen[i][0] - nor[i][0] * nor[i][2], cen[i][1] - nor[i][1] * nor[i][2])
-              for i in range(steps + 1)]
-    ew = max(1, int(round(edge_w)))
-    d.line(edge_l, fill=255, width=ew)
-    d.line(edge_r, fill=255, width=ew)
-    n_ring = max(7, int(trunk_len / (trunk_w * 0.95)))
-    for j in range(n_ring):
-        t = 0.05 + 0.92 * (j / max(1, n_ring - 1))
-        i = min(steps, int(t * steps))
-        if rng.random() < 0.10:
-            continue
-        px, py = cen[i]
-        nx, ny, w = nor[i]
-        span = w * float(rng.uniform(0.82, 1.02))
-        d.line([(px - nx * span, py - ny * span), (px + nx * span, py + ny * span)],
-               fill=255, width=max(1, int(round(edge_w * 1.15))))
-    # 基部墨块
-    d.ellipse([bx - trunk_w * 0.55, by - trunk_w * 0.6,
-               bx + trunk_w * 0.55, by + trunk_w * 0.4], fill=255)
+    # ---- 叶冠 ----
+    n_fr = int(rng.integers(7, 9))
+    a_lo = math.radians(-166 + float(rng.uniform(-6, 6)))
+    a_hi = math.radians(-14 + float(rng.uniform(-6, 6)))
+    for i in range(n_fr):
+        t = (i + float(rng.uniform(0.15, 0.85))) / n_fr
+        ang = a_lo + (a_hi - a_lo) * t
+        flen = canopy_r * float(rng.uniform(0.98, 1.28))
+        droop = math.radians(float(rng.uniform(26, 46)))
+        # ⚠️ 叶长/叶宽必须一起乘 SS：脊线点会被 T() 放大 SS 倍，长度若仍用原图尺度
+        #    就会画出"3 倍缩小"的叶（实测树冠只剩一小坨黑斑）。
+        if style == "line":
+            _frond_line(d, top[0], top[1], ang, flen * SS, lwS, rng, droop)
+        else:
+            _frond_solid(d, top[0], top[1], ang, flen * SS, rng, droop, lwS * 1.35)
 
-    # ---- 树冠：羽状叶片 ----
-    top = cen[-1]
-    if style == "droopy":
-        n_fr, flen, droop, tw = int(rng.integers(12, 15)), hs * 0.33, 68.0, 0.027
-    elif style == "upright":
-        n_fr, flen, droop, tw = int(rng.integers(13, 16)), hs * 0.31, 34.0, 0.026
-    elif style == "bushy":
-        n_fr, flen, droop, tw = int(rng.integers(15, 18)), hs * 0.33, 50.0, 0.028
-    else:  # palm_short
-        n_fr, flen, droop, tw = int(rng.integers(11, 14)), hs * 0.35, 76.0, 0.029
-    w0 = max(2.0, hs * tw * lw_scale)
+    if style == "line":                        # 叶柄交汇处补一点墨，避免"空心"
+        r = lw * 0.75
+        d.ellipse([T((top[0] - r, top[1] - r)), T((top[0] + r, top[1] + r))], fill=255)
 
-    phase = float(rng.uniform(0, 360))
-    for k in range(n_fr):
-        frac = k / max(1, n_fr)
-        ang = phase + frac * 360.0 + float(rng.uniform(-10, 10))
-        L = flen * float(rng.uniform(0.80, 1.15))
-        _frond(d, top, ang, L, droop * float(rng.uniform(0.8, 1.2)),
-               w0 * float(rng.uniform(0.85, 1.2)), rng)
-    rr = max(2, int(trunk_w * 0.55))
-    d.ellipse([top[0] - rr, top[1] - rr, top[0] + rr, top[1] + rr], fill=255)
-
-    return img.resize((W, H), Image.LANCZOS)
+    local = np.asarray(im.resize((x1c - x0c, y1c - y0c), Image.LANCZOS), np.float32)
+    out = np.zeros((H, W), np.float32)
+    out[y0c:y1c, x0c:x1c] = local
+    return Image.fromarray(out.astype(np.uint8), "L")
 
 
 def palm_layer(size, specs, lw_scale: float = 1.0) -> Image.Image:
-    """按 specs=[dict(cx,base_y,height,seed,style?,tilt?)...] 合成整层棕榈（L 掩膜）。"""
-    acc = np.zeros((size[1], size[0]), np.float32)
+    """按 specs 叠加多棵棕榈（np.maximum），返回 L 掩膜。"""
+    W, H = size
+    acc = np.zeros((H, W), np.float32)
     for sp in specs:
-        m = np.asarray(draw_palm(size, sp["cx"], sp["base_y"], sp["height"],
-                                 sp["seed"], lw_scale=lw_scale,
-                                 style=sp.get("style", "auto"),
-                                 tilt=sp.get("tilt")), np.float32) / 255.0
-        acc = np.maximum(acc, m)
-    return Image.fromarray((np.clip(acc, 0, 1) * 255).astype(np.uint8), "L")
+        m = draw_palm(size, sp["cx"], sp["base_y"], sp["height"], sp.get("seed", 1),
+                      lw_scale=lw_scale, style=sp.get("style", "auto"))
+        acc = np.maximum(acc, np.asarray(m, np.float32))
+    return Image.fromarray(acc.astype(np.uint8), "L")
