@@ -247,17 +247,18 @@ def do_6978():
         out = tf.erase(out, mdd, **kw)
     out.save(VIS / 'v329_6978_erased.jpg', quality=95)
 
-    # ---- v330 重画：从原图蝙蝠做结构保持形变（subject_morph），保留原材质/描边/解剖结构 ----
+    # ---- v331 重画：从原图蝙蝠做结构保持形变（subject_morph），加大形变可见度 ----
     from styles import subject_morph as smod
     rgba, box = smod.make_layer(img, bat, feather=1.5, pad=14)
-    # 形变参数：翼微展+翼尖上勾+尾部拉长 → 同构异姿，anatomy 100% 来自原图
+    # v330 参数(theta=-0.12,k_up=10,span=1.04)→变形几乎看不见
+    # v331 加大: 翼旋更强/竖剪更甚/翼展更宽/翼尖上勾更明显/尾更长 → 保色(像素位移)
     disp = smod.wing_pose(rgba.shape[:2][::-1], cx=815.0, cy=635.0,
-                          theta=-0.12, pivot_dx=80.0, ramp=(28.0, 235.0),
-                          k_up=10.0, span=1.04, tip_flick=8.0,
-                          tip_ramp=(180.0, 250.0), tail_stretch=18.0, tail_y=780.0)
+                          theta=-0.28, pivot_dx=80.0, ramp=(28.0, 235.0),
+                          k_up=24.0, span=1.14, tip_flick=16.0,
+                          tip_ramp=(180.0, 250.0), tail_stretch=32.0, tail_y=780.0)
     warped = smod.warp_layer(rgba, disp, order=1)
     out = smod.paste_layer(out, warped, box)
-    Image.fromarray(np.clip(np.asarray(warped[..., :3], np.float32), 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v330_6978_morphed.jpg', quality=95)
+    Image.fromarray(np.clip(np.asarray(warped[..., :3], np.float32), 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v331_6978_morphed.jpg', quality=95)
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
     for (w, b, m) in lines:
@@ -313,6 +314,60 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     # v330: diffuse 平滑填充（从四边界混合渐变），不再用 nn（会拉进下方插图色）或 const（黑色色块）
     out = tf.erase(img, mask, method='diffuse', diffuse_down=4)
     out.save(VIS / 'v329_p6_erased.jpg', quality=95)
+
+    # ---- v331：鹰/骷髅主体形变（用户要求"主体也不会裂变吗"）----
+    # 鹰：棕色区域（R>G>B 且 R>80）；骷髅+角：白色/米白（lum>160 且非标题区）
+    arr = np.asarray(out, np.float32)
+    lum_out = arr @ np.array([0.299, 0.587, 0.114], np.float32)
+    # 鹰 mask：棕色/橙棕色（高 R，中 G，较低 B）
+    eagle_m = (arr[:, :, 0] > 90) & (arr[:, :, 0] > arr[:, :, 1]) & \
+              (arr[:, :, 1] > 60) & (arr[:, :, 2] < 110) & (~mask)
+    # 清理小噪点
+    eagle_m = tf.ndi.binary_opening(eagle_m, structure=tf._disk(2))
+    el, en = tf.ndi.label(eagle_m)
+    if en:
+        esz = tf.ndi.sum(np.ones_like(el), el, range(1, en + 1))
+        ekeep = np.zeros(en + 1, bool); ekeep[1:] = esz >= 500
+        eagle_m = ekeep[el]
+    eagle_m = tf.ndi.binary_dilation(eagle_m, structure=tf._disk(3))
+
+    # 骷髅+角 mask：高亮度区域（lum>160），排除标题区和鹰
+    _ygrid, _xgrid = np.ogrid[:H, :W]
+    skull_m = (lum_out > 160) & (~mask) & (~eagle_m) & (_ygrid > 350)
+    skull_m = tf.ndi.binary_opening(skull_m, structure=tf._disk(2))
+    sl, sn = tf.ndi.label(skull_m)
+    if sn:
+        ssz = tf.ndi.sum(np.ones_like(sl), sl, range(1, sn + 1))
+        skeep = np.zeros(sn + 1, bool); skeep[1:] = ssz >= 800
+        skull_m = skeep[sl]
+    skull_m = tf.ndi.binary_dilation(skull_m, structure=tf._disk(3))
+
+    from styles import subject_morph as smod
+    # 鹰形变：翼展微调 + 翼尖变化（鹰的"肩点"在图像中上部）
+    if eagle_m.any():
+        eag_rgba, eag_box = smod.make_layer(out, eagle_m, feather=2.0, pad=16)
+        # 鹰的中心约在 (W/2, H*0.42)
+        eag_cx, eag_cy = W / 2.0, H * 0.42
+        eag_disp = smod.wing_pose(eag_rgba.shape[:2][::-1], cx=eag_cx, cy=eag_cy,
+                                   theta=0.08, pivot_dx=60.0, ramp=(40.0, 220.0),
+                                   k_up=8.0, span=1.04, tip_flick=6.0,
+                                   tip_ramp=(170.0, 230.0), tail_stretch=0, tail_y=0)
+        eag_warped = smod.warp_layer(eag_rgba, eag_disp, order=1)
+        out = smod.paste_layer(out, eag_warped, eag_box)
+        print(f'[pinterest6] eagle morphed: box={eag_box}, px={int(eagle_m.sum())}')
+
+    # 骷髅形变：轻微旋转+缩放（模拟不同角度的头骨）
+    if skull_m.any():
+        sku_rgba, sku_box = smod.make_layer(out, skull_m, feather=2.0, pad=16)
+        # 骷髅中心约在 (W/2, H*0.62)
+        sku_cx, sku_cy = W / 2.0, H * 0.62
+        sku_disp = smod.wing_pose(sku_rgba.shape[:2][::-1], cx=sku_cx, cy=sku_cy,
+                                   theta=-0.06, pivot_dx=50.0, ramp=(30.0, 180.0),
+                                   k_up=5.0, span=1.03, tip_flick=4.0,
+                                   tip_ramp=(140.0, 190.0), tail_stretch=0, tail_y=0)
+        sku_warped = smod.warp_layer(sku_rgba, sku_disp, order=1)
+        out = smod.paste_layer(out, sku_warped, sku_box)
+        print(f'[pinterest6] skull morphed: box={sku_box}, px={int(skull_m.sum())}')
 
     # ---- 字标贴回 ----
     G = VIS / 'elemgen_mid' / WORD_SRC
