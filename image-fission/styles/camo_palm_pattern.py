@@ -28,10 +28,12 @@ COVERS = ["pinterest4"]
 
 def default_params() -> dict:
     return {
-        "warp_strength": 0.048,     # 色块标签扭曲强度（占边长比例）
+        # v333（用户："背景裂变太乱了没规律"）：位移场降频+减倍频+加大平滑
+        # → 色块变成少量大尺度连贯形变（"有规律的流动"），不再是 6 组平面波叠加的碎乱。
+        "warp_strength": 0.055,     # 色块标签扭曲强度（占边长比例）
         "camo_k": 6,                # 迷彩色板数
-        "camo_smooth": 5,           # 标签图中值滤波尺寸
-        "warp_freq": 2.2,           # 扭曲主频
+        "camo_smooth": 9,           # 标签图中值滤波尺寸（大 → 色块边界圆润连贯）
+        "warp_freq": 1.35,          # 扭曲主频（低频 = 大块、有规律）
         "n_cols": 6,                # 棕榈网格列数
         "n_rows": 6,                # 棕榈网格行数
         "height_lo": 0.20,          # 树高范围（占图高）
@@ -109,7 +111,9 @@ def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.045
                          np.linspace(0, 1, W, np.float32), indexing="ij")
     dx = np.zeros((H, W), np.float32)
     dy = np.zeros((H, W), np.float32)
-    for kk in range(1, 4):
+    # v333: 只用 2 个倍频（原 3 个）→ 位移场只有大尺度波动，色块连贯有规律；
+    # 倍频过多会把色块切碎（用户："背景裂变太乱了没规律"）。
+    for kk in range(1, 3):
         amp = strength / (kk ** 0.8)
         f = freq * kk
         for _ in range(2):
@@ -209,21 +213,23 @@ def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndar
     ys, xs = np.where(m)
     cx, cy = float(xs.mean()), float(ys.mean())
     R = 0.5 * max(xs.max() - xs.min(), ys.max() - ys.min()) + 10.0
+    # v333（用户："树木元素裂变跟原图区别太小"）：角度全部加倍以上，
+    # 权重渐入更早（0.05R）渐出更近（0.42R）→ 更多元素本体参与旋转，摆动肉眼可见。
     if kind == "tree":
         px, py = cx, float(ys.max())
-        theta = float(rng.uniform(-0.20, 0.20))
+        theta = float(rng.uniform(-0.42, 0.42))
     elif kind == "tuft":
         px, py = cx, cy
-        theta = float(rng.uniform(-0.30, 0.30))
+        theta = float(rng.uniform(-0.52, 0.52))
     elif kind == "dash":
         px, py = cx, cy
-        theta = float(rng.uniform(-0.08, 0.08))
+        theta = float(rng.uniform(-0.16, 0.16))
     else:
         return np.zeros((hh, ww), np.float32), np.zeros((hh, ww), np.float32)
     yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
     dx0 = xx - px
     dy0 = yy - py
-    wgt = smod.smoothstep(np.hypot(dx0, dy0), 0.12 * R, 0.60 * R)
+    wgt = smod.smoothstep(np.hypot(dx0, dy0), 0.05 * R, 0.42 * R)
     ang = -theta * wgt
     ca, sa = np.cos(ang), np.sin(ang)
     rx = dx0 * ca - dy0 * sa

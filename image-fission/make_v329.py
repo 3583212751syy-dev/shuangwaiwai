@@ -175,14 +175,14 @@ def do_pinterest3():
         sub_m[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
         rgba, mbox = smod.make_layer(src_img, sub_m, feather=1.4, box=(bx0, by0, bx1, by1))
         hh, ww = rgba.shape[:2]
-        if area > 50000:                         # 主蝴蝶：翼姿态变化（可见但保结构）
+        if area > 50000:                         # 主蝴蝶：翼姿态变化（v333 幅度加倍+，肉眼必须可见）
             dyy, dxx = smod.wing_pose((ww, hh), cx=float(xs.mean()) - bx0,
                                       cy=float(ys.mean()) - by0,
-                                      theta=-0.16, pivot_dx=30.0, ramp=(16.0, 120.0),
-                                      k_up=0.0, span=1.03, tip_flick=-10.0,
-                                      tip_ramp=(90.0, 160.0))
-        else:                                    # 小蝴蝶：自转微角
-            th = float(rng3.uniform(-0.18, 0.18))
+                                      theta=-0.34, pivot_dx=20.0, ramp=(12.0, 150.0),
+                                      k_up=0.0, span=1.10, tip_flick=-26.0,
+                                      tip_ramp=(80.0, 170.0))
+        else:                                    # 小蝴蝶：自转（v333 ±0.40，原 ±0.18 看不出）
+            th = float(rng3.uniform(-0.40, 0.40))
             cxl, cyl = float(xs.mean()) - bx0, float(ys.mean()) - by0
             yyS, xxS = np.mgrid[0:hh, 0:ww].astype(np.float32)
             dx0 = xxS - cxl
@@ -213,8 +213,10 @@ def do_b78e60():
               words=['WE DEFEND THE', 'STEEL', 'HAWKS'], min_area=120)],
         'blackopsone', erase_kw=dict(method='nn', nn_median=41), dilate=5, exclude=excl)
 
-    # ---- v332: 狗牌+链条 结构形变（提取原图元素 → 绕链顶摆动 + 双牌各自微转 → 原位贴回）----
+    # ---- v333: 狗牌+链条 结构形变（提取原图元素 → 绕链顶摆动 + 双牌各自大角度旋转 → 原位贴回）----
     # ⚠️ 链条从文字间穿过：自动检测会把重画的黑字当组件 → 必须用**手工框**（牌 bbox+链走廊）。
+    # v332 ±0.10/±0.07rad 肉眼不可见（用户："狗牌还是没裂变啊"）→ 本版 ±0.30 级 +
+    # 链牌整体侧摆 10px + 双牌反向旋转（一左一右，姿态明显不同）。
     from styles import subject_morph as smod
     W0, H0 = img0.size
     tag_box = (int(0.425 * W0), int(0.398 * H0), int(0.570 * W0), int(0.522 * H0))
@@ -265,10 +267,12 @@ def do_b78e60():
             dyy += (dx0 * sa_ + dy0 * ca_) - dy0
             dxx += (dx0 * ca_ - dy0 * sa_) - dx0
 
-        _add_rot(px_top, py_top, float(rngt.uniform(-0.10, 0.10)), 6.0, 46.0)  # 整组绕链顶摆
-        for (cx_, yt_, R_) in tags:                # 每块牌各自绕牌顶微转
+        _add_rot(px_top, py_top, float(rngt.uniform(-0.30, 0.30)), 4.0, 60.0)  # 整组绕链顶摆
+        dxx += 10.0 * smod.smoothstep(gya - py_top, 16.0, 150.0)               # 链牌整体侧摆
+        for k_, (cx_, yt_, R_) in enumerate(tags):  # 每块牌绕牌顶大角度旋转（交替反向）
             if R_ > 40:
-                _add_rot(cx_, yt_, float(rngt.uniform(-0.07, 0.07)), 8.0, 0.55 * R_)
+                _add_rot(cx_, yt_, (0.32 if k_ % 2 else -0.32) + float(rngt.uniform(-0.05, 0.05)),
+                         6.0, 0.40 * R_)
         wlay = smod.warp_layer(rgba, (dyy, dxx), order=1)
         out = smod.paste_layer(out, wlay, tbox)
         print(f'[b78e60] dogtags: comps={len(tags)} px={int(group.sum())}')
@@ -338,59 +342,55 @@ def do_6978():
     Image.fromarray(vis).save(VIS / 'v330_6978_bat_mask.png')
 
     out = img
-    # 碟面内允许取样区（蝙蝠以外的碟面像素）：蝙蝠填充只从**碟面自身**取色，
-    # 才不会把碟外的粉色拖进来（实测碟面被打成一块糊紫）。
+    # 碟面内允许取样区（蝙蝠以外的碟面像素）
     yy0, xx0 = yy, xx
-    disc_src = (((xx0 - 812) / 205.0) ** 2 + ((yy0 - 730) / 205.0) ** 2 <= 1.0) & (~bat)
     for tag, msk, kw in (('arc', m_arc, dict(method='nn', nn_median=31, src_allow=src_ribbon)),
                          # 品牌字：hybrid = nn 保边界色 + LaMa 补低频结构。
                          # ⚠️ 不用 patch 平移填充：平移 120px 会**复制到同一行文字本身** →
                          #    新字上叠出旧字双影（实测 NOCTAVEN 上透出 BACARDÍ）。
-                         ('brand', brand, dict(method='hybrid', nn_median=31)),
-                         # 蝙蝠：碟面内部有强径向渐变，nn 会留下"蝙蝠形状的浅色鬼影"。
-                         # 改用调和平滑填充（解 Laplace，只用边界值延拓）→ 碟面自然过渡。
-                         ('bat', bat, dict(method='diffuse', diffuse_down=1,
-                                           src_allow=disc_src))):
+                         ('brand', brand, dict(method='hybrid', nn_median=31))):
         if not msk.any():
             continue
-        mdd = tf.ndi.binary_dilation(msk, structure=tf._disk(9)) if tag != 'bat' else msk
+        mdd = tf.ndi.binary_dilation(msk, structure=tf._disk(9))
         out = tf.erase(out, mdd, **kw)
     out.save(VIS / 'v329_6978_erased.jpg', quality=95)
 
-    # ---- v332 重画：subject_morph 结构保持形变 ----
-    # ⚠️ v331 机制 bug（蝙蝠糊成紫泥的根因）：wing_pose 的位移场是**层坐标系**，
-    #    却喂了全图坐标 cx=815/cy=635/tail_y=780 → 枢轴错位数百 px → 位移场全错。
-    #    本版全部换算成层内坐标（减 box 偏移）。
+    # ---- v333 主体蝙蝠裂变：**连通位移 warp**（蝙蝠姿态变，碟面背景随场一起流动）----
+    # 用户两轮批评合并：
+    #  · "主体蝙蝠是不会裂变吗" → v332 幅度太小，肉眼看不出 → 本版加大（theta -0.28 /
+    #    翼上扬 20px / 尾拉长 30px）。
+    #  · "蝙蝠改变了背景为什么不会一起优化要让他糊在一起" → 不再"擦蝙蝠+贴回形变层"，
+    #    改成**整图连续重采样**：位移场 = 蝙蝠姿态场 × (碟面衰减 + 尾廊)，
+    #    蝙蝠动、碟面渐变随之平滑流动，衰减到 0 于碟缘 → 无接缝、无擦除洞、无 alpha 裁切。
+    #    （v331"糊成紫泥"的根因是 pivot 坐标系错误 + 大振幅无衰减，不是连通 warp 本身。）
     from styles import subject_morph as smod
-    rgba, box = smod.make_layer(img, bat, feather=1.5, pad=14)
-    bx0, by0 = box
-    disp = smod.wing_pose(rgba.shape[:2][::-1], cx=815.0 - bx0, cy=635.0 - by0,
-                          theta=-0.20, pivot_dx=80.0, ramp=(28.0, 235.0),
-                          k_up=14.0, span=1.08, tip_flick=10.0,
-                          tip_ramp=(150.0, 245.0), tail_stretch=20.0,
-                          tail_y=780.0 - by0)
-    warped = smod.warp_layer(rgba, disp, order=1)
-    # v332: 形变层 clip 在**徽章圆框内**（用户："主体元素不是有个区域框架吗，在框架里面裂变"）。
-    # 圆框=emblem 圆(c=813,690,r≈268) 取 258 留边；尾尖按原图习惯允许越框
-    # （原图尾尖本就伸出圆框下缘至 y≈1015）。
-    h_l, w_l = warped.shape[:2]
-    yyL, xxL = np.mgrid[0:h_l, 0:w_l].astype(np.float32)
-    gxL, gyL = xxL + bx0, yyL + by0
-    circ = ((gxL - 813.0) ** 2 + (gyL - 690.0) ** 2 <= 258.0 ** 2)
-    tail_ok = (np.abs(gxL - 815.0) < 50) & (gyL > 860) & (gyL < 1035)
-    clip = (circ | tail_ok).astype(np.float32)
-    clip = tf.ndi.gaussian_filter(clip, 2.0)
-    warped[..., 3] = warped[..., 3] * clip
-    out = smod.paste_layer(out, warped, box)
-    Image.fromarray(np.clip(np.asarray(warped[..., :3], np.float32), 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v332_6978_morphed.jpg', quality=95)
+    a7 = np.asarray(out, np.float32)
+    yy7, xx7 = np.mgrid[0:H, 0:W].astype(np.float32)
+    dy_b, dx_b = smod.wing_pose((W, H), cx=815.0, cy=635.0,
+                                theta=-0.34, pivot_dx=70.0, ramp=(26.0, 210.0),
+                                k_up=26.0, tip_flick=18.0, tip_ramp=(140.0, 230.0),
+                                tail_stretch=24.0, tail_y=780.0)
+    r_disc = np.hypot(xx7 - 813.0, yy7 - 690.0)
+    w_disc = 1.0 - smod.smoothstep(r_disc, 195.0, 268.0)
+    w_tail = (1.0 - smod.smoothstep(np.abs(xx7 - 815.0), 40.0, 62.0)) * \
+             smod.smoothstep(yy7, 840.0, 880.0) * (1.0 - smod.smoothstep(yy7, 1000.0, 1050.0))
+    falloff = np.maximum(w_disc, w_tail)
+    coords7 = [yy7 + dy_b * falloff, xx7 + dx_b * falloff]
+    o7 = np.empty_like(a7)
+    for c in range(3):
+        o7[..., c] = tf.ndi.map_coordinates(a7[..., c], coords7, order=1,
+                                            mode='nearest', prefilter=False)
+    out = Image.fromarray(np.clip(o7, 0, 255).astype(np.uint8), 'RGB')
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
     for (w, b, m) in lines:
         out = tf.draw_line(out, w, b, 'playfair_black', tf.text_color(img, m), fit='squeeze')
-    out = tf.draw_arc(out, 'LA CASA DELLE OMBRE', (cx, cy), r, cap_h,
+    # v333: 弧形字也裂变（用户："圆弧的字也没裂变啊"）——同弧线/同字体/同颜色，
+    # 换新短语（长度 18 ≈ 原 19，字距几乎不变）。原句为Generic意大利语，非商标。
+    out = tf.draw_arc(out, "LA LUNA NELL'OMBRA", (cx, cy), r, cap_h,
                       'playfair_black', tf.text_color(img, m_arc), start_deg=a0, end_deg=a1)
     out.save(OUT / '6978_variant.jpg', quality=93)
-    print(f'[6978] lines={len(lines)} bat_px={int(bat.sum())}')
+    print(f'[6978] lines={len(lines)} arc="LA LUNA NELL\'OMBRA" warp=coherent-disc')
     return out
 
 
@@ -442,6 +442,36 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     Image.fromarray(vis).save(VIS / 'v332_p6_mask.png')
     out = tf.erase(img, mask, method='lama', max_side=1100, margin=40)
     out.save(VIS / 'v332_p6_erased.jpg', quality=95)
+
+    # ---- v333 鹰+骷髅主体裂变（用户："主体老鹰骷髅头什么都没做啊裂变啊"）----
+    # v332 为保鹰头删掉了 morph → 主体零变化。v331 的教训不是"主体不能动"，
+    # 而是"大振幅无关掩膜 warp"才糊。本版用**整图连通位移场**（无掩膜/无擦除/无接缝）。
+    # ⚠️ 位移语义：out[y]=src[y+dy] → **dy>0 = 内容上移**。第一版把符号写反
+    #    （翼下压+向内+下颌上抬）导致变化不可见；v333 修正：翼尖上扬 70px、
+    #    左右不对称（左 +20 / 右 -15）、翼尖外撑 40px、下颌下沉 36px（张嘴）。
+    from styles import subject_morph as smod
+    a6 = np.asarray(out, np.float32)
+    H6, W6 = a6.shape[:2]
+    yy6, xx6 = np.mgrid[0:H6, 0:W6].astype(np.float32)
+    cx_ax = 1757.0                                # 鹰身中轴（实测 brown 中轴）
+    wx6 = np.abs(xx6 - cx_ax)
+    v_band = smod.smoothstep(yy6, 480.0, 820.0) * (1.0 - smod.smoothstep(yy6, 1950.0, 2380.0))
+    w_tip = smod.smoothstep(wx6, 480.0, 1500.0)
+    sgn6 = np.where(xx6 < cx_ax, -1.0, 1.0)
+    dy6 = 70.0 * w_tip * v_band \
+        + np.where(xx6 < cx_ax, 20.0, -15.0) * smod.smoothstep(wx6, 1150.0, 1650.0) * v_band
+    dx6 = -sgn6 * 40.0 * smod.smoothstep(wx6, 1000.0, 1700.0) * v_band   # dx>0=内容左移 → 外撑
+    band_x = 1.0 - smod.smoothstep(np.abs(xx6 - 1800.0), 600.0, 980.0)
+    dy6 = dy6 - 36.0 * smod.smoothstep(yy6, 2950.0, 3300.0) \
+        * (1.0 - smod.smoothstep(yy6, 3450.0, 3800.0)) * band_x            # 下颌下沉=张嘴
+    coords6 = [yy6 + dy6, xx6 + dx6]
+    o6 = np.empty_like(a6)
+    for c in range(3):
+        o6[..., c] = tf.ndi.map_coordinates(a6[..., c], coords6, order=1,
+                                            mode='nearest', prefilter=False)
+    out = Image.fromarray(np.clip(o6, 0, 255).astype(np.uint8), 'RGB')
+    Image.fromarray(np.clip(np.stack([dy6, dx6, np.zeros_like(dy6)], -1)
+                            * 8 + 128, 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v333_p6_field.jpg')
 
     # ---- 字标贴回 ----
     G = VIS / 'elemgen_mid' / WORD_SRC
