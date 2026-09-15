@@ -213,17 +213,19 @@ def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndar
     ys, xs = np.where(m)
     cx, cy = float(xs.mean()), float(ys.mean())
     R = 0.5 * max(xs.max() - xs.min(), ys.max() - ys.min()) + 10.0
-    # v333（用户："树木元素裂变跟原图区别太小"）：角度全部加倍以上，
-    # 权重渐入更早（0.05R）渐出更近（0.42R）→ 更多元素本体参与旋转，摆动肉眼可见。
+    # v334（用户："前面树木乱七八糟，排版有没有点审美"）：废**逐元素随机角**——
+    # 91 个元素各自乱转 = 噪声不是设计。本版改**统一设计性倾斜**：同类元素同向同角
+    # （树全部向右倾 7°、穗全部同向扭转、横线一致微倾），只留 ±0.02rad 微抖动保手工感
+    # → 排列有规律、有韵律，远看是"设计过的图案"而非"被吹乱的树林"。
     if kind == "tree":
         px, py = cx, float(ys.max())
-        theta = float(rng.uniform(-0.42, 0.42))
+        theta = 0.12 + float(rng.uniform(-0.02, 0.02))
     elif kind == "tuft":
         px, py = cx, cy
-        theta = float(rng.uniform(-0.52, 0.52))
+        theta = 0.26 + float(rng.uniform(-0.02, 0.02))
     elif kind == "dash":
         px, py = cx, cy
-        theta = float(rng.uniform(-0.16, 0.16))
+        theta = 0.08 + float(rng.uniform(-0.01, 0.01))
     else:
         return np.zeros((hh, ww), np.float32), np.zeros((hh, ww), np.float32)
     yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
@@ -287,7 +289,14 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
         sub_m = np.zeros((H, W), bool)
         sub_m[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
         rgba, box = smod.make_layer(img, sub_m, feather=1.0, box=(bx0, by0, bx1, by1))
-        disp = _element_disp(rgba, kind, rng)
+        # v334：贴边元素**原样贴回**（位置不变）——旋转会在图界外采样（nearest 复制）
+        # 拉出条纹拉丝（实测左缘两处）。中间元素才做统一倾斜。
+        edge_touch = (x0 <= 2) or (y0 <= 2) or (x1 >= W - 2) or (y1 >= H - 2)
+        if edge_touch:
+            hh_, ww_ = rgba.shape[:2]
+            disp = (np.zeros((hh_, ww_), np.float32), np.zeros((hh_, ww_), np.float32))
+        else:
+            disp = _element_disp(rgba, kind, rng)
         if disp is None:
             continue
         wlay = smod.warp_layer(rgba, disp, order=1)

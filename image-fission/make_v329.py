@@ -207,11 +207,25 @@ def do_b78e60():
     img0 = Image.open(BY['b78e60']['path'])
     excl = v328.region_mask(*img0.size,
                             pred=lambda xx, yy: (xx > 500) & (xx < 850) & (yy > 762) & (yy < 1120))
+    # v334（用户："字体排版一个点是什么"）：v329~v333 传的 words 是**原词**——
+    # 等于只擦重画、一个词都没换（STEEL/HAWKS 原样），用户一眼看穿。
+    # 本版三行全换新词（军旅语境，长度近似，draw 自动适配原行框）。
     out = v328.text_variant(
         'b78e60',
         [dict(box=(360, 430, 1200, 790),
-              words=['WE DEFEND THE', 'STEEL', 'HAWKS'], min_area=120)],
+              words=['FORGED IN THE', 'DARK', 'STORM'], min_area=120)],
         'blackopsone', erase_kw=dict(method='nn', nn_median=41), dilate=5, exclude=excl)
+
+    # v334: 清除 "DARK" 左侧历史暗斑（v332 起就有的原字残片，detect_lines 漏检，
+    # 实测位于 (507-545, 567-607)。用户三轮截图里都在，本轮一并清掉。）
+    bx_ = (490, 548, 562, 618)
+    W0_, H0_ = img0.size
+    aa_ = np.asarray(out, np.float32)[bx_[1]:bx_[3], bx_[0]:bx_[2]]
+    dm_ = aa_.sum(2) < 330
+    if dm_.any():
+        mfull = np.zeros((H0_, W0_), bool)
+        mfull[bx_[1]:bx_[3], bx_[0]:bx_[2]] = tf.ndi.binary_dilation(dm_, structure=tf._disk(5))
+        out = tf.erase(out, mfull, method='nn', nn_median=41, margin=12)
 
     # ---- v333: 狗牌+链条 结构形变（提取原图元素 → 绕链顶摆动 + 双牌各自大角度旋转 → 原位贴回）----
     # ⚠️ 链条从文字间穿过：自动检测会把重画的黑字当组件 → 必须用**手工框**（牌 bbox+链走廊）。
@@ -267,12 +281,13 @@ def do_b78e60():
             dyy += (dx0 * sa_ + dy0 * ca_) - dy0
             dxx += (dx0 * ca_ - dy0 * sa_) - dx0
 
-        _add_rot(px_top, py_top, float(rngt.uniform(-0.30, 0.30)), 4.0, 60.0)  # 整组绕链顶摆
-        dxx += 10.0 * smod.smoothstep(gya - py_top, 16.0, 150.0)               # 链牌整体侧摆
-        for k_, (cx_, yt_, R_) in enumerate(tags):  # 每块牌绕牌顶大角度旋转（交替反向）
+        # v334：**确定性**角度（v333 rngt.uniform(-0.30,0.30) 与单牌反向旋转可能
+        # 正负抵消 → 净变化≈0，用户"狗牌还是没裂变"）。整组+0.14，双牌 -0.42/+0.42。
+        _add_rot(px_top, py_top, 0.14, 4.0, 60.0)                  # 整组绕链顶摆（向右）
+        dxx += 12.0 * smod.smoothstep(gya - py_top, 16.0, 150.0)   # 链牌整体侧摆
+        for k_, (cx_, yt_, R_) in enumerate(tags):                 # 每块牌绕牌顶大角度旋转（确定反向）
             if R_ > 40:
-                _add_rot(cx_, yt_, (0.32 if k_ % 2 else -0.32) + float(rngt.uniform(-0.05, 0.05)),
-                         6.0, 0.40 * R_)
+                _add_rot(cx_, yt_, (-0.42 if k_ % 2 else 0.42), 6.0, 0.40 * R_)
         wlay = smod.warp_layer(rgba, (dyy, dxx), order=1)
         out = smod.paste_layer(out, wlay, tbox)
         print(f'[b78e60] dogtags: comps={len(tags)} px={int(group.sum())}')
@@ -355,42 +370,52 @@ def do_6978():
         out = tf.erase(out, mdd, **kw)
     out.save(VIS / 'v329_6978_erased.jpg', quality=95)
 
-    # ---- v333 主体蝙蝠裂变：**连通位移 warp**（蝙蝠姿态变，碟面背景随场一起流动）----
-    # 用户两轮批评合并：
-    #  · "主体蝙蝠是不会裂变吗" → v332 幅度太小，肉眼看不出 → 本版加大（theta -0.28 /
-    #    翼上扬 20px / 尾拉长 30px）。
-    #  · "蝙蝠改变了背景为什么不会一起优化要让他糊在一起" → 不再"擦蝙蝠+贴回形变层"，
-    #    改成**整图连续重采样**：位移场 = 蝙蝠姿态场 × (碟面衰减 + 尾廊)，
-    #    蝙蝠动、碟面渐变随之平滑流动，衰减到 0 于碟缘 → 无接缝、无擦除洞、无 alpha 裁切。
-    #    （v331"糊成紫泥"的根因是 pivot 坐标系错误 + 大振幅无衰减，不是连通 warp 本身。）
-    from styles import subject_morph as smod
+    # ---- v334 主体蝙蝠裂变：**部件级刚性旋转**（p6 同一教训：平滑位移场自相似不可见，
+    #      三轮用户连续说"主体没裂变"）。左右翼绕翼根刚性旋转：
+    #      左翼 +0.24rad（翼尖上扬 ~55px）、右翼 +0.10rad（翼尖下压 ~23px）
+    #      → 姿态从"平展"变"左攻角"，剪影角度变化一眼可见，材质 100% 保留。
+    #      权重=蝙蝠 mask(fill_holes+膨胀+高斯羽化)，碟面渐变在羽化带内随翼流动。
+    #      位移铁律：θ>0=顺时针；左翼尖(-x)顺时针=上扬，右翼(+x)顺时针=下压。
     a7 = np.asarray(out, np.float32)
     yy7, xx7 = np.mgrid[0:H, 0:W].astype(np.float32)
-    dy_b, dx_b = smod.wing_pose((W, H), cx=815.0, cy=635.0,
-                                theta=-0.34, pivot_dx=70.0, ramp=(26.0, 210.0),
-                                k_up=26.0, tip_flick=18.0, tip_ramp=(140.0, 230.0),
-                                tail_stretch=24.0, tail_y=780.0)
-    r_disc = np.hypot(xx7 - 813.0, yy7 - 690.0)
-    w_disc = 1.0 - smod.smoothstep(r_disc, 195.0, 268.0)
-    w_tail = (1.0 - smod.smoothstep(np.abs(xx7 - 815.0), 40.0, 62.0)) * \
-             smod.smoothstep(yy7, 840.0, 880.0) * (1.0 - smod.smoothstep(yy7, 1000.0, 1050.0))
-    falloff = np.maximum(w_disc, w_tail)
-    coords7 = [yy7 + dy_b * falloff, xx7 + dx_b * falloff]
+
+    def _rot7(dyy, dxx, w, px, py, theta):
+        ang = -theta * w
+        ca, sa = np.cos(ang), np.sin(ang)
+        dx0 = xx7 - px
+        dy0 = yy7 - py
+        return dyy + (dx0 * sa + dy0 * ca) - dy0, dxx + (dx0 * ca - dy0 * sa) - dx0
+
+    bat_f = tf.ndi.binary_fill_holes(bat)
+    wBL = tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_f & (xx7 < 812), structure=tf._disk(6)).astype(np.float32), 7.0)
+    wBR = tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_f & (xx7 > 818), structure=tf._disk(6)).astype(np.float32), 7.0)
+    dyy = np.zeros((H, W), np.float32)
+    dxx = np.zeros((H, W), np.float32)
+    dyy, dxx = _rot7(dyy, dxx, wBL, 796.0, 655.0, 0.24)     # 左翼上扬 13.7°
+    dyy, dxx = _rot7(dyy, dxx, wBR, 834.0, 655.0, 0.10)     # 右翼下压 5.7°（不对称攻角）
+    coords7 = [yy7 + dyy, xx7 + dxx]
     o7 = np.empty_like(a7)
     for c in range(3):
         o7[..., c] = tf.ndi.map_coordinates(a7[..., c], coords7, order=1,
                                             mode='nearest', prefilter=False)
     out = Image.fromarray(np.clip(o7, 0, 255).astype(np.uint8), 'RGB')
+    wvis7 = np.clip(np.stack([wBL, bat_f * 0.3, wBR], -1) * 255, 0, 255).astype(np.uint8)
+    Image.fromarray(wvis7, 'RGB').save(VIS / 'v334_6978_weights.jpg', quality=90)
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
     for (w, b, m) in lines:
         out = tf.draw_line(out, w, b, 'playfair_black', tf.text_color(img, m), fit='squeeze')
-    # v333: 弧形字也裂变（用户："圆弧的字也没裂变啊"）——同弧线/同字体/同颜色，
-    # 换新短语（长度 18 ≈ 原 19，字距几乎不变）。原句为Generic意大利语，非商标。
-    out = tf.draw_arc(out, "LA LUNA NELL'OMBRA", (cx, cy), r, cap_h,
-                      'playfair_black', tf.text_color(img, m_arc), start_deg=a0, end_deg=a1)
+    # v334: 弧形字**排版**也裂变（用户："弧形的字体排版也还是没裂变啊"）——
+    # v333 只换了词、排版原样 = "只裂变了字体"。本版：弧度压平（r*1.22）、
+    # 字号加大（cap*1.12）、角跨各展 4° → 弧形/大小/字距全部可见变化，
+    # 仍是同圆心顶部弧排、同字体语言、同材质（黑 Didone serif）。
+    out = tf.draw_arc(out, "LA LUNA NELL'OMBRA", (cx, cy), r * 1.22, cap_h * 1.12,
+                      'playfair_black', tf.text_color(img, m_arc),
+                      start_deg=a0 - 4.0, end_deg=a1 + 4.0)
     out.save(OUT / '6978_variant.jpg', quality=93)
-    print(f'[6978] lines={len(lines)} arc="LA LUNA NELL\'OMBRA" warp=coherent-disc')
+    print(f'[6978] lines={len(lines)} arc="LA LUNA NELL\'OMBRA" r*1.22 cap*1.12 span+8deg bat=rigid-wings')
     return out
 
 
@@ -443,35 +468,69 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     out = tf.erase(img, mask, method='lama', max_side=1100, margin=40)
     out.save(VIS / 'v332_p6_erased.jpg', quality=95)
 
-    # ---- v333 鹰+骷髅主体裂变（用户："主体老鹰骷髅头什么都没做啊裂变啊"）----
-    # v332 为保鹰头删掉了 morph → 主体零变化。v331 的教训不是"主体不能动"，
-    # 而是"大振幅无关掩膜 warp"才糊。本版用**整图连通位移场**（无掩膜/无擦除/无接缝）。
-    # ⚠️ 位移语义：out[y]=src[y+dy] → **dy>0 = 内容上移**。第一版把符号写反
-    #    （翼下压+向内+下颌上抬）导致变化不可见；v333 修正：翼尖上扬 70px、
-    #    左右不对称（左 +20 / 右 -15）、翼尖外撑 40px、下颌下沉 36px（张嘴）。
+    # ---- v334 鹰+骷髅主体裂变：**层级刚性旋转** ----
+    # 教训两连：① v331~v333 平滑位移场在自对称插画上自相似（肉眼不可见）；
+    # ② v334a 羽化权重场在部件内空间变化 → 差分旋转 → 羽毛"液态漩涡"涂抹。
+    # 正确机制：部件各裁成 RGBA 层（make_layer），**整层统一旋转**（层内权重恒=1，
+    # 刚体运动零内部形变，材质/笔触 100% 保留），绕肩关节/骷髅中心旋转，
+    # 枢轴处位移对位贴回 → 部件姿态变、位置锚点不动。贴回前 nn 抹除原部件
+    # （真空区 nn 延色保留烟/闪电语言，绝大部分被旋转层盖回）。
     from styles import subject_morph as smod
-    a6 = np.asarray(out, np.float32)
-    H6, W6 = a6.shape[:2]
+    a6i = np.asarray(img, np.float32)
+    sat6 = a6i.max(2) - a6i.min(2)
+    lum6 = a6i @ np.array([0.299, 0.587, 0.114], np.float32)
+    brown6 = (sat6 > 40) & (a6i[..., 0] > a6i[..., 2] + 20)
+    white6 = (lum6 > 150) & (sat6 < 60)
+    H6, W6 = a6i.shape[:2]
     yy6, xx6 = np.mgrid[0:H6, 0:W6].astype(np.float32)
-    cx_ax = 1757.0                                # 鹰身中轴（实测 brown 中轴）
-    wx6 = np.abs(xx6 - cx_ax)
-    v_band = smod.smoothstep(yy6, 480.0, 820.0) * (1.0 - smod.smoothstep(yy6, 1950.0, 2380.0))
-    w_tip = smod.smoothstep(wx6, 480.0, 1500.0)
-    sgn6 = np.where(xx6 < cx_ax, -1.0, 1.0)
-    dy6 = 70.0 * w_tip * v_band \
-        + np.where(xx6 < cx_ax, 20.0, -15.0) * smod.smoothstep(wx6, 1150.0, 1650.0) * v_band
-    dx6 = -sgn6 * 40.0 * smod.smoothstep(wx6, 1000.0, 1700.0) * v_band   # dx>0=内容左移 → 外撑
-    band_x = 1.0 - smod.smoothstep(np.abs(xx6 - 1800.0), 600.0, 980.0)
-    dy6 = dy6 - 36.0 * smod.smoothstep(yy6, 2950.0, 3300.0) \
-        * (1.0 - smod.smoothstep(yy6, 3450.0, 3800.0)) * band_x            # 下颌下沉=张嘴
-    coords6 = [yy6 + dy6, xx6 + dx6]
-    o6 = np.empty_like(a6)
-    for c in range(3):
-        o6[..., c] = tf.ndi.map_coordinates(a6[..., c], coords6, order=1,
-                                            mode='nearest', prefilter=False)
-    out = Image.fromarray(np.clip(o6, 0, 255).astype(np.uint8), 'RGB')
-    Image.fromarray(np.clip(np.stack([dy6, dx6, np.zeros_like(dy6)], -1)
-                            * 8 + 128, 0, 255).astype(np.uint8), 'RGB').save(VIS / 'v333_p6_field.jpg')
+
+    def _lcc(m):
+        lab, n = tf.ndi.label(m, structure=np.ones((3, 3), bool))
+        if not n:
+            return m
+        sz = tf.ndi.sum(np.ones_like(lab), lab, range(1, n + 1))
+        return lab == (int(np.argmax(sz)) + 1)
+
+    def _rigid_rot(base_img, mask, px, py, theta, pad):
+        """裁层 → 整层旋转 θ（θ>0=屏幕顺时针）→ 枢轴对位贴回。"""
+        rgba, box = smod.make_layer(img, mask, feather=2.0, pad=pad)
+        bx0, by0 = box
+        hh, ww = rgba.shape[:2]
+        yyl, xxl = np.mgrid[0:hh, 0:ww].astype(np.float32)
+        ang = -theta                                   # 采样端旋转 -θ ⇔ 显示端 +θ
+        ca, sa = np.cos(ang), np.sin(ang)
+        dx0 = xxl - (px - bx0)
+        dy0 = yyl - (py - by0)
+        dyy = (dx0 * sa + dy0 * ca) - dy0
+        dxx = (dx0 * ca - dy0 * sa) - dx0
+        warped = smod.warp_layer(rgba, (dyy, dxx), order=1)
+        j, i = int(py - by0), int(px - bx0)
+        nbox = (int(round(bx0 + dxx[j, i])), int(round(by0 + dyy[j, i])))
+        return warped, nbox
+
+    # 部件 mask：closing(disk15) 桥接羽毛间隙（羽毛间黑缝会切断连通域，实测最大域
+    # 只剩 803px 宽的一截）→ fill_holes → 最大连通域（甩掉误入框的牛角碎块）。
+    def _part(m):
+        m = tf.ndi.binary_closing(m, structure=tf._disk(15))
+        return tf.ndi.binary_fill_holes(_lcc(m))
+
+    mL = _part(brown6 & (xx6 < 1450) & (yy6 > 380) & (yy6 < 2380))
+    mR = _part(brown6 & (xx6 > 2360) & (yy6 > 380) & (yy6 < 2380))
+    mSK = _part(white6 & (((xx6 - 1850) / 600.) ** 2
+                          + ((yy6 - 3030) / 760.) ** 2 <= 1))
+    wvis = np.asarray(out).copy()
+    wvis[mL] = [255, 0, 0]; wvis[mR] = [0, 0, 255]; wvis[mSK] = [0, 255, 0]
+    Image.fromarray(wvis).save(VIS / 'v334_p6_parts.png')
+    # ① 先抹除三个原部件（nn 延色）
+    for m_ in (mL, mR, mSK):
+        out = tf.erase(out, tf.ndi.binary_dilation(m_, structure=tf._disk(3)),
+                       method='nn', nn_median=41, margin=24)
+    # ② 旋转贴回：左翼上扬 8.6°、右翼上扬 5.7°（不对称攻角）、骷髅左倾 3.2°
+    for m_, px_, py_, th_, pd_ in ((mL, 1420.0, 1600.0, 0.15, 260),
+                                   (mR, 2360.0, 1600.0, -0.10, 260),
+                                   (mSK, 1850.0, 3030.0, -0.055, 120)):
+        warped, nbox = _rigid_rot(out, m_, px_, py_, th_, pd_)
+        out = smod.paste_layer(out, warped, nbox)
 
     # ---- 字标贴回 ----
     G = VIS / 'elemgen_mid' / WORD_SRC
