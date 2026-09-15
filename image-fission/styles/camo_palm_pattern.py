@@ -1,16 +1,14 @@
 """styles/camo_palm_pattern.py — 迷彩棕榈图案（pinterest4 专用，pattern-level 重构）。
 
-用户反馈（2026-09-15）：
-  ❌ 旧做法把迷彩**量化成 5 色硬边界色块** → "背景色块区域被截取，乱七八糟"；
-  ❌ 树只是**复制同一棵**（甚至原样保留）→ "不是裂变成其他角度构图设计的树木元素"。
+用户反馈（2026-09-15 三轮）：
+  ❌ v329 程序化画树 → "元素长得好看吗，跟原图有什么关系"；
+  ❌ v331 程序化羽状复叶 → "树木剪影小元素根据原图去裂变不是让你去乱做"。
 
-本模块路线（与 camo_pattern 完全隔离，互不影响）：
-  ① 迷彩底：**不做色板量化**。先把树线稿抹掉（LaMa）得到纯迷彩底，再做
-     **全彩域扭曲（domain warp, 双线性）** —— 色块形状/角度/大小整体有机形变，
-     颜色 100% 取自原图像素（双线性只在原色之间过渡），不会出现硬边色块。
-  ② 树线稿：用 styles/palm_art 的**程序化线稿棕榈**重新画 —— 每棵树的倾斜角、
-     树干弯度、叶片数量/长度/下垂度、树冠朝向都按 seed 独立生成（不是复制）。
-     墨色取自原图线稿的中位色，线宽与原始笔触同量级。
+v332 定论：**剪影元素绝不程序化新画**。真裂变 = 提取原图的每一只剪影
+（扇形穗 / 棕榈树 / 横线 / 点），逐元素做**结构形变**（绕枢轴的加权旋转：
+树=根部枢轴→树冠摆动；穗=质心→涡旋扭；横线=自转微角；点=保持），
+再原位同尺寸贴回。结构/墨色/笔触 100% 来自原图，姿态各异 = 同构异姿。
+迷彩底：抹掉元素后做 camo_reblob（标签图扭曲，边界锐利、颜色取自原色板）。
 """
 from __future__ import annotations
 import math
@@ -21,9 +19,10 @@ from PIL import Image
 from . import base
 from . import palm_art
 from . import textfix as tf
+from . import subject_morph as smod
 
 STYLE_KEY = "camo_palm_pattern"
-DESCRIPTION = "迷彩棕榈：全彩有机形变迷彩底 + 程序化重画线稿棕榈（每棵不同角度构图）"
+DESCRIPTION = "迷彩棕榈：迷彩色块重塑 + 原图剪影逐元素结构形变（同构异姿，不新画）"
 COVERS = ["pinterest4"]
 
 
@@ -183,6 +182,55 @@ def _palm_specs(W: int, H: int, cols: int, rows: int, seed: int,
     return specs
 
 
+def _element_kind(area: int, w_: int, h_: int) -> str:
+    """按形状把剪影元素分类：dot（点）/ dash（细长横线）/ tree（纵向棕榈树）/ tuft（扇形穗）。"""
+    if area < 140:
+        return "dot"
+    ar = max(w_, h_) / max(1.0, min(w_, h_))
+    if ar > 3.6:
+        return "dash"
+    if h_ > 1.30 * w_:
+        return "tree"
+    return "tuft"
+
+
+def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndarray] | None:
+    """层坐标系位移场：绕枢轴的加权旋转（显示端旋转 +θ ⇔ 采样端旋转 -θ）。
+
+    · tree：枢轴在**根部**（元素最低点的中轴）→ 树冠摇摆而树干根部不动；
+    · tuft：枢轴在质心 → 整穗涡旋扭转（穗刺重新排布）；
+    · dash：绕自身中心微转；dot：不动。
+    只改方向，不改位置/大小（硬规则：同位同大）。
+    """
+    hh, ww = rgba.shape[:2]
+    m = rgba[..., 3] > 120
+    if not m.any():
+        return None
+    ys, xs = np.where(m)
+    cx, cy = float(xs.mean()), float(ys.mean())
+    R = 0.5 * max(xs.max() - xs.min(), ys.max() - ys.min()) + 10.0
+    if kind == "tree":
+        px, py = cx, float(ys.max())
+        theta = float(rng.uniform(-0.20, 0.20))
+    elif kind == "tuft":
+        px, py = cx, cy
+        theta = float(rng.uniform(-0.30, 0.30))
+    elif kind == "dash":
+        px, py = cx, cy
+        theta = float(rng.uniform(-0.08, 0.08))
+    else:
+        return np.zeros((hh, ww), np.float32), np.zeros((hh, ww), np.float32)
+    yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
+    dx0 = xx - px
+    dy0 = yy - py
+    wgt = smod.smoothstep(np.hypot(dx0, dy0), 0.12 * R, 0.60 * R)
+    ang = -theta * wgt
+    ca, sa = np.cos(ang), np.sin(ang)
+    rx = dx0 * ca - dy0 * sa
+    ry = dx0 * sa + dy0 * ca
+    return (ry - dy0).astype(np.float32), (rx - dx0).astype(np.float32)
+
+
 def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) -> list[Path]:
     p = dict(default_params())
     ic = base.get_image_cfg(cfg, image_path) or {}
@@ -196,50 +244,66 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     img = Image.open(image_path).convert("RGB")
     W, H = img.size
 
-    # ① 树线稿 mask -> 抹掉 -> 纯迷彩底
-    ink = tree_ink_mask(img)
+    # ① 提取原图全部黑色剪影元素（不开运算——整只穗/树都要）。
+    #    ⚠️ 阈值必须 (55,14)：迷彩深棕块 sat≈28、深绿 sat≈30，放宽到 22 会把大片
+    #    迷彩暗块吃进掩膜（实测 42% 面积被误抓）；(55,14) 只抓纯黑墨线（22.6%）。
+    ink = tree_ink_mask(img, lum_thr=55.0, sat_thr=14.0, min_px=25, thin_only=False)
+    vis = np.asarray(img).copy(); vis[ink] = [255, 0, 0]
+    Image.fromarray(vis).save(str(out_dir / "_p4_ink_vis.jpg"), quality=92)
     ink_d = ndi.binary_dilation(ink, structure=tf._disk(4))
-    # 迷彩是大色块 + 细线稿：nn 填（用邻近色块色向内延伸）比 LaMa 更贴合色块语言，
-    # 也不会把迷彩抹成雾（实测 LaMa 在平坦大色块上会出"被挡住的一块"）。
+
+    # ② 擦掉全部元素 → 纯迷彩底（nn 延色，保住色块语言）
     camo = tf.erase(img, ink_d, method="nn", nn_median=21, margin=24)
     camo.save(str(out_dir / "_p4_camo_clean.jpg"), quality=95)
 
-    # ② 色块重塑：量化 -> 只扭曲标签图（最近邻，边界锐利）-> 回填原色板
+    # ③ 色块重塑：量化 -> 只扭曲标签图（最近邻，边界锐利）-> 回填原色板
     warped = camo_reblob(camo, seed=sd, k=int(p["camo_k"]),
                          strength=float(p["warp_strength"]),
                          freq=float(p["warp_freq"]), smooth=int(p["camo_smooth"]))
     warped.save(str(out_dir / "_p4_warped.jpg"), quality=95)
 
-    # ③ 程序化重画线稿棕榈
-    specs = _palm_specs(W, H, int(p["n_cols"]), int(p["n_rows"]), sd,
-                        float(p["height_lo"]), float(p["height_hi"]))
-    layer = palm_art.palm_layer((W, H), specs, lw_scale=float(p["lw_scale"]))
-    lm = np.asarray(layer, np.float32) / 255.0
-    # ⚠️ 线稿是 1~2px 细线，3x 超采样下采样后每个像素只剩 ~30% 覆盖率 →
-    #    直接混合会得到"灰线"（实测成品树是灰的，不是原图那种实心墨线）。
-    #    做一次 **levels 拉伸**：覆盖率 ≥ lo+span 的像素拉满为实心墨。
-    lm = np.clip((lm - 0.10) / 0.38, 0.0, 1.0)
-    col = ink_color(img, ink)
-    dark = np.array([0, 0, 0], np.float32)
-    col = col * (1.0 - float(p["ink_darken"])) + dark * float(p["ink_darken"])
-
-    arr = np.asarray(warped, np.float32)
-    a3 = lm[..., None]
-    out = arr * (1 - a3) + col[None, None, :] * a3
+    # ④ 逐元素结构形变贴回（100% 取自原图元素，同位同大，姿态各异）
+    lab, n = ndi.label(ink, structure=np.ones((3, 3), bool))
+    out = np.asarray(warped, np.float32)
+    rng = np.random.default_rng(sd * 977 + 31)
+    n_morph = 0
+    for i in range(1, n + 1):
+        m_i = lab == i
+        area = int(m_i.sum())
+        ys, xs = np.where(m_i)
+        x0, x1 = int(xs.min()), int(xs.max()) + 1
+        y0, y1 = int(ys.min()), int(ys.max()) + 1
+        kind = _element_kind(area, x1 - x0, y1 - y0)
+        R = 0.5 * max(x1 - x0, y1 - y0)
+        pad = int(R * 0.35) + 14
+        bx0, by0 = max(0, x0 - pad), max(0, y0 - pad)
+        bx1, by1 = min(W, x1 + pad), min(H, y1 + pad)
+        sub_m = np.zeros((H, W), bool)
+        sub_m[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
+        rgba, box = smod.make_layer(img, sub_m, feather=1.0, box=(bx0, by0, bx1, by1))
+        disp = _element_disp(rgba, kind, rng)
+        if disp is None:
+            continue
+        wlay = smod.warp_layer(rgba, disp, order=1)
+        al = np.clip(wlay[..., 3:4] / 255.0, 0.0, 1.0)
+        bh, bw = wlay.shape[:2]
+        reg = out[box[1]:box[1] + bh, box[0]:box[0] + bw]
+        out[box[1]:box[1] + bh, box[0]:box[0] + bw] = reg * (1 - al) + wlay[..., :3] * al
+        n_morph += 1
     res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
 
-    # ④ 文字（本图无文字，plan 为空则跳过）
+    # ⑤ 文字（本图无文字，plan 为空则跳过）
     plan = base.get_text_plan_for(cfg, image_path)
     if plan:
         res = base.replace_text_plan(res, plan, dilate=10)
     save_to = out_dir / f"{Path(image_path).stem}_variant.jpg"
     res.save(str(save_to), quality=93)
     base.save_variant(res, out_dir, save_to.name)
-    print(f"[camo_palm_pattern] trees={len(specs)} ink_px={int(ink.sum())} -> {save_to}")
+    print(f"[camo_palm_pattern] elements={n} morphed={n_morph} ink_px={int(ink.sum())} -> {save_to}")
     return [save_to]
 
 
 def selfcheck_notes() -> str:
-    return ("① 迷彩底无量化硬边（全彩双线性扭曲，颜色全部来自原图）；"
-            "② 树为**逐棵独立程序化重画**（角度/弯度/叶形/树冠朝向各不相同），非复制；"
-            "③ 墨色取原图线稿中位色；④ 木纹'绳梯'树干与羽状叶片复刻原笔触语言。")
+    return ("① 剪影元素 100% 提取自原图（禁程序化新画），逐元素绕枢轴旋转=同构异姿；"
+            "② 位置/大小不变（硬规则）；③ 迷彩底 camo_reblob 标签扭曲，边界锐利颜色取自原色板；"
+            "④ 点/横线等小元素同样处理（🔴3 逐元素）。")
