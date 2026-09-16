@@ -203,13 +203,41 @@ def do_pinterest3():
             # （朝向/大小一变 = 贴纸感，用户一眼识破）。改**原位翅姿形变**：与主蝶
             # 同机制的 wing_pose 小振幅版——位置/朝向/大小全部不变，只有翼尖剪影
             # 上下摆动（两只蝶正负交替），看得见变化且绝无"贴上去"的痕迹。
+            # v337（用户第 8 轮："蝴蝶我说的是蝴蝶的小元素蝴蝶去裂变修改"）：
+            # ±0.20rad 在小蝶(~100px)上肉眼看不见 → 幅度按**元素自身尺度**放大：
+            # ±0.46rad 翅转角 + 1.20x 翼展 + 翼尖甩 26px（蝶体不动、位置/朝向不变）。
             cxl, cyl = float(xs.mean()) - bx0, float(ys.mean()) - by0
-            th = 0.20 if n_bf % 2 == 0 else -0.24
-            dyy, dxx = smod.wing_pose((ww, hh), cx=cxl, cy=cyl, theta=th,
-                                      pivot_dx=6.0, ramp=(8.0, 0.55 * R),
-                                      k_up=0.0, span=1.0, tip_flick=-10.0,
-                                      tip_ramp=(0.35 * R, 0.7 * R))
+            ev = (n_bf % 2 == 0)
+            # v337c：**分两条物理通道，各用正确的场型**（实测依据见下）。
+            #  ① 翅姿 = 绕肩旋转，带 smoothstep 权重 → 权重梯度会拉长细线，故**只作用
+            #     在实心骨架**（开运算 disk3 去掉 <6px 的触角/足 → 膨胀 4 羽化 3 的 _wm）。
+            #     v337b 实测：不加这条，3px 触角被拖成 30px 长条 = "糊成一团"。
+            #  ② 体型 = 各向异性缩放（sx 横向 / sy 纵向），场是无梯度的线性场——任何线
+            #     段只会被等比缩放平移、绝不会拉成条带，故**直接作用于全层**（含细附件，
+            #     避免触角与头部错位脱落）。这正是用户点名的"身体/翅膀比例大小"维度。
+            #  偶数只：纵向拉长 1.18 / 横向收窄 0.90 + 双翅上扬 0.16rad → 修长立翅型
+            #  奇数只：纵向压扁 0.90 / 横向展宽 1.12 + 双翅下压 0.14rad → 扁平展翅型
+            sx, sy = (0.90, 1.18) if ev else (1.12, 0.90)
+            th = 0.16 if ev else -0.14
+            dyr, dxr = smod.wing_pose((ww, hh), cx=cxl, cy=cyl, theta=th,
+                                      pivot_dx=0.34 * R, ramp=(0.30 * R, 1.00 * R),
+                                      k_up=0.0, span=1.0, tip_flick=0.0)
+            _sol = tf.ndi.binary_opening(m_i[by0:by1, bx0:bx1], structure=tf._disk(3))
+            if _sol.sum() < 0.25 * max(1, int(m_i[by0:by1, bx0:bx1].sum())):
+                _sol = m_i[by0:by1, bx0:bx1]
+            _wm = tf.ndi.gaussian_filter(
+                tf.ndi.binary_dilation(_sol, structure=tf._disk(4)).astype(np.float32), 3.0)
+            _wm = np.clip(_wm, 0.0, 1.0)
+            dyy = dyr * _wm + (1.0 / sy - 1.0) * (np.mgrid[0:hh, 0:ww][0].astype(np.float32) - cyl)
+            dxx = dxr * _wm + (1.0 / sx - 1.0) * (np.mgrid[0:hh, 0:ww][1].astype(np.float32) - cxl)
         wlay = smod.warp_layer(rgba, (dyy.astype(np.float32), dxx.astype(np.float32)), order=1)
+        # v337 关键修复：**先擦原蝶再贴回形变层**。此前只有 paste（原图仍带原蝶）→
+        # 形变层叠在原蝶上 = 半透明叠影；振幅一小就"看不出变化"（用户历轮反馈），
+        # 放大就"糊成一团"。背景是纯平灰，const 擦除零痕迹。
+        _em = np.zeros((H, W), bool)
+        _em[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
+        res = tf.erase(res, tf.ndi.binary_dilation(_em, structure=tf._disk(5)),
+                       method='const', const_color=bg3, const_feather=3)
         res = smod.paste_layer(res, wlay, mbox)
         n_bf += 1
     print(f'[pinterest3] butterflies morphed={n_bf}')
@@ -503,12 +531,21 @@ def do_6978():
     # 椭圆取 272/277 ≈ 亮碟真实边缘（emblem 268 + 4px 余量）：305 实测会把 35px 的
     # 环带/粉底划进碟区 → nn 从碟面紫取样 → 碟缘拉出紫色斜纹。
     disc_r = ((xx - 813.0) / 272.0) ** 2 + ((yy - 690.0) / 277.0) ** 2 <= 1.0
-    allow_d = tf.ndi.binary_dilation(disc_r & (~bat), structure=tf._disk(2))
+    # v337：取样源 = 碟内全部真实像素（含粉缎带、碟面亮环），只排除"蝙蝠+8px 抗锯齿环"，
+    # 让被翼形洞切断的缎带/色环能按最近邻同色续上。
+    allow_d = disc_r & (~tf.ndi.binary_dilation(bat, structure=tf._disk(8)))
     allow_o = tf.ndi.binary_dilation((~disc_r) & (~bat), structure=tf._disk(2))
     plate = tf.erase(out, emask & disc_r, method='nn', nn_median=31, margin=20,
                      src_allow=allow_d)
     plate = tf.erase(plate, emask & (~disc_r), method='nn', nn_median=31, margin=20,
                      src_allow=allow_o)
+    # v337 取证（三次试错，勿重犯）：
+    # ① 不带掩膜的整体高斯扩散 → 把原蝠亮紫描边平均进腾空区（实测 188,122,186）＝幽灵。
+    # ② 掩膜内谐波扩散（140×σ3，mask 外钉死）→ 洞跨过"紫碟面/粉缎带"强边界，扩散把
+    #    两色混成灰绿（实测 (960,520) 由 192,133,181 变 156,160,161）＝更大破绽。
+    # ③ 正解：**分区最近邻 + 取样源含粉缎带**。此前 allow_d 用 lum<105 排除了粉色缎带，
+    #    于是"翼形洞"在缎带上被填成紫色 → 头部右上那条直角接缝（v337i 目检）。
+    #    改成只排除"蝙蝠本体 + 8px 抗锯齿环"，缎带/亮环/碟面原样可采样 → 洞被同色续上。
     rgba_b, bbox_b = smod.make_layer(out, bat_f, feather=2.0)
     hhb, wwb = rgba_b.shape[:2]
     yyL, xxL = np.mgrid[0:hhb, 0:wwb].astype(np.float32)
@@ -522,48 +559,93 @@ def do_6978():
         return dyy + (dx0 * sa + dy0 * ca) - dy0, dxx + (dx0 * ca - dy0 * sa) - dx0
 
     bat_c = bat_f[bbox_b[1]:bbox_b[1] + hhb, bbox_b[0]:bbox_b[0] + wwb]
-    # v336e：权重过渡带 σ 7→16——σ7 时翼根到翼尖的位移在 ~14px 内从 0 跳到满量，
-    # 正好横切翼顶高对比边缘 → 肩部出现钩状台阶（目检 v336_wingL_cmp）。加宽到
-    # ~60px 平滑过渡后，位移落在翼面内部渐增，高对比边缘只被"拉弯"不"拉断"。
-    wBL = tf.ndi.gaussian_filter(
-        tf.ndi.binary_dilation(bat_c & (gxL < 760), structure=tf._disk(6)).astype(np.float32), 16.0)
-    wBR = tf.ndi.gaussian_filter(
-        tf.ndi.binary_dilation(bat_c & (gxL > 870), structure=tf._disk(6)).astype(np.float32), 16.0)
-    dyy = np.zeros((hhb, wwb), np.float32)
-    dxx = np.zeros((hhb, wwb), np.float32)
-    dyy, dxx = _rotB(dyy, dxx, wBL, 780.0, 650.0, 0.30)     # 左翼绕翼根上扬 17°
-    dyy, dxx = _rotB(dyy, dxx, wBR, 850.0, 650.0, -0.30)    # 右翼绕翼根上扬 17°（对称）
-    # v336f：头部**独立成场并覆盖双耳**，与翼场按 wH 平滑混合。v336e 及以前 wBL
-    # 用 (gxL<760) 划界，把左耳（x700-745）也圈进翼区 → 左耳被翼旋转横向拖 ~50px，
-    # 头顶/耳根被扯成钩状（目检 v336_shoulder_4x）。现头场半宽 140 覆盖双耳，
-    # 在头区把翼场权重压到 0（wH≈1），过渡带 σ22 摊到 ~45px 避免新台阶。
-    head_core = bat_c & (np.abs(gxL - 815.0) < 140.0) & (gyL < 645.0)
-    wH = np.clip(tf.ndi.gaussian_filter(head_core.astype(np.float32), 22.0), 0.0, 1.0)
-    dyh = np.zeros_like(dyy)
-    dxh = np.zeros_like(dxx)
-    dyh, dxh = _rotB(dyh, dxh, wH, 815.0, 690.0, -0.12)     # 歪头（整体剪影变）
-    dyy = dyy * (1.0 - wH) + dyh
-    dxx = dxx * (1.0 - wH) + dxh
-    # v336d：翼根下方 y 向衰减——纯旋转的切向位移 ∝ 力臂 dy0，翼底扇贝边/花冠瓣
-    # （y700-880，dy0~190px）被拖 60px 且左右对称朝躯干中心拖，把黑边拖过紫碟面
-    # 卷成"滴痕/毛刺"（目检 v336_tail_3way_4x、v336_lscallop_3way_3x）。改为
-    # y<620 全量旋转、y>690 完全冻结（smoothstep 70px 过渡）：残余剪切峰值
-    # 仅 dy0*sinθ ≈ 40*0.30 ≈ 12px 且落在过渡带内 → 不可见；翼尖（y~530，
-    # 力臂 220px 水平）仍上扬 ~70px，V 形裂变保留。
-    yfade = np.clip((gyL - 620.0) / 70.0, 0.0, 1.0)
-    yfade = yfade * yfade * (3.0 - 2.0 * yfade)
-    dyy, dxx = dyy * (1.0 - yfade), dxx * (1.0 - yfade)
+    # ============ v336g 主体裂变加大（用户第 8 轮）============
+    # 原蝠几何实测：主体中心 (776,720)；翼展最宽 506 @ y700-740（翼尖 x522/1030）；
+    # 肩/头 x700-820、耳尖 y~531；尾 x762-777 自 y900 延到 y977（短而直）。
+    # 用户点名四条裂变维度 → 四段位移场叠加（全部按**层内坐标**算；alpha 与 RGB
+    # 一起被 warp，材质随形同步走）：
+    #  ① 整体放大 1.13x（身体/翼/紫翼膜/亮紫描边等比）+ ② 双翼绕肩上扬 0.34rad
+    #     + ③ 头部正面抬头（上移 26px + 1.06x）+ ④ 尾拉伸 1.07 + 侧摆 8px。
+    # 符号铁律（v336 之前搞反了）：内容绕枢轴旋转 φ 时 d=(M(-φ)-I)(p-pivot)；
+    # _rotB(theta) 等价 φ=-theta → 左翼 theta<0、右翼 theta>0 才是"上扬"。
+    # v336 旧码两翼同号(-0.30/+... 实为双双下掠) → 用户"没看到裂变"。
+    CXB, CYB, SCL = 776.0, 720.0, 1.06
+
+    def _rotB(dyy, dxx, w, px, py, theta):
+        ang = -theta * w
+        ca, sa = np.cos(ang), np.sin(ang)
+        dx0 = gxL - px
+        dy0 = gyL - py
+        return dyy + (dx0 * sa + dy0 * ca) - dy0, dxx + (dx0 * ca - dy0 * sa) - dx0
+
+    # ① 整体放大：内容放大 S 倍 → d = (1/S - 1)(p - c)
+    dyy = (1.0 / SCL - 1.0) * (gyL - CYB)
+    dxx = (1.0 / SCL - 1.0) * (gxL - CXB)
+
+    # ② 双翼上扬；翼底 y>820 smoothstep 冻结（切向位移 ∝ 力臂 dy0，下翼 dy0~280
+    #    不冻结会被拖 80-120px 卷成滴痕 —— v336d 之鉴）
+    ylow = np.clip((gyL - 600.0) / 300.0, 0.0, 1.0)
+    ylow = ylow * ylow * (3.0 - 2.0 * ylow)
+    wWL = tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_c & (gxL < 735), structure=tf._disk(6)).astype(np.float32), 14.0) * (1.0 - ylow)
+    wWR = tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_c & (gxL > 817), structure=tf._disk(6)).astype(np.float32), 14.0) * (1.0 - ylow)
+    dyy, dxx = _rotB(dyy, dxx, wWL, 700.0, 600.0, -0.28)
+    dyy, dxx = _rotB(dyy, dxx, wWR, 852.0, 600.0, 0.28)
+    # ②b 翼展**收缩** 0.92（用户"翅膀张开收缩"）：整体放大 1.06 后再把翼收回，
+    #    净翼展 0.975 → 身体/头/尾变大而翼不外扩（不越出碟缘、不压环带文字）。
+    SW = 0.92
+    _px_sh = np.where(gxL < CXB, 700.0, 852.0)
+    dyy = dyy + (1.0 / SW - 1.0) * (gyL - 600.0) * (wWL + wWR)
+    dxx = dxx + (1.0 / SW - 1.0) * (gxL - _px_sh) * (wWL + wWR)
+
+    # ③ 抬头：头场覆盖双耳（半宽 115 罩住 x700-820 的耳/头），覆盖混合防翼场吃耳
+    head_core = bat_c & (np.abs(gxL - 767.0) < 115.0) & (gyL < 620.0)
+    wH = np.clip(tf.ndi.gaussian_filter(head_core.astype(np.float32), 18.0), 0.0, 1.0)
+    dyy = dyy * (1.0 - wH) + wH * ((1.0 / SCL - 1.0) * (gyL - CYB) - 19.0
+                                   + (1.0 / 1.06 - 1.0) * (gyL - 620.0))
+    dxx = dxx * (1.0 - wH) + wH * ((1.0 / SCL - 1.0) * (gxL - CXB)
+                                   + (1.0 / 1.06 - 1.0) * (gxL - 767.0))
+
+    # ④ 尾：拉伸 1.07（尾根 y880 固定）+ 侧摆 8px
+    tail_core = bat_c & (np.abs(gxL - 770.0) < 30.0) & (gyL > 865.0)
+    wT = np.clip(tf.ndi.gaussian_filter(tail_core.astype(np.float32), 6.0), 0.0, 1.0)
+    tcur = np.clip((gyL - 880.0) / 110.0, 0.0, 1.0)          # 侧摆沿尾长渐增 → 平滑成弧
+    tcur = tcur * tcur * (3.0 - 2.0 * tcur)
+    dxx = dxx + wT * 13.0 * tcur
+    dyy = dyy + wT * ((1.0 / 1.02 - 1.0) * (gyL - 880.0))
+
     wlay = smod.warp_layer(rgba_b, (dyy, dxx), order=1)
-    # v336c：形变层**碟缘钳制**——0.30rad 上扬把细尾巴沿场方向拉长，尾尖越出
-    # 碟缘压到粉环上，留下滴落状撕裂痕+游离黑点（目检 v336_tail_zoom_cmp）。
-    # 贴回前按碟面几何椭圆对层 alpha 做羽化钳制：v<=0.956 全保留、v>=1.0 全去，
-    # 12px smoothstep 过渡 → 尾巴止于碟缘（同原图），碟外零残留。
-    v_ell = np.sqrt(((gxL - 813.0) / 272.0) ** 2 + ((gyL - 690.0) / 277.0) ** 2)
-    fade = np.clip((1.0 - v_ell) / 0.044, 0.0, 1.0)
-    fade = fade * fade * (3.0 - 2.0 * fade)
-    wlay[..., 3] = wlay[..., 3] * fade
+    # 徽章外圈保底钳制（半径 400，只管粉底）。**不用 v336 的 272/277**：那会把放大
+    # 后的翼尖与尾尖在碟缘处切掉（实测尾尖 y960-977 只剩 45% alpha → 成品缺一截）。
+    v_badge = np.sqrt(((gxL - 813.0) / 400.0) ** 2 + ((gyL - 690.0) / 408.0) ** 2)
+    kb = np.clip((1.0 - v_badge) / 0.03, 0.0, 1.0)
+    kb = kb * kb * (3.0 - 2.0 * kb)
+    wlay[..., 3] = wlay[..., 3] * kb
     out = smod.paste_layer(plate, wlay, bbox_b)
-    wvis7 = np.clip(np.stack([wBL, bat_c * 0.3, wBR], -1) * 255, 0, 255).astype(np.uint8)
+    # v337：**轮廓重画**。原蝠的亮紫描边是 3-5px 细线，形变会把细线抹成条带
+    # （腾空区实测溜进 188,122,186 亮紫 → "幽灵边"）。用形变后 alpha 的轮廓重画
+    # 一圈均匀描边（外描边 4px + 1.2σ 羽化），既盖住抹开的旧描边，又让新蝠有
+    # 与原图一致的亮紫轮廓。
+    _al = (wlay[..., 3] / 255.0)
+    _core = _al > 0.5
+    _core_full = np.zeros((H, W), bool)
+    _core_full[bbox_b[1]:bbox_b[1] + _core.shape[0], bbox_b[0]:bbox_b[0] + _core.shape[1]] = _core
+    # 实测（沿剪影法向 1-3/3-6/6-10/10-16px 的中位色）：
+    #   原图  139,72,135 / 132,57,132 /  98,23,128 / 96,23,127
+    #   v337a 124,62,126 / 133,62,135 / 132,62,137 / 102,31,128  ← 6-10px 处偏亮 34
+    # 说明"外描边 4px"过宽（原图亮边只 1-6px），且与"排除原蝠 4px"的交集让环断续
+    # → 头部出现双道辉光轮廓。v337f 收敛为 **2px + 0.9σ + 0.72 不透明度**的连续细边。
+    if int(P6978_RING_W) <= 0:
+        _ringf = np.zeros((H, W), np.float32)
+    else:
+        _ring = tf.ndi.binary_dilation(_core_full, structure=tf._disk(int(P6978_RING_W))) & (~_core_full)
+        _ringf = np.clip(tf.ndi.gaussian_filter(_ring.astype(np.float32), 0.9), 0.0, 1.0) * 0.72
+    _oa = np.asarray(out, np.float32)
+    _edge_col = np.array([150.0, 80.0, 148.0], np.float32)
+    _oa = _oa * (1 - _ringf[..., None]) + _edge_col[None, None, :] * _ringf[..., None]
+    out = Image.fromarray(np.clip(_oa, 0, 255).astype(np.uint8), 'RGB')
+    wvis7 = np.clip(np.stack([wWL, bat_c * 0.3, wWR], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis7, 'RGB').save(VIS / 'v334_6978_weights.jpg', quality=90)
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
@@ -592,7 +674,7 @@ def do_6978():
                       start_deg=start_new, end_deg=start_new + span_new,
                       char_spacing_px=2)
     out.save(OUT / '6978_variant.jpg', quality=93)
-    print(f'[6978] lines={len(lines)} arc r={r:.0f}(orig) cap*1.02 shift+4deg spacing=2 bat=wings+0.30rad')
+    print(f'[6978] lines={len(lines)} arc r={r:.0f}(orig) cap*1.02 shift+4deg spacing=2 bat=scale1.06+wings0.28up+contraction0.92+head-26+tailcurve')
     return out
 
 
@@ -753,6 +835,9 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     print(f'[pinterest6] erase_px={int(mask.sum())} title={tw}x{th}@{cy_place}')
     return out
 
+
+# v337f：6978 轮廓重画宽度（0 = 关闭重画，保留形变自带的原描边）
+P6978_RING_W = 0
 
 TASKS = {
     'b78e60': do_b78e60,

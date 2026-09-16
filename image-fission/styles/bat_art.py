@@ -107,3 +107,127 @@ def draw_bat(size, cx: float, cy: float, span: float, seed: int,
     dark = dk.resize((W, H), Image.LANCZOS)
     light = lt.resize((W, H), Image.LANCZOS)
     return dark, light
+
+
+# ------------------------------------------------------------------ v2 参数化
+def draw_bat_v2(size, cx: float, cy: float, spec: dict):
+    """参数化纹章蝙蝠 v2 —— 主体裂变用：头(抬头/耳/眼/吻)、翼(姿态/展/扇贝/尖钩)、
+    身体(顶/底/宽)、尾(长/粗/摆) 全部显式可调，输出 dark/light 两层 L 掩膜。
+
+    spec 键（均可缺省）：
+      span 单侧翼展(px) | pose up|mid|low | tip_hook 翼尖额外上扬(×span)
+      scallops 扇贝对数 | head_lift 抬头量(×span) | head_r 头半径(×span)
+      ear_h/ear_w/ear_spread 耳(×span) | eyes 亮紫眼弧 | snout 吻长(×span)
+      body_top/body_bot 身体上/下端(×span, 相对中心, 负=上) | body_w 身体半宽(×span)
+      tail_len 尾长(×span) | tail_w 尾根半宽(×span) | bend 尾摆(×span)
+      edge_px 描边宽(px) | seed 抖动种子
+    返回 (dark, light, meta)；meta['tips'] = 左右翼尖 (x,y)。
+    """
+    sp = dict(spec)
+    span = float(sp.get('span', 250.0))
+    up = {'up': 1.00, 'mid': 0.60, 'low': 0.28}[sp.get('pose', 'up')]
+    hook = float(sp.get('tip_hook', 0.06))
+    n_sc = int(sp.get('scallops', 5))
+    head_lift = float(sp.get('head_lift', 0.06))
+    head_r = float(sp.get('head_r', 0.115))
+    ear_h = float(sp.get('ear_h', 0.21))
+    ear_w = float(sp.get('ear_w', 0.98))
+    ear_spread = float(sp.get('ear_spread', 0.34))
+    eyes = bool(sp.get('eyes', True))
+    snout = float(sp.get('snout', 0.055))
+    body_top = float(sp.get('body_top', -0.26))
+    body_bot = float(sp.get('body_bot', 0.50))
+    body_w = float(sp.get('body_w', 0.115))
+    tail_len = float(sp.get('tail_len', 0.52))
+    tail_w = float(sp.get('tail_w', 0.030))
+    bend = float(sp.get('bend', 0.0))
+    edge_px = float(sp.get('edge_px', 5.0))
+    rng = np.random.default_rng(int(sp.get('seed', 7)) * 7717 + 13)
+
+    W, H = size
+    S = SS
+    dk = Image.new("L", (W * S, H * S), 0)
+    lt = Image.new("L", (W * S, H * S), 0)
+    d = ImageDraw.Draw(dk)
+    dl = ImageDraw.Draw(lt)
+    X, Y, SP = cx * S, cy * S, span * S
+    ed = max(2, int(round(edge_px * S / 2.0)))
+
+    def P(u, v):
+        return (X + u * SP, Y + v * SP)
+
+    # ---- 双翼：肩 -> 内段 -> 外段 -> 翼尖，翼缘带扇贝齿回到身体下部 ----
+    tip_v = -0.30 - 0.42 * up - hook
+    Nsc = 2 * n_sc + 1
+    for s in (-1, 1):
+        pts = [P(s * 0.085, body_top + 0.03),
+               P(s * 0.42, body_top - 0.08 - 0.18 * up),
+               P(s * 0.74, tip_v + 0.11),
+               P(s * 1.00, tip_v)]
+        for j in range(Nsc):
+            t = j / (Nsc - 1)
+            u = 0.86 - 0.72 * t
+            vb = 0.04 + 0.34 * t
+            jit = float(rng.uniform(-0.03, 0.03))
+            v = vb + (0.055 if j % 2 else -0.015) + jit
+            pts.append(P(s * u, v))
+        pts.append(P(s * 0.070, body_bot - 0.06))
+        d.polygon(pts, fill=255)
+
+    # ---- 身体：颈 -> 尾根 渐细柱 ----
+    y0_, y1_ = Y + body_top * SP, Y + body_bot * SP
+    nb = 26
+    lf, rt = [], []
+    for i in range(nb + 1):
+        t = i / nb
+        yy = y0_ + (y1_ - y0_) * t
+        wdt = SP * (body_w * (1.0 - t ** 1.6) + 0.016)
+        lf.append((X - wdt, yy))
+        rt.append((X + wdt, yy))
+    d.polygon(lf + rt[::-1], fill=255)
+
+    # ---- 头（正面 + 抬头）+ 双耳 + 吻部 ----
+    hr = SP * head_r
+    head_y = Y + (body_top - 0.10 - head_lift) * SP
+    d.ellipse([X - hr, head_y - hr * 0.98, X + hr, head_y + hr * 1.06], fill=255)
+    if snout > 0:
+        sw = SP * snout
+        d.polygon([(X - sw * 0.62, head_y + hr * 0.72),
+                   (X + sw * 0.62, head_y + hr * 0.72),
+                   (X, head_y + hr * 0.72 + sw)], fill=255)
+    ehh, eww = SP * ear_h, hr * ear_w
+    for s in (-1, 1):
+        bx = X + s * hr * ear_spread
+        d.polygon([(bx - s * eww * 0.34, head_y - hr * 0.52),
+                   (bx + s * eww * 0.22, head_y - hr * 0.86 - ehh),
+                   (bx + s * eww * 0.66, head_y - hr * 0.10)], fill=255)
+
+    # ---- 尾：细长 + 可带摆动 ----
+    tw1, tw2 = SP * tail_w, SP * tail_w * 0.30
+    bt = Y + (body_bot - 0.03) * SP
+    d.polygon([(X - tw1, bt), (X + tw1, bt),
+               (X + bend * SP + tw2, bt + tail_len * SP),
+               (X + bend * SP - tw2, bt + tail_len * SP)], fill=255)
+
+    # ---- 亮紫描边：翼上缘线 + 耳内线 + 眼弧 ----
+    for s in (-1, 1):
+        dl.line([P(s * 0.13, body_top - 0.02),
+                 P(s * 0.46, body_top - 0.12 - 0.18 * up),
+                 P(s * 0.96, tip_v + 0.05)], fill=255, width=ed)
+    for s in (-1, 1):
+        bx = X + s * hr * ear_spread
+        dl.line([(bx - s * eww * 0.28, head_y - hr * 0.50),
+                 (bx + s * eww * 0.20, head_y - hr * 0.84 - ehh * 0.88)],
+                fill=255, width=max(2, ed - 1))
+    if eyes:
+        er = hr * 0.34
+        for s in (-1, 1):
+            ex, ey = X + s * hr * 0.44, head_y + hr * 0.02
+            dl.arc([ex - er, ey - er * 0.78, ex + er, ey + er * 1.14],
+                   start=196, end=352, fill=255, width=max(2, int(ed * 0.85)))
+
+    dark = dk.resize((W, H), Image.LANCZOS)
+    light = lt.resize((W, H), Image.LANCZOS)
+    meta = dict(tips=[(cx - span, cy + tip_v * span), (cx + span, cy + tip_v * span)],
+                tip_v=tip_v, span=span)
+    return dark, light, meta

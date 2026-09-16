@@ -30,10 +30,14 @@ def default_params() -> dict:
     return {
         # v333（用户："背景裂变太乱了没规律"）：位移场降频+减倍频+加大平滑
         # → 色块变成少量大尺度连贯形变（"有规律的流动"），不再是 6 组平面波叠加的碎乱。
-        "warp_strength": 0.055,     # 色块标签扭曲强度（占边长比例）
+        # v337 实测（湖泊数量 >=300px 相对"未扭曲"基准的保留率 + 边界粗糙度 1/圆度）：
+        #   st .055/fq1.35 → 0.76x（湖泊被扭曲吞掉 24%）；st .046/fq0.90 → 0.97x。
+        #   结论：**降主频比降强度更有效**——低频 = 全场相干的大尺度流动，小湖泊整块
+        #   平移不撕裂；高频则各向拉扯把小湖泊并掉。故选 st .050 + fq 0.90。
+        "warp_strength": 0.050,     # 色块标签扭曲强度（占边长比例）
         "camo_k": 6,                # 迷彩色板数
         "camo_smooth": 13,          # 标签图中值滤波尺寸（扭曲后；大 → 色块边界圆润连贯）
-        "warp_freq": 1.35,          # 扭曲主频（低频 = 大块、有规律）
+        "warp_freq": 0.90,          # 扭曲主频（v337：1.35→0.90，湖泊保留率 0.76x→0.97x）
         "n_cols": 6,                # 棕榈网格列数
         "n_rows": 6,                # 棕榈网格行数
         "height_lo": 0.20,          # 树高范围（占图高）
@@ -84,8 +88,9 @@ def ink_color(img: Image.Image, mask: np.ndarray) -> np.ndarray:
     return np.median(a[mask], axis=0) if mask.any() else np.array([16, 14, 12], np.float32)
 
 
-def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.045,
-                freq: float = 2.2, smooth: int = 5, pre_smooth: int = 13) -> Image.Image:
+def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.038,
+                freq: float = 2.0, smooth: int = 5, pre_smooth: int = 13,
+                sp_open: int = 4, sp_close: int = 9, sp_min: int = 300) -> Image.Image:
     """迷彩"色块重塑"：色板量化 -> **只扭曲标签图（最近邻，边界保持锐利）** -> 回填原色板。
 
     为什么不是双线性全彩扭曲：双线性会把边界插值成过渡带 → 整体发糊（实测像"被抹开的水彩"）。
@@ -133,7 +138,55 @@ def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.045
     w = np.clip(np.rint(w), 0, len(pal) - 1).astype(np.int32)
     if smooth >= 3:
         w = ndi.median_filter(w, size=int(smooth), mode="nearest")
+    # v337（用户第 8 轮："迷彩背景湖泊要求圆润符合迷彩的区域去做"）：标签空间**形态学
+    # 圆润化**——逐色块 开运算(去细尖/毛刺) + 闭运算(填细缝) → 冲突按面积优先回填，
+    # 未分配像素按最近标签填充，再清掉 <min_area 的小碎块。湖缘因此圆润闭合、
+    # 呈现迷彩该有的饱满有机形状（扭曲+中值滤过仍会留下细尖/拉丝）。
+    w = _round_labels(w, len(pal), open_r=int(sp_open), close_r=int(sp_close),
+                      min_area=int(sp_min))
+
     return Image.fromarray(pal[w].astype(np.uint8), "RGB")
+
+
+def _round_labels(w, nlab, open_r=3, close_r=5, min_area=150):
+    """标签图形态学圆润化：逐标签 开→闭，按面积优先解冲突，最近邻补空，清碎块。"""
+    H, W = w.shape
+    cand = {}
+    for v in range(int(nlab)):
+        m = (w == v)
+        if not m.any():
+            continue
+        mo = ndi.binary_opening(m, structure=tf._disk(int(open_r))) if open_r >= 2 else m
+        mc = ndi.binary_closing(mo, structure=tf._disk(int(close_r))) if close_r >= 2 else mo
+        cand[v] = mc
+    res = np.full((H, W), -1, np.int32)
+    for v in sorted(cand, key=lambda k: -int(cand[k].sum())):
+        mm = cand[v] & (res < 0)
+        res[mm] = v
+    # 空洞 → 最近标签
+    hole = res < 0
+    if hole.any():
+        ind = ndi.distance_transform_edt(hole, return_distances=False,
+                                         return_indices=True)
+        res = res[ind[0], ind[1]]
+    # 清小碎块
+    for v in range(int(nlab)):
+        mv = res == v
+        if not mv.any():
+            continue
+        lab_, n_ = ndi.label(mv, structure=np.ones((3, 3), bool))
+        if n_ <= 1:
+            continue
+        sz_ = ndi.sum(np.ones_like(lab_), lab_, range(1, n_ + 1))
+        for j in range(1, n_ + 1):
+            if sz_[j - 1] < int(min_area):
+                res[lab_ == j] = -1
+    hole = res < 0
+    if hole.any():
+        ind = ndi.distance_transform_edt(hole, return_distances=False,
+                                         return_indices=True)
+        res = res[ind[0], ind[1]]
+    return np.clip(res, 0, int(nlab) - 1).astype(np.int32)
 
 
 def organic_warp(img: Image.Image, seed: int, strength: float = 0.038,
@@ -284,16 +337,34 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     warped = camo_reblob(camo, seed=sd, k=int(p["camo_k"]),
                          strength=float(p["warp_strength"]),
                          freq=float(p["warp_freq"]), smooth=int(p["camo_smooth"]),
-                         pre_smooth=13)
+                         pre_smooth=13,
+                         # v337 实测：态射圆润化取 (3,5,150) → 湖泊保留 0.95x、粗糙度
+                         # 8.45→4.2（未加形态学时 order=0 最近邻扭曲会把湖缘拉成锯齿）。
+                         sp_open=3, sp_close=5, sp_min=150)
     warped.save(str(out_dir / "_p4_warped.jpg"), quality=95)
 
     # ④ 逐元素结构形变贴回（100% 取自原图元素，同位同大，姿态各异）
     lab, n = ndi.label(ink, structure=np.ones((3, 3), bool))
+    # v337 关键修复：**把"笔画级"连通块聚成"元素级"部落**。这幅图的棕榈叶冠是用
+    # 许多**独立笔画**画的（91 个连通块 ≈ 20 个真元素），逐笔画各自绕**自身质心**转
+    # 15° 会毁掉扇形的平行排线 → 叶冠碎成一堆散落短划线（用户会读成"元素没形变/
+    # 破了"）。改为：ink 膨胀 disk(12) 求空间邻接部落 → 同一棵树的干+全部叶笔合成
+    # 一个刚体，绕**共同枢轴**做统一倾斜 → 扇形排线整体转，元素形变可见且结构完整。
+    _grp = ndi.binary_dilation(ink, structure=tf._disk(12))
+    glab, gn = ndi.label(_grp, structure=np.ones((3, 3), bool))
+    from collections import defaultdict
+    _members = defaultdict(list)
+    for i in range(1, n + 1):
+        _m = lab == i
+        _gid = int(np.bincount(glab[_m]).argmax())
+        _members[_gid].append(_m)
     out = np.asarray(warped, np.float32)
     rng = np.random.default_rng(sd * 977 + 31)
     n_morph = 0
-    for i in range(1, n + 1):
-        m_i = lab == i
+    for _gid, _ms in _members.items():
+        m_i = np.zeros((H, W), bool)
+        for _m in _ms:
+            m_i |= _m
         area = int(m_i.sum())
         ys, xs = np.where(m_i)
         x0, x1 = int(xs.min()), int(xs.max()) + 1
@@ -331,7 +402,7 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     save_to = out_dir / f"{Path(image_path).stem}_variant.jpg"
     res.save(str(save_to), quality=93)
     base.save_variant(res, out_dir, save_to.name)
-    print(f"[camo_palm_pattern] elements={n} morphed={n_morph} ink_px={int(ink.sum())} -> {save_to}")
+    print(f"[camo_palm_pattern] strokes={n} elements={len(_members)} morphed={n_morph} ink_px={int(ink.sum())} -> {save_to}")
     return [save_to]
 
 
