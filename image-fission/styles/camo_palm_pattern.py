@@ -8,7 +8,8 @@ v332 定论：**剪影元素绝不程序化新画**。真裂变 = 提取原图�
 （扇形穗 / 棕榈树 / 横线 / 点），逐元素做**结构形变**（绕枢轴的加权旋转：
 树=根部枢轴→树冠摆动；穗=质心→涡旋扭；横线=自转微角；点=保持），
 再原位同尺寸贴回。结构/墨色/笔触 100% 来自原图，姿态各异 = 同构异姿。
-迷彩底：抹掉元素后做 camo_reblob（标签图扭曲，边界锐利、颜色取自原色板）。
+迷彩底：抹掉元素后做 camo_reblob（色板量化 -> **连续指示场双线性扭曲** -> argmax
+-> 曲率流圆润化 -> 边界抗锯齿；颜色 100% 取自原色板，边界圆润且不糊）。
 """
 from __future__ import annotations
 import math
@@ -36,7 +37,7 @@ def default_params() -> dict:
         #   平移不撕裂；高频则各向拉扯把小湖泊并掉。故选 st .050 + fq 0.90。
         "warp_strength": 0.050,     # 色块标签扭曲强度（占边长比例）
         "camo_k": 6,                # 迷彩色板数
-        "camo_smooth": 13,          # 标签图中值滤波尺寸（扭曲后；大 → 色块边界圆润连贯）
+        "camo_smooth": 0,           # v338：指示场路线后无需标签中值（>5 反而重新引入 13px 直角块）
         "warp_freq": 0.90,          # 扭曲主频（v337：1.35→0.90，湖泊保留率 0.76x→0.97x）
         "n_cols": 6,                # 棕榈网格列数
         "n_rows": 6,                # 棕榈网格行数
@@ -89,8 +90,9 @@ def ink_color(img: Image.Image, mask: np.ndarray) -> np.ndarray:
 
 
 def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.038,
-                freq: float = 2.0, smooth: int = 5, pre_smooth: int = 13,
-                sp_open: int = 4, sp_close: int = 9, sp_min: int = 300) -> Image.Image:
+                freq: float = 2.0, smooth: int = 0, pre_smooth: int = 7,
+                sp_soft: float = 3.5, sp_sigma: float = 2.5, sp_iters: int = 4,
+                sp_min: int = 200, sp_aa: float = 1.6) -> Image.Image:
     """迷彩"色块重塑"：色板量化 -> **只扭曲标签图（最近邻，边界保持锐利）** -> 回填原色板。
 
     为什么不是双线性全彩扭曲：双线性会把边界插值成过渡带 → 整体发糊（实测像"被抹开的水彩"）。
@@ -110,8 +112,7 @@ def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.038
         remap[int(v)] = i
     idx = remap[raw].astype(np.float32)
     # v336（用户："湖泊形状不自然/缺失"）：量化后**先**对标签图做中值滤波——
-    # 擦树 nn 填充的放射状细条纹在标签层被并入邻近湖泊（湖泊边界回归圆润连贯），
-    # 扭曲后再滤一次（smooth），湖泊形状自然流畅、无拉丝无缺块。
+    # 擦树 nn 填充的放射状细条纹在标签层被并入邻近湖泊（湖泊边界回归圆润连贯）。
     if pre_smooth >= 3:
         idx = ndi.median_filter(idx, size=int(pre_smooth), mode="nearest").astype(np.float32)
     pal = pal_raw[used]
@@ -134,43 +135,70 @@ def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.038
             dx += amp * wv * math.cos(th) * W
             dy += amp * wv * math.sin(th) * H
     coords = np.stack([(yy * H + dy).ravel(), (xx * W + dx).ravel()])
-    w = ndi.map_coordinates(idx, coords, order=0, mode="nearest").reshape(H, W)
-    w = np.clip(np.rint(w), 0, len(pal) - 1).astype(np.int32)
-    if smooth >= 3:
-        w = ndi.median_filter(w, size=int(smooth), mode="nearest")
-    # v337（用户第 8 轮："迷彩背景湖泊要求圆润符合迷彩的区域去做"）：标签空间**形态学
-    # 圆润化**——逐色块 开运算(去细尖/毛刺) + 闭运算(填细缝) → 冲突按面积优先回填，
-    # 未分配像素按最近标签填充，再清掉 <min_area 的小碎块。湖缘因此圆润闭合、
-    # 呈现迷彩该有的饱满有机形状（扭曲+中值滤过仍会留下细尖/拉丝）。
-    w = _round_labels(w, len(pal), open_r=int(sp_open), close_r=int(sp_close),
-                      min_area=int(sp_min))
 
-    return Image.fromarray(pal[w].astype(np.uint8), "RGB")
+    # ============ v338 湖缘圆润化：**连续指示场路线** ============
+    # 用户第 9 轮："湖泊要求色块边缘圆润衔接舒服，符合湖泊色块的迷彩风格"。
+    # 旧路线（v337）= 整数标签 order=0 最近邻重采样 + 标签中值滤 + 形态学开/闭。
+    # 三处叠加的病灶（2x/3x 目检取证）：
+    #   ① order=0 只能整像素搬运 → 斜边界天然是"逐级楼梯"；
+    #   ② 标签中值(size 13) = 13px 窗口多数表决 → 生出一批**轴向直角**大色块；
+    #   ③ 形态学开/闭的圆盘结构元同样逐像素啃边界 → 45° 斜边留一排 90° 直角。
+    # 新路线：把量化结果看作 **n 张连续指示场**（每色一张 0/1 场，先 Gaussian 软化），
+    # 用 **order=1 双线性**扭曲（边界可落在亚像素），再 argmax 取回硬标签
+    # → 边界位置连续、无楼梯；随后一次轻量曲率流（Gaussian 权重 + argmax 迭代）
+    # 把残余尖角磨圆。色板/色块数量/拓扑全程不变（argmax 绝不产生过渡色）。
+    n_pal = len(pal)
+    soft = float(sp_soft)
+    if soft >= 0.1:
+        ind = np.stack([ndi.gaussian_filter((np.rint(idx) == v).astype(np.float32), soft)
+                        for v in range(n_pal)])
+    else:
+        ind = np.stack([(np.rint(idx) == v).astype(np.float32) for v in range(n_pal)])
+    if smooth >= 3:      # 兼容旧参数：对指示场做一次中值（去量化散点）
+        ind = np.stack([ndi.median_filter(ind[v], size=int(smooth), mode="nearest")
+                        for v in range(n_pal)])
+    war = np.stack([ndi.map_coordinates(ind[v], coords, order=1, mode="nearest").reshape(H, W)
+                    for v in range(n_pal)])
+    w = np.argmax(war, axis=0).astype(np.int32)
+    del ind, war
+    w = _smooth_labels(w, n_pal, sigma=float(sp_sigma), iters=int(sp_iters),
+                       min_area=int(sp_min))
+    # **边界抗锯齿回填**：硬标签在斜边依旧是 1px 阶梯；按高斯权重混合相邻色板色
+    # → 边界获得 2-3px 自然过渡（原图 JPEG 的边也是这种软边），"衔接舒服"落地；
+    # 色块内部权重≈1 → 颜色仍是纯色板色，不糊不灰。
+    return Image.fromarray(_label_to_rgb_aa(w, pal, sigma=float(sp_aa)), "RGB")
 
 
-def _round_labels(w, nlab, open_r=3, close_r=5, min_area=150):
-    """标签图形态学圆润化：逐标签 开→闭，按面积优先解冲突，最近邻补空，清碎块。"""
+def _smooth_labels(w, nlab, sigma=2.5, iters=4, min_area=200):
+    """标签空间**曲率流平滑**：逐标签 Gaussian 权重场 → argmax 重分配，迭代 iters 次。
+
+    为什么不用形态学：开/闭运算的圆盘结构元逐像素地"啃"边界，沿 45° 斜边会留下
+    一串串 90° 台阶（用户的"不圆润、不衔接"）。Gaussian 权重场 + argmax 等价于在
+    边界上做**平均曲率流**：每一步把边界按曲率推进 → 台阶收敛成连续弧、尖角变圆，
+    同时因为是 argmax（不是插值），**边界依旧锐利、颜色依旧取自原色板**，
+    不会像双线性扭曲那样把迷彩色块糊成过渡带。
+
+    · sigma 越大 / iters 越多 → 越圆，但过度会把细颈"焊死"、小湖吃掉 → 由
+      min_area 兜底（碎片回填最近标签）。
+    """
+    n = int(nlab)
     H, W = w.shape
-    cand = {}
-    for v in range(int(nlab)):
-        m = (w == v)
-        if not m.any():
-            continue
-        mo = ndi.binary_opening(m, structure=tf._disk(int(open_r))) if open_r >= 2 else m
-        mc = ndi.binary_closing(mo, structure=tf._disk(int(close_r))) if close_r >= 2 else mo
-        cand[v] = mc
-    res = np.full((H, W), -1, np.int32)
-    for v in sorted(cand, key=lambda k: -int(cand[k].sum())):
-        mm = cand[v] & (res < 0)
-        res[mm] = v
-    # 空洞 → 最近标签
-    hole = res < 0
-    if hole.any():
-        ind = ndi.distance_transform_edt(hole, return_distances=False,
-                                         return_indices=True)
-        res = res[ind[0], ind[1]]
-    # 清小碎块
-    for v in range(int(nlab)):
+    res = w.astype(np.int32)
+    for _ in range(int(iters)):
+        best = None
+        arg = None
+        for v in range(n):
+            g = ndi.gaussian_filter((res == v).astype(np.float32), float(sigma))
+            if best is None:
+                best = g
+                arg = np.full((H, W), v, np.int32)
+            else:
+                m = g > best
+                best[m] = g[m]
+                arg[m] = v
+        res = arg
+    # 清碎块 → 最近标签兜底
+    for v in range(n):
         mv = res == v
         if not mv.any():
             continue
@@ -186,7 +214,29 @@ def _round_labels(w, nlab, open_r=3, close_r=5, min_area=150):
         ind = ndi.distance_transform_edt(hole, return_distances=False,
                                          return_indices=True)
         res = res[ind[0], ind[1]]
-    return np.clip(res, 0, int(nlab) - 1).astype(np.int32)
+    return np.clip(res, 0, n - 1).astype(np.int32)
+
+
+def _label_to_rgb_aa(w, pal, sigma=1.0) -> np.ndarray:
+    """硬标签 → 抗锯齿 RGB：按 sigma 高斯权重混合相邻色板色。
+
+    内部像素权重集中在本标签（≈1）→ 颜色 = 纯色板色，**不糊不灰**；
+    边界 1-2px 得到自然过渡（原图 JPEG 的边也是这种软边）→ "衔接舒服"。
+    """
+    n = len(pal)
+    H, W = w.shape
+    acc = np.zeros((H, W), np.float32)
+    rgb = np.zeros((H, W, 3), np.float32)
+    if sigma and sigma > 0.05:
+        for v in range(n):
+            g = ndi.gaussian_filter((w == v).astype(np.float32), float(sigma))
+            acc += g
+            rgb += g[..., None] * pal[v].astype(np.float32)[None, None, :]
+        np.maximum(acc, 1e-6, out=acc)
+        rgb /= acc[..., None]
+    else:
+        rgb = pal[w].astype(np.float32)
+    return np.clip(rgb, 0, 255).astype(np.uint8)
 
 
 def organic_warp(img: Image.Image, seed: int, strength: float = 0.038,
@@ -337,10 +387,14 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     warped = camo_reblob(camo, seed=sd, k=int(p["camo_k"]),
                          strength=float(p["warp_strength"]),
                          freq=float(p["warp_freq"]), smooth=int(p["camo_smooth"]),
-                         pre_smooth=13,
+                         pre_smooth=7,
                          # v337 实测：态射圆润化取 (3,5,150) → 湖泊保留 0.95x、粗糙度
                          # 8.45→4.2（未加形态学时 order=0 最近邻扭曲会把湖缘拉成锯齿）。
-                         sp_open=3, sp_close=5, sp_min=150)
+                         # v338（用户第 9 轮"圆润衔接舒服"）：改为 **连续指示场路线**
+                         # ——软平滑 3.5 → 双线性扭曲 → argmax → 曲率流 2.5/4 →
+                         # 1.6σ 边界抗锯齿。2x/3x 目检：楼梯消失、湖缘成连续弧。
+                         sp_soft=3.5, sp_sigma=2.5, sp_iters=4,
+                         sp_min=200, sp_aa=1.6)
     warped.save(str(out_dir / "_p4_warped.jpg"), quality=95)
 
     # ④ 逐元素结构形变贴回（100% 取自原图元素，同位同大，姿态各异）

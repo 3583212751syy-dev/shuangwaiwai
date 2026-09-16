@@ -59,10 +59,13 @@ def make_layer(img, mask, feather=2.0, box=None, pad=6):
     return rgba, (x0, y0)
 
 
-def warp_layer(rgba, disp, order=1):
+def warp_layer(rgba, disp, order=1, mode='nearest'):
     """按位移场 warp RGBA 层。disp=(dy,dx)，与层同尺寸；语义：out[y,x] = src[y+dy, x+dx]。
 
     order=1（双线性）→ 边缘保持锐利；层不大，三通道 + alpha 一起插值。
+    mode='nearest'（默认）= 越界采样钳到边缘像素。⚠️ 大位移下**边缘复制会留下假边**
+    （实测 6978 蝙蝠：层上边界 alpha 有 0.8 的孤立像素，位移后被拉成一条半透明涂抹）。
+    需要"越界即透明"的场景（主体层位移较大）传 mode='constant'（cval=0）。
     """
     h, w = rgba.shape[:2]
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
@@ -71,7 +74,7 @@ def warp_layer(rgba, disp, order=1):
     out = np.empty_like(rgba)
     for c in range(rgba.shape[2]):
         out[..., c] = ndi.map_coordinates(rgba[..., c], coords, order=order,
-                                          mode='nearest', prefilter=False)
+                                          mode=mode, prefilter=False)
     return out
 
 
