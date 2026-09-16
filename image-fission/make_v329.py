@@ -16,6 +16,7 @@
 用法：venv/Scripts/python.exe make_v329.py [iid ...]
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -132,10 +133,21 @@ def do_pinterest3():
     ux1 = min(b[0][0] for b in letters); uy1 = min(b[0][1] for b in letters)
     ux2 = max(b[0][2] for b in letters); uy2 = max(b[0][3] for b in letters)
     md = tf.ndi.binary_dilation(patch, structure=tf._disk(14))
+    # v336（用户："通过叠加乱七八糟达到裂变糊弄我"）：v335 用 nn 填充字母带，nn 从
+    # 未掩净的牛仔蓝字母取样 → 右缘漏出蓝色斑块（v336 取证 v329_p3_erased.jpg）。
+    # 字母带背景是**纯平灰 (233,233,233)**（全图 63 万像素中值实测），改 const 填充：
+    # 掩膜 = 检测补丁 ∪ 带内全部非背景像素（原词残边/未知残片一网打尽），填充结果
+    # 与背景逐像素同色，零色块、零残片。
+    bg3 = (233, 233, 233)
+    a3 = np.asarray(img, np.float32)
+    band3 = np.zeros((H, W), bool)
+    band3[60:348, :] = True
+    notbg3 = np.abs(a3 - np.array(bg3, np.float32)[None, None, :]).sum(2) > 30
+    md = md | (band3 & notbg3)
+    md = tf.ndi.binary_dilation(md, structure=tf._disk(8))
     vis = np.asarray(det).copy(); vis[md] = [255, 0, 0]
     Image.fromarray(vis).save(VIS / 'v329_p3_mask.png')
-    out = tf.erase(img, md, method='nn', nn_median=41)
-    out = tf.match_fill_level(out, det, md, size=241)
+    out = tf.erase(img, md, method='const', const_color=bg3, const_feather=6)
     out.save(VIS / 'v329_p3_erased.jpg', quality=95)
     word = _new_word('pinterest3', 'DENIM')
     res = tf.draw_line_material(out, word, (ux1, uy1, ux2, uy2), 'rock_cond_b', det, patch,
@@ -160,13 +172,15 @@ def do_pinterest3():
     clab, cn = tf.ndi.label(cand, structure=np.ones((3, 3), bool))
     rng3 = np.random.default_rng(303)
     n_bf = 0
-    dots = np.zeros((H, W), bool)                # v335: 虚线点收集（轨迹级裂变用）
+    dots = np.zeros((H, W), bool)                # v336: 虚线点收集（轨迹重画用）
     for i in range(1, cn + 1):
         m_i = clab == i
         area = int(m_i.sum())
-        if area < 2500:                          # v335: 点/噪声 → 收进 dots，轨迹级处理
-            if area >= 60:
-                dots |= m_i
+        if area < 2500:                          # 小组件 → 分拣：圆点 vs 噪声
+            if 60 <= area <= 400:
+                ys_, xs_ = np.where(m_i)
+                if (xs_.max() - xs_.min()) <= 22 and (ys_.max() - ys_.min()) <= 22:
+                    dots |= m_i                  # 圆点（实测 20 颗：99-150px、11-20px 宽）
             continue
         ys, xs = np.where(m_i)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()) + 1, int(ys.min()), int(ys.max()) + 1
@@ -185,63 +199,113 @@ def do_pinterest3():
                                       k_up=0.0, span=1.10, tip_flick=-26.0,
                                       tip_ramp=(80.0, 170.0))
         else:
-            # v335（用户："这种有小元素的图片为什么不把小元素也裂变了"）：
-            # 自转对近对称小蝶=自相似不可见（v333 ±0.40 用户无感）→ 改
-            # **镜像翻转**（左右翼互换，剪影必然改变）+ 小角度旋转 + 缩放。
-            # 顶蝶（comp1）：翻转+0.20rad+1.05x；底蝶（comp29）：-0.24rad+0.93x。
-            rgba = np.ascontiguousarray(rgba[:, ::-1]) if n_bf % 2 == 0 else rgba
-            th = 0.20 if n_bf % 2 == 0 else -0.24
-            sc = 1.05 if n_bf % 2 == 0 else 0.93
+            # v336（用户："通过叠加乱七八糟达到裂变糊弄我"）：废 v335 镜像+缩放
+            # （朝向/大小一变 = 贴纸感，用户一眼识破）。改**原位翅姿形变**：与主蝶
+            # 同机制的 wing_pose 小振幅版——位置/朝向/大小全部不变，只有翼尖剪影
+            # 上下摆动（两只蝶正负交替），看得见变化且绝无"贴上去"的痕迹。
             cxl, cyl = float(xs.mean()) - bx0, float(ys.mean()) - by0
-            yyS, xxS = np.mgrid[0:hh, 0:ww].astype(np.float32)
-            dx0 = xxS - cxl
-            dy0 = yyS - cyl
-            wgt = smod.smoothstep(np.hypot(dx0, dy0), 4.0, 0.6 * R)
-            ang = -th * wgt
-            ca_, sa2 = np.cos(ang), np.sin(ang)
-            dyy = (dx0 * sa2 + dy0 * ca_) - dy0
-            dxx = (dx0 * ca_ - dy0 * sa2) - dx0
-            dyy = dyy + dy0 * (1.0 / sc - 1.0) * wgt         # 缩放（采样端 1/s）
-            dxx = dxx + dx0 * (1.0 / sc - 1.0) * wgt
+            th = 0.20 if n_bf % 2 == 0 else -0.24
+            dyy, dxx = smod.wing_pose((ww, hh), cx=cxl, cy=cyl, theta=th,
+                                      pivot_dx=6.0, ramp=(8.0, 0.55 * R),
+                                      k_up=0.0, span=1.0, tip_flick=-10.0,
+                                      tip_ramp=(0.35 * R, 0.7 * R))
         wlay = smod.warp_layer(rgba, (dyy.astype(np.float32), dxx.astype(np.float32)), order=1)
         res = smod.paste_layer(res, wlay, mbox)
         n_bf += 1
     print(f'[pinterest3] butterflies morphed={n_bf}')
 
-    # ---- v335: 虚线轨迹裂变（单点旋转不可见 → 膨胀聚类成轨迹，整条微旋+平移）----
+    # ---- v336: 虚线轨迹裂变 = **原位重画**（新曲线，端点锚定）----
+    # v335 把整条轨迹当刚体旋转+平移（用户："叠加乱七八糟糊弄我"）→ 废。
+    # 背景是纯平灰 → 原点 const 擦除零痕迹；新点在原位基础上加"弯曲扰动"重画：
+    # 同点数/同半径/同颜色，垂直于轨迹的正弦凸起（首末点权重 0 = 锚定不动），
+    # 凸起方向逐轨迹交替 → 轨迹弯曲方向可见变化，但绝无搬移/贴纸感。
     n_tr = 0
     if dots.any():
-        dl = tf.ndi.binary_dilation(dots, structure=tf._disk(14))
+        from PIL import ImageDraw
+        rng_tr = np.random.default_rng(907)
+        main_m = np.zeros((H, W), bool)
+        for i in range(1, cn + 1):
+            if int((clab == i).sum()) > 50000:
+                main_m |= (clab == i)
+        main_guard = tf.ndi.binary_dilation(main_m, structure=tf._disk(3))
+        dl = tf.ndi.binary_dilation(dots, structure=tf._disk(18))
         dlab, dn = tf.ndi.label(dl, structure=np.ones((3, 3), bool))
         for k_ in range(1, dn + 1):
             pts = dots & (dlab == k_)
-            if int(pts.sum()) < 300:
+            if int(pts.sum()) < 350:
                 continue
-            ys_, xs_ = np.where(pts)
-            x0_, x1_ = int(xs_.min()), int(xs_.max()) + 1
-            y0_, y1_ = int(ys_.min()), int(ys_.max()) + 1
-            pad = 12
+            plab, pn = tf.ndi.label(pts, structure=np.ones((3, 3), bool))
+            cents, rads, cols = [], [], []
+            for j in range(1, pn + 1):
+                mj = plab == j
+                aj = int(mj.sum())
+                if aj < 40:
+                    continue
+                ysj, xsj = np.where(mj)
+                cents.append((float(xsj.mean()), float(ysj.mean())))
+                rads.append(math.sqrt(aj / math.pi))
+                cols.append(np.median(np.asarray(src_img, np.float32)[mj], 0))
+            if len(cents) < 5:
+                continue
+            C = np.array(cents, np.float32)
+            # 贪心链排序（C 形轨迹也适用）：从相互距离最远的一端出发
+            d2 = ((C[:, None, :] - C[None, :, :]) ** 2).sum(-1)
+            i0 = int(np.unravel_index(np.argmax(d2), d2.shape)[0])
+            order = [i0]
+            unv = set(range(len(C))) - {i0}
+            while unv:
+                last = order[-1]
+                nxt = min(unv, key=lambda j: float(((C[j] - C[last]) ** 2).sum()))
+                order.append(nxt)
+                unv.discard(nxt)
+            C = C[order]
+            rads = [rads[j] for j in order]
+            seg = np.hypot(np.diff(C[:, 0]), np.diff(C[:, 1]))
+            t = np.concatenate([[0.0], np.cumsum(seg)])
+            t = t / max(float(t[-1]), 1e-6)
+            tan = C[-1] - C[0]
+            L = float(np.hypot(tan[0], tan[1])) + 1e-6
+            nvec = np.array([-tan[1], tan[0]], np.float32) / L
+            sgn = 1.0 if (k_ % 2) else -1.0
+            amp = min(20.0, 0.12 * L) * sgn
+            NewC = C.copy()
+            for j in range(len(C)):
+                bump = amp * math.sin(math.pi * t[j]) ** 1.2
+                jit = 0.0 if j in (0, len(C) - 1) else float(rng_tr.uniform(-2.5, 2.5))
+                NewC[j] = C[j] + nvec * (bump + jit)
+            x0_ = int(min(C[:, 0].min(), NewC[:, 0].min()))
+            x1_ = int(max(C[:, 0].max(), NewC[:, 0].max()))
+            y0_ = int(min(C[:, 1].min(), NewC[:, 1].min()))
+            y1_ = int(max(C[:, 1].max(), NewC[:, 1].max()))
+            pad = 24
             bx0_, by0_ = max(0, x0_ - pad), max(0, y0_ - pad)
             bx1_, by1_ = min(W, x1_ + pad), min(H, y1_ + pad)
-            sub_m = np.zeros((H, W), bool)
-            sub_m[by0_:by1_, bx0_:bx1_] = pts[by0_:by1_, bx0_:bx1_]
-            rgba_t, tbox = smod.make_layer(src_img, sub_m, feather=1.2,
-                                           box=(bx0_, by0_, bx1_, by1_))
-            hh_, ww_ = rgba_t.shape[:2]
-            yyT, xxT = np.mgrid[0:hh_, 0:ww_].astype(np.float32)
-            cxl, cyl = float(xs_.mean()) - bx0_, float(ys_.mean()) - by0_
-            sgn = 1.0 if k_ % 2 else -1.0
-            ang = -0.14 * sgn
-            ca_, sa2 = np.cos(ang), np.sin(ang)
-            dx0 = xxT - cxl
-            dy0 = yyT - cyl
-            dyy = (dx0 * sa2 + dy0 * ca_) - dy0 + 3.0 * sgn
-            dxx = (dx0 * ca_ - dy0 * sa2) - dx0 + 7.0 * sgn
-            wlay = smod.warp_layer(rgba_t, (dyy.astype(np.float32),
-                                            dxx.astype(np.float32)), order=1)
-            res = smod.paste_layer(res, wlay, tbox)
+            em = np.zeros((H, W), bool)
+            em[by0_:by1_, bx0_:bx1_] = pts[by0_:by1_, bx0_:bx1_]
+            em = tf.ndi.binary_dilation(em, structure=tf._disk(4)) & (~main_guard)
+            res = tf.erase(res, em, method='const', const_color=bg3, const_feather=4)
+            # 4x 超采样画新点（抗锯齿），逐轨迹中值色
+            SS = 4
+            cw_, ch_ = bx1_ - bx0_, by1_ - by0_
+            canvas = Image.new('L', (cw_ * SS, ch_ * SS), 0)
+            dr = ImageDraw.Draw(canvas)
+            colj = np.mean(np.stack(cols, 0), 0)
+            for j in range(len(NewC)):
+                rj = rads[j] * float(rng_tr.uniform(0.92, 1.08))
+                px_ = ((NewC[j][0] - bx0_) * SS, (NewC[j][1] - by0_) * SS)
+                rr_ = max(1.0, rj * SS)
+                dr.ellipse([px_[0] - rr_, px_[1] - rr_, px_[0] + rr_, px_[1] + rr_],
+                           fill=255)
+            amask = np.asarray(canvas.resize((cw_, ch_), Image.LANCZOS),
+                               np.float32) / 255.0
+            amask *= (~main_guard[by0_:by1_, bx0_:bx1_]).astype(np.float32)
+            reg = np.asarray(res, np.float32).copy()
+            sub = reg[by0_:by1_, bx0_:bx1_]
+            reg[by0_:by1_, bx0_:bx1_] = sub * (1 - amask[..., None]) \
+                + colj[None, None, :] * amask[..., None]
+            res = Image.fromarray(np.clip(reg, 0, 255).astype(np.uint8), 'RGB')
             n_tr += 1
-    print(f'[pinterest3] trails morphed={n_tr}')
+    print(f'[pinterest3] trails redrawn={n_tr}')
 
     res.save(OUT / 'pinterest3_variant.jpg', quality=93)
     print(f'[pinterest3] letters={len(letters)} word={word!r} -> {OUT}')
@@ -352,6 +416,7 @@ def do_pinterest4():
 # ---------------------------------------------------------------- 6978
 def do_6978():
     """蝙蝠徽章：① 弧字/品牌字原位改写 ② 主体蝙蝠按新姿态重画（商标改写）。"""
+    from styles import subject_morph as smod
     ic = BY['6978']
     img = Image.open(ic['path']).convert('RGB')
     W, H = img.size
@@ -386,12 +451,15 @@ def do_6978():
     for bb in [(1150, 930, 1300, 1010), (1120, 1170, 1200, 1235)]:
         brand |= v328.extra_specks(img, bb, exclude=excl_brand)
 
-    # ---- 蝙蝠擦除掩膜（v330：深色主体 + 浅色描边，全 footprint 擦除后贴回形变层）----
+    # ---- 蝙蝠擦除掩膜（v336：暗阈值 58→75 + 椭圆扩大 252/262→300/305）----
+    # v336 取证：左翼外膜 (522,520)-(646,885) 约 1 万像素 mx∈[58,75] 且在旧椭圆外
+    # → 旧 mask 漏掉整条翼带（层法会断翼）。扩椭圆+放宽阈值后完整罩住，
+    # 同时仍排除碟面紫（mx≥80）、粉底、弧形字（几何上不相交）。
     arr = np.asarray(img, np.float32)
     mx = arr.max(2)
     lum = arr @ np.array([0.299, 0.587, 0.114], np.float32)
-    ell = ((xx - 815) / 252.0) ** 2 + ((yy - 742) / 262.0) ** 2 <= 1.0
-    core = (mx < 58) & ell
+    ell = ((xx - 815) / 300.0) ** 2 + ((yy - 742) / 305.0) ** 2 <= 1.0
+    core = (mx < 75) & ell
     # 浅色描边（lum>118 且在核心膨胀范围内 = 原图蝙蝠的 lavender 轮廓线）
     edge_rgn = (lum > 118) & tf.ndi.binary_dilation(core, structure=tf._disk(10))
     bat = (core | edge_rgn)
@@ -418,65 +486,113 @@ def do_6978():
         out = tf.erase(out, mdd, **kw)
     out.save(VIS / 'v329_6978_erased.jpg', quality=95)
 
-    # ---- v334 主体蝙蝠裂变：**部件级刚性旋转**（p6 同一教训：平滑位移场自相似不可见，
-    #      三轮用户连续说"主体没裂变"）。左右翼绕翼根刚性旋转：
-    #      左翼 +0.24rad（翼尖上扬 ~55px）、右翼 +0.10rad（翼尖下压 ~23px）
-    #      → 姿态从"平展"变"左攻角"，剪影角度变化一眼可见，材质 100% 保留。
-    #      权重=蝙蝠 mask(fill_holes+膨胀+高斯羽化)，碟面渐变在羽化带内随翼流动。
-    #      位移铁律：θ>0=顺时针；左翼尖(-x)顺时针=上扬，右翼(+x)顺时针=下压。
-    a7 = np.asarray(out, np.float32)
-    yy7, xx7 = np.mgrid[0:H, 0:W].astype(np.float32)
+    # ---- 主体蝙蝠裂变 v336：**双层法**（层内形变，背景零拖动）----
+    # v336 第一次实现（全图 0.30rad 场）实测：碟面渐变被翼场拖出波状涂抹——
+    # 用户第 3 轮就骂过"背景糊在一起"，大振幅下不可接受。改双层：
+    #   ① 擦掉蝙蝠 → 碟面/粉底 nn 重建干净底板（碟面是平滑径向渐变，nn 无痕）；
+    #   ② 蝙蝠单独 make_layer，在**层内坐标系**施加翼姿位移场（warp 的是带 alpha
+    #      的蝙蝠层，层外 alpha=0）→ 碟面一个像素都不动；
+    #   ③ 形变层贴回底板。翼尖上扬让出的空隙由底板自然补上 → 无涂抹无 ghost。
+    # 姿态：双翼对称上扬 0.30rad（17°，翼尖各抬 ~105px，平展 T 形 → 明显 V 形）、
+    # 歪头 -0.12rad；翼场避开躯干（v335b 中轴对拉剪切之鉴）。
+    bat_f = tf.ndi.binary_fill_holes(bat)
+    # v336b：底板重建**分区取样**——翼尖让空区跨碟缘两侧，单一 nn 会跨区拉色
+    # （碟外区拉进碟面紫 → 粉底上出现紫色斜纹）。按碟面几何椭圆把擦除区分成
+    # 碟内/碟外两片，各自只允许从同区像素取样（src_allow）。
+    emask = tf.ndi.binary_dilation(bat, structure=tf._disk(4))
+    # 椭圆取 272/277 ≈ 亮碟真实边缘（emblem 268 + 4px 余量）：305 实测会把 35px 的
+    # 环带/粉底划进碟区 → nn 从碟面紫取样 → 碟缘拉出紫色斜纹。
+    disc_r = ((xx - 813.0) / 272.0) ** 2 + ((yy - 690.0) / 277.0) ** 2 <= 1.0
+    allow_d = tf.ndi.binary_dilation(disc_r & (~bat), structure=tf._disk(2))
+    allow_o = tf.ndi.binary_dilation((~disc_r) & (~bat), structure=tf._disk(2))
+    plate = tf.erase(out, emask & disc_r, method='nn', nn_median=31, margin=20,
+                     src_allow=allow_d)
+    plate = tf.erase(plate, emask & (~disc_r), method='nn', nn_median=31, margin=20,
+                     src_allow=allow_o)
+    rgba_b, bbox_b = smod.make_layer(out, bat_f, feather=2.0)
+    hhb, wwb = rgba_b.shape[:2]
+    yyL, xxL = np.mgrid[0:hhb, 0:wwb].astype(np.float32)
+    gxL, gyL = xxL + bbox_b[0], yyL + bbox_b[1]
 
-    def _rot7(dyy, dxx, w, px, py, theta):
+    def _rotB(dyy, dxx, w, px, py, theta):
         ang = -theta * w
         ca, sa = np.cos(ang), np.sin(ang)
-        dx0 = xx7 - px
-        dy0 = yy7 - py
+        dx0 = gxL - px
+        dy0 = gyL - py
         return dyy + (dx0 * sa + dy0 * ca) - dy0, dxx + (dx0 * ca - dy0 * sa) - dx0
 
-    bat_f = tf.ndi.binary_fill_holes(bat)
-    # v335c：权重**避开躯干**（v335b 教训：左右半幅各自旋转时中轴线 x≈815 对拉剪切，
-    # 把蝙蝠躯干撕开露出内里淡紫 = 淡紫横带）。翼场只罩翼膜（xx<760 / xx>870），
-    # 枢轴移到翼根 → 躯干+肩部零位移完整保留，翼膜绕根旋转。
+    bat_c = bat_f[bbox_b[1]:bbox_b[1] + hhb, bbox_b[0]:bbox_b[0] + wwb]
+    # v336e：权重过渡带 σ 7→16——σ7 时翼根到翼尖的位移在 ~14px 内从 0 跳到满量，
+    # 正好横切翼顶高对比边缘 → 肩部出现钩状台阶（目检 v336_wingL_cmp）。加宽到
+    # ~60px 平滑过渡后，位移落在翼面内部渐增，高对比边缘只被"拉弯"不"拉断"。
     wBL = tf.ndi.gaussian_filter(
-        tf.ndi.binary_dilation(bat_f & (xx7 < 760), structure=tf._disk(6)).astype(np.float32), 7.0)
+        tf.ndi.binary_dilation(bat_c & (gxL < 760), structure=tf._disk(6)).astype(np.float32), 16.0)
     wBR = tf.ndi.gaussian_filter(
-        tf.ndi.binary_dilation(bat_f & (xx7 > 870), structure=tf._disk(6)).astype(np.float32), 7.0)
-    dyy = np.zeros((H, W), np.float32)
-    dxx = np.zeros((H, W), np.float32)
-    # v335（用户："主体蝙蝠裂变能不能正常一些，改变头部四肢类的结构剪影"）：
-    # 废 v334"左攻角"不对称姿态（用户觉得畸形）。改自然展翅 + **结构剪影**变化：
-    #   · 双翼对称上扬 0.15rad（8.6°，翼尖各抬 ~52px，剪影一眼可见且自然）；
-    #   · 头部（耳+头，中轴带 y<690）绕颈点 (815,690) 歪头 -0.10rad → 头/耳轮廓偏转；
-    #   · 足/尾簇（中轴带 y>820）绕体底 (815,810) 摆动 +0.10rad → 四肢剪影变化。
-    dyy, dxx = _rot7(dyy, dxx, wBL, 780.0, 650.0, 0.15)     # 左翼绕翼根上扬 8.6°
-    dyy, dxx = _rot7(dyy, dxx, wBR, 850.0, 650.0, -0.15)    # 右翼绕翼根上扬 8.6°（对称）
-    wHD = tf.ndi.gaussian_filter(
-        (bat_f & (np.abs(xx7 - 815.0) < 95) & (yy7 < 700)).astype(np.float32), 5.0)
-    dyy, dxx = _rot7(dyy, dxx, wHD, 815.0, 690.0, -0.09)    # 歪头（头部剪影变）
-    # v335b 实测：足部旋转场会把碟面渐变拖出淡紫横带（收益小伪影大）→ 删除。
-    # "四肢结构变化"由双翼上扬承担（翼=蝙蝠的前肢，肩/臂/翼尖全部位移）。
-    coords7 = [yy7 + dyy, xx7 + dxx]
-    o7 = np.empty_like(a7)
-    for c in range(3):
-        o7[..., c] = tf.ndi.map_coordinates(a7[..., c], coords7, order=1,
-                                            mode='nearest', prefilter=False)
-    out = Image.fromarray(np.clip(o7, 0, 255).astype(np.uint8), 'RGB')
-    wvis7 = np.clip(np.stack([wBL, bat_f * 0.3, wBR], -1) * 255, 0, 255).astype(np.uint8)
+        tf.ndi.binary_dilation(bat_c & (gxL > 870), structure=tf._disk(6)).astype(np.float32), 16.0)
+    dyy = np.zeros((hhb, wwb), np.float32)
+    dxx = np.zeros((hhb, wwb), np.float32)
+    dyy, dxx = _rotB(dyy, dxx, wBL, 780.0, 650.0, 0.30)     # 左翼绕翼根上扬 17°
+    dyy, dxx = _rotB(dyy, dxx, wBR, 850.0, 650.0, -0.30)    # 右翼绕翼根上扬 17°（对称）
+    # v336f：头部**独立成场并覆盖双耳**，与翼场按 wH 平滑混合。v336e 及以前 wBL
+    # 用 (gxL<760) 划界，把左耳（x700-745）也圈进翼区 → 左耳被翼旋转横向拖 ~50px，
+    # 头顶/耳根被扯成钩状（目检 v336_shoulder_4x）。现头场半宽 140 覆盖双耳，
+    # 在头区把翼场权重压到 0（wH≈1），过渡带 σ22 摊到 ~45px 避免新台阶。
+    head_core = bat_c & (np.abs(gxL - 815.0) < 140.0) & (gyL < 645.0)
+    wH = np.clip(tf.ndi.gaussian_filter(head_core.astype(np.float32), 22.0), 0.0, 1.0)
+    dyh = np.zeros_like(dyy)
+    dxh = np.zeros_like(dxx)
+    dyh, dxh = _rotB(dyh, dxh, wH, 815.0, 690.0, -0.12)     # 歪头（整体剪影变）
+    dyy = dyy * (1.0 - wH) + dyh
+    dxx = dxx * (1.0 - wH) + dxh
+    # v336d：翼根下方 y 向衰减——纯旋转的切向位移 ∝ 力臂 dy0，翼底扇贝边/花冠瓣
+    # （y700-880，dy0~190px）被拖 60px 且左右对称朝躯干中心拖，把黑边拖过紫碟面
+    # 卷成"滴痕/毛刺"（目检 v336_tail_3way_4x、v336_lscallop_3way_3x）。改为
+    # y<620 全量旋转、y>690 完全冻结（smoothstep 70px 过渡）：残余剪切峰值
+    # 仅 dy0*sinθ ≈ 40*0.30 ≈ 12px 且落在过渡带内 → 不可见；翼尖（y~530，
+    # 力臂 220px 水平）仍上扬 ~70px，V 形裂变保留。
+    yfade = np.clip((gyL - 620.0) / 70.0, 0.0, 1.0)
+    yfade = yfade * yfade * (3.0 - 2.0 * yfade)
+    dyy, dxx = dyy * (1.0 - yfade), dxx * (1.0 - yfade)
+    wlay = smod.warp_layer(rgba_b, (dyy, dxx), order=1)
+    # v336c：形变层**碟缘钳制**——0.30rad 上扬把细尾巴沿场方向拉长，尾尖越出
+    # 碟缘压到粉环上，留下滴落状撕裂痕+游离黑点（目检 v336_tail_zoom_cmp）。
+    # 贴回前按碟面几何椭圆对层 alpha 做羽化钳制：v<=0.956 全保留、v>=1.0 全去，
+    # 12px smoothstep 过渡 → 尾巴止于碟缘（同原图），碟外零残留。
+    v_ell = np.sqrt(((gxL - 813.0) / 272.0) ** 2 + ((gyL - 690.0) / 277.0) ** 2)
+    fade = np.clip((1.0 - v_ell) / 0.044, 0.0, 1.0)
+    fade = fade * fade * (3.0 - 2.0 * fade)
+    wlay[..., 3] = wlay[..., 3] * fade
+    out = smod.paste_layer(plate, wlay, bbox_b)
+    wvis7 = np.clip(np.stack([wBL, bat_c * 0.3, wBR], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis7, 'RGB').save(VIS / 'v334_6978_weights.jpg', quality=90)
 
     # ---- 重画：文字（原字为实心黑 Didone serif，材质=纯黑）----
     for (w, b, m) in lines:
         out = tf.draw_line(out, w, b, 'playfair_black', tf.text_color(img, m), fit='squeeze')
-    # v334: 弧形字**排版**也裂变（用户："弧形的字体排版也还是没裂变啊"）——
-    # v333 只换了词、排版原样 = "只裂变了字体"。本版：弧度压平（r*1.22）、
-    # 字号加大（cap*1.12）、角跨各展 4° → 弧形/大小/字距全部可见变化，
-    # 仍是同圆心顶部弧排、同字体语言、同材质（黑 Didone serif）。
-    out = tf.draw_arc(out, "LA LUNA NELL'OMBRA", (cx, cy), r * 1.22, cap_h * 1.12,
+    # v336（用户："弧形文本乱飞"）：v335 的 r*1.22 压平弧让新字**压在未擦除的
+    # 缎带装饰弧线上**（弧线属装饰不换）→ 字母跨线、翻转乱飞（第 7 轮批评点）。
+    # 本版回到**原弧半径/原字高**（字母永远待在带内，零碰撞），排版裂变改为：
+    # 字距放宽（2.5px）+ 整体角位偏移 +4° + 新词本身长短差 → 新词在带内的
+    # 起止角/占位与原词明显不同，连贯自然。
+    import arc_text as _at
+    fp_a = tf.FONTS.get('playfair_black', tf.FONTS['playfair'])
+    S_a = max(10, int(cap_h / tf._cap_ratio(fp_a)))
+    avail_a = r * math.radians(((a1 + 6.0) - (a0 - 6.0)) % 360)
+    while S_a > 10:
+        if _at.fit_arc_text_width("LA LUNA NELL'OMBRA", str(fp_a), S_a, r,
+                                  char_spacing_px=2) <= avail_a * 0.97:
+            break
+        S_a = int(S_a * 0.94)
+    span_new = math.degrees(
+        _at.fit_arc_text_width("LA LUNA NELL'OMBRA", str(fp_a), S_a, r,
+                               char_spacing_px=2) / r) + 2.0
+    start_new = 0.5 * (a0 + a1) - 0.5 * span_new + 4.0
+    out = tf.draw_arc(out, "LA LUNA NELL'OMBRA", (cx, cy), r, cap_h * 1.02,
                       'playfair_black', tf.text_color(img, m_arc),
-                      start_deg=a0 - 4.0, end_deg=a1 + 4.0)
+                      start_deg=start_new, end_deg=start_new + span_new,
+                      char_spacing_px=2)
     out.save(OUT / '6978_variant.jpg', quality=93)
-    print(f'[6978] lines={len(lines)} arc="LA LUNA NELL\'OMBRA" r*1.22 cap*1.12 span+8deg bat=rigid-wings')
+    print(f'[6978] lines={len(lines)} arc r={r:.0f}(orig) cap*1.02 shift+4deg spacing=2 bat=wings+0.30rad')
     return out
 
 
@@ -496,6 +612,21 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     ic = BY['pinterest6']
     img = Image.open(ic['path']).convert('RGB')
     W, H = img.size
+
+    # ---- v336 先行：标题带内**蓝烟全部擦黑**（全分辨率 + const 黑填充）----
+    # v335 教训：蓝烟判据带 lum>40（DS4 下采样）→ 暗蓝(lum≈32)大量漏网；nn 填充又
+    # 从残留蓝烟取样回填蓝色；最后"色域软压制"把残蓝变灰雾 → 用户看到的就是
+    # "标题后面一大块灰色色块"（第 7 轮批评点）。原图黑底实测纯黑 (0,0,0,
+    # p90≤8)，蓝烟擦除改**全分辨率**判据 (b>r+6 & b>22) + **const 黑填充**：
+    # 填充结果=背景本色，无雾无块。
+    a_full = np.asarray(img, np.float32)
+    blue = (a_full[..., 2] > a_full[..., 0] + 6.0) & (a_full[..., 2] > 22.0)
+    blue[1500:, :] = False                       # 翼顶 ~1560 之下不动
+    blue = tf.ndi.binary_dilation(blue, structure=tf._disk(4))
+    visb = np.asarray(img).copy(); visb[blue] = [255, 0, 0]
+    Image.fromarray(visb).save(VIS / 'v336_p6_blue_mask.png')
+    out = tf.erase(img, blue, method='const', const_color=(2, 2, 3), const_feather=10)
+    out.save(VIS / 'v336_p6_smoke_erased.jpg', quality=95)
 
     # ---- 擦除掩膜（v332 重写：笔画级 + 标题带限定 + LaMa 小掩膜重建）----
     # v329~v331 崩坏根因：closing(disk 12)+fill_holes 把"字母间隙背景/白色射线/翼尖"
@@ -526,19 +657,8 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
                       .resize((W, H), Image.NEAREST)) > 128
     vis = np.asarray(img).copy(); vis[mask] = [255, 0, 0]
     Image.fromarray(vis).save(VIS / 'v332_p6_mask.png')
-    out = tf.erase(img, mask, method='lama', max_side=1100, margin=40)
+    out = tf.erase(out, mask, method='lama', max_side=1100, margin=40)
     out.save(VIS / 'v332_p6_erased.jpg', quality=95)
-
-    # ---- v335（用户："蓝色背景部分是原图没删干净吗"）：标题带内的**原图蓝烟**一并擦除。
-    # v329 起刻意保留蓝烟是误判——用户要的是干净黑底。蓝烟判据 b>r+8 且 lum>40：
-    # 白射线(低饱和)/棕羽(r>b)均不命中；y<1300（翼顶 ~1560 之上，安全）。
-    blue = (a[..., 2] > a[..., 0] + 8.0) & (lum > 40)
-    blue[int(1300 // DS):, :] = False
-    blue = tf.ndi.binary_dilation(blue, structure=tf._disk(4))
-    bmask = np.asarray(Image.fromarray((blue * 255).astype(np.uint8), 'L')
-                       .resize((W, H), Image.NEAREST)) > 128
-    out = tf.erase(out, bmask, method='nn', nn_median=41, margin=30)
-    out.save(VIS / 'v335_p6_erased_smoke.jpg', quality=95)
 
     # ---- v335 鹰+骷髅主体裂变：**大振幅连通位移场**（v334 刚体裁层的最终教训）----
     # v334 失败根因：_part() 的 LCC 提取碎片化（翼只罩住上羽扇、骷髅只有颅盖），
@@ -599,18 +719,6 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     out = Image.fromarray(np.clip(o6, 0, 255).astype(np.uint8), 'RGB')
     wvis = np.clip(np.stack([wL, wSK, wR], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis, 'RGB').save(VIS / 'v335_p6_weights.jpg', quality=90)
-
-    # ---- v335b 残余蓝烟二次压制：nn 填充取样自周边蓝烟会**回填蓝色**（实测顶部两角
-    # 仍剩蓝云）。色域法软压制：蓝雾像素（b>r+6 渐进权重）去饱和+压暗融入黑底，
-    # 烟雾纹理保留；lum>150 的白色字标/射线不受影响。
-    o6s = np.asarray(out, np.float32)
-    lum6s = o6s @ np.array([0.299, 0.587, 0.114], np.float32)
-    blueness = np.clip((o6s[..., 2] - o6s[..., 0] - 6.0) / 24.0, 0.0, 1.0)
-    band6 = 1.0 - smod.smoothstep(yy6, 1150.0, 1400.0)
-    sw = blueness * band6 * (1.0 - smod.smoothstep(lum6s, 130.0, 170.0))
-    gray6 = o6s.mean(2, keepdims=True)
-    o6s = o6s * (1 - 0.88 * sw[..., None]) + gray6 * 0.35 * sw[..., None]
-    out = Image.fromarray(np.clip(o6s, 0, 255).astype(np.uint8), 'RGB')
 
     # ---- 字标贴回 ----
     G = VIS / 'elemgen_mid' / WORD_SRC

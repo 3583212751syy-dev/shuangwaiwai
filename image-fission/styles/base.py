@@ -20,13 +20,20 @@ VENV_PY = ROOT / "venv" / "Scripts" / "python.exe"
 FISSION_CLI = SRC / "fission.py"
 COMFYUI_URL = "http://127.0.0.1:8188"
 
-# 字体路径（Windows 无 Bodoni/Didot，用 OFL 替代；Black 版 Playfair 损坏，用 Bold）
+# 字体路径（Windows 无 Bodoni/Didot，用 OFL 替代）
 FONTS = {
     "blackopsone": ROOT / "fonts" / "BlackOpsOne-Regular.ttf",   # military / stencil display
     "playfair":    ROOT / "fonts" / "PlayfairDisplay-Bold.ttf",  # Didone serif (BACARDÍ 类)
     "playfair_black": ROOT / "fonts" / "PlayfairDisplay-Black.ttf",  # Didone serif 重字重（原字为 Heavy 时用）
     "metal":       ROOT / "fonts" / "MetalMania-Regular.ttf",    # spiky gothic metal (ARCHOR 类)
     "denim":       ROOT / "fonts" / "LeagueSpartan-Black.ttf",   # bold blocky (UPCY 类)
+    "archivo":     ROOT / "fonts" / "ArchivoBlack-Regular.ttf",  # 超粗 grotesque（牛仔贴布字母近似）
+    "anton":       ROOT / "fonts" / "Anton-Regular.ttf",         # 超粗 condensed
+    "rockwell":    Path("C:/Windows/Fonts/ROCKEB.TTF"),          # Rockwell Extra Bold（粗 slab serif）
+    "rockwell_b":  Path("C:/Windows/Fonts/ROCKB.TTF"),           # Rockwell Bold
+    "rock_cond_b": Path("C:/Windows/Fonts/ROCCB___.TTF"),        # Rockwell Condensed Bold（aspect≈0.79 贴近 UPCY）
+    "alfa":        ROOT / "fonts" / "AlfaSlabOne-Regular.ttf",   # 超粗圆角 slab（OFL，最接近 UPCY 字重/气质）
+    "saira":       ROOT / "fonts" / "SairaStencilOne-Regular.ttf",
 }
 
 # 把 src 加入 sys.path 以便复用已有工具

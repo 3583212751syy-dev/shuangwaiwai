@@ -471,7 +471,8 @@ def draw_line(img: Image.Image, word: str, box, font_key: str = "blackopsone",
 
 def draw_arc(img: Image.Image, word: str, center, radius: float, cap_h: float,
              font_key: str = "playfair", color=(40, 30, 45),
-             start_deg: float = 8.0, end_deg: float = 172.0) -> Image.Image:
+             start_deg: float = 8.0, end_deg: float = 172.0,
+             char_spacing_px: int = 1) -> Image.Image:
     """沿原弧线（同圆心/半径/角度范围）重画新词，字号按 cap 高对齐原字。
 
     角度约定：start_deg/end_deg 用**数学惯例**（0°=右，逆时针为正，y 轴向上）。
@@ -492,7 +493,8 @@ def draw_arc(img: Image.Image, word: str, center, radius: float, cap_h: float,
     tmp = Image.new("RGB", (W, H), (0, 0, 0))
     tmp = arc_text.draw_arc_text(tmp, word, str(fp), S, (255, 255, 255),
                                  (float(center[0]), float(center[1])), float(radius),
-                                 -float(end_deg), -float(start_deg), char_spacing_px=1)
+                                 -float(end_deg), -float(start_deg),
+                                 char_spacing_px=int(char_spacing_px))
     a = np.asarray(tmp.convert("L"), np.float32) / 255.0
     if a.max() <= 0:
         raise RuntimeError(f"draw_arc 渲染为空: word={word!r} S={S} r={radius}")

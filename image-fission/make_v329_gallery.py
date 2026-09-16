@@ -20,18 +20,23 @@ PAIRS = [
 
 rows_html = []
 tiles = []
+ORIG = OUT / '_orig'
+ORIG.mkdir(exist_ok=True)
 for iid, fn, note in PAIRS:
     op = BY[iid]['path']
     vp = OUT / fn
     if not Path(vp).exists():
         continue
     o, v = Image.open(op).convert('RGB'), Image.open(vp).convert('RGB')
+    oname = f'{iid}_orig.jpg'
+    if not (ORIG / oname).exists():
+        o.save(ORIG / oname, quality=88)
     rows_html.append(f"""
     <section>
       <h2>{iid} — {note}</h2>
       <div class="pair">
-        <figure><img src="file:///{op}"><figcaption>原图</figcaption></figure>
-        <figure><img src="file:///{vp.as_posix()}"><figcaption>变体 v329</figcaption></figure>
+        <figure><img src="_orig/{oname}"><figcaption>原图</figcaption></figure>
+        <figure><img src="{fn}"><figcaption>变体 v329</figcaption></figure>
       </div>
     </section>""")
     for im, tag in ((o, 'ORIG'), (v, 'V329')):

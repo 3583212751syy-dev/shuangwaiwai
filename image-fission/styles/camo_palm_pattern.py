@@ -32,7 +32,7 @@ def default_params() -> dict:
         # → 色块变成少量大尺度连贯形变（"有规律的流动"），不再是 6 组平面波叠加的碎乱。
         "warp_strength": 0.055,     # 色块标签扭曲强度（占边长比例）
         "camo_k": 6,                # 迷彩色板数
-        "camo_smooth": 9,           # 标签图中值滤波尺寸（大 → 色块边界圆润连贯）
+        "camo_smooth": 13,          # 标签图中值滤波尺寸（扭曲后；大 → 色块边界圆润连贯）
         "warp_freq": 1.35,          # 扭曲主频（低频 = 大块、有规律）
         "n_cols": 6,                # 棕榈网格列数
         "n_rows": 6,                # 棕榈网格行数
@@ -85,7 +85,7 @@ def ink_color(img: Image.Image, mask: np.ndarray) -> np.ndarray:
 
 
 def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.045,
-                freq: float = 2.2, smooth: int = 5) -> Image.Image:
+                freq: float = 2.2, smooth: int = 5, pre_smooth: int = 13) -> Image.Image:
     """迷彩"色块重塑"：色板量化 -> **只扭曲标签图（最近邻，边界保持锐利）** -> 回填原色板。
 
     为什么不是双线性全彩扭曲：双线性会把边界插值成过渡带 → 整体发糊（实测像"被抹开的水彩"）。
@@ -104,6 +104,11 @@ def camo_reblob(img: Image.Image, seed: int, k: int = 6, strength: float = 0.045
     for i, v in enumerate(used):
         remap[int(v)] = i
     idx = remap[raw].astype(np.float32)
+    # v336（用户："湖泊形状不自然/缺失"）：量化后**先**对标签图做中值滤波——
+    # 擦树 nn 填充的放射状细条纹在标签层被并入邻近湖泊（湖泊边界回归圆润连贯），
+    # 扭曲后再滤一次（smooth），湖泊形状自然流畅、无拉丝无缺块。
+    if pre_smooth >= 3:
+        idx = ndi.median_filter(idx, size=int(pre_smooth), mode="nearest").astype(np.float32)
     pal = pal_raw[used]
     H, W = idx.shape
     rng = np.random.default_rng(int(seed) * 104729 + 7)
@@ -262,12 +267,24 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
 
     # ② 擦掉全部元素 → 纯迷彩底（nn 延色，保住色块语言）
     camo = tf.erase(img, ink_d, method="nn", nn_median=21, margin=24)
+    # v336（用户："湖泊形状不自然/缺失"）：nn 擦树会留放射状细条纹；图缘出现白色
+    # 擦除伪影（实测左缘 3 处白斑）→ 量化后变成"错块色斑"。先白斑最近邻回填，
+    # 再对 RGB 做中值平滑（细条纹消除，色块边界中值保持锐利）。
+    ca_ = np.asarray(camo, np.float32)
+    white_ = (ca_.min(2) > 205) & ((ca_.max(2) - ca_.min(2)) < 28)
+    if white_.any():
+        iidx = ndi.distance_transform_edt(white_, return_distances=False,
+                                          return_indices=True)
+        ca_[white_] = ca_[iidx[0][white_], iidx[1][white_]]
+    ca_ = np.stack([ndi.median_filter(ca_[..., c], size=19) for c in range(3)], -1)
+    camo = Image.fromarray(np.clip(ca_, 0, 255).astype(np.uint8), "RGB")
     camo.save(str(out_dir / "_p4_camo_clean.jpg"), quality=95)
 
-    # ③ 色块重塑：量化 -> 只扭曲标签图（最近邻，边界锐利）-> 回填原色板
+    # ③ 色块重塑：量化 -> 标签中值 -> 只扭曲标签图（最近邻，边界锐利）-> 回填原色板
     warped = camo_reblob(camo, seed=sd, k=int(p["camo_k"]),
                          strength=float(p["warp_strength"]),
-                         freq=float(p["warp_freq"]), smooth=int(p["camo_smooth"]))
+                         freq=float(p["warp_freq"]), smooth=int(p["camo_smooth"]),
+                         pre_smooth=13)
     warped.save(str(out_dir / "_p4_warped.jpg"), quality=95)
 
     # ④ 逐元素结构形变贴回（100% 取自原图元素，同位同大，姿态各异）
