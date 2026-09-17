@@ -160,21 +160,56 @@ def rebirth_subject(img, mask, prompt, neg,
                     denoise=0.72, ipa_weight=0.65, ipa_end=0.5, color_match=0.85,
                     cn_name=None, cn_strength=0.70, cn_pre="canny", cn_end=1.0,
                     cn_low=0.35, cn_high=0.75, lora=None,
-                    margin=70, grow=12, seed=12345, tag="subj", max_side=1536):
+                    margin=70, grow=12, seed=12345, tag="subj", max_side=1536,
+                    wide=0, bg_gate=None, subject_dark=False, protect=None):
+    """wide>0：**放宽回贴区**（v345 关键修复）。
+
+    旧实现把 SDXL 的 inpainting 噪声掩膜设成 `dilate(mask, grow+6)`、回贴羽化
+    `dilate(mask, grow)` —— 新内容**物理上只能落在原剪影 ±18px 内**，
+    于是无论怎么调 cn/denoise，剪影 IoU 都降不到 0.85 以下 →
+    用户读成"裂变没看到明显变化"（实测 p4 IoU=0.960 / p6 IoU=0.867，逐行宽度相关 0.99+）。
+
+    wide=W：噪声掩膜与回贴区都外扩 W px → 新形状可以真正长出/收进原剪影之外。
+    代价是原剪影与新剪影之间的环形区会被模型重画：若模型在那里画了背景，就会
+    与原背景不一致（p6 会在黑底上留"灰雾"）。故配 `bg_gate`：
+      · 环内像素仅在"生成结果判为主体"时才贴回（p6 亮主体 on 黑底 → 阈值 40；
+        p4 深墨 on 浅迷彩 → subject_dark=True + 阈值 120）；
+      · 原剪影内部（mcut）**无条件贴回**，保证主体一定被换新。
+    """
     W, H = img.size
     ys, xs = np.where(mask)
     if len(xs) == 0:
         return img
-    x0 = max(0, xs.min() - margin); x1 = min(W, xs.max() + 1 + margin)
-    y0 = max(0, ys.min() - margin); y1 = min(H, ys.max() + 1 + margin)
+    _m = max(margin, int(wide) + 80)
+    x0 = max(0, xs.min() - _m); x1 = min(W, xs.max() + 1 + _m)
+    y0 = max(0, ys.min() - _m); y1 = min(H, ys.max() + 1 + _m)
     crop = img.crop((x0, y0, x1, y1))
     cw, ch = crop.size
 
     mfull = np.zeros((H, W), bool); mfull[mask] = True
     mcut = mfull[y0:y1, x0:x1]
+    _wid = int(max(0, wide))
     feather = np.clip(ndi.gaussian_filter(
-        ndi.binary_dilation(mcut, iterations=grow).astype(np.float32), 3.0), 0.0, 1.0)
-    minp = ndi.binary_dilation(mcut, iterations=grow + 6)
+        ndi.binary_dilation(mcut, iterations=grow + _wid).astype(np.float32), 3.0), 0.0, 1.0)
+    # 门控：原剪影内永远贴；剪影外只在"判为主体"处贴（防止环带背景色差露馅）
+    if bg_gate is not None:
+        _al = np.asarray(img, np.float32)[y0:y1, x0:x1].mean(2)
+        _t = float(bg_gate)
+        _orig_subj = (_al < _t) if subject_dark else (_al > _t)
+        _core = ndi.binary_dilation(mcut, iterations=grow)
+        feather = feather * ((_orig_subj | _core).astype(np.float32))
+        print(f"[{tag}] wide={_wid} 门控({'暗' if subject_dark else '亮'}<>{_t:.0f}) "
+              f"环带可贴={100*(feather>0.05).mean():.1f}%")
+    # 保护带：标题/文字/其他元素所在区域**禁止**被放宽区重画
+    # （p6 主体上沿 y=1495 紧贴标题带 y<1500，wide 会向上侵入把标题擦掉）
+    _pc = None
+    if protect is not None:
+        _pf = np.zeros((H, W), bool); _pf[protect] = True
+        _pc = _pf[y0:y1, x0:x1] & (~mcut)
+        feather = feather * (~_pc).astype(np.float32)
+    minp = ndi.binary_dilation(mcut, iterations=grow + 6 + _wid)
+    if _pc is not None:
+        minp = minp & (~_pc)
 
     # SDXL 友好尺寸：max side 超限 → 降采样重绘、结果再升回原裁块尺寸
     if max_side and max(cw, ch) > max_side:
@@ -284,10 +319,10 @@ def rebirth_subject(img, mask, prompt, neg,
     comp_img = Image.fromarray(np.clip(comp, 0, 255).astype(np.uint8), "RGB")
     full = np.array(img).copy()
     full[y0:y1, x0:x1] = np.asarray(comp_img)
-    for f in (src_name, mask_name):
-        p = CUI_IN / f
-        if p.exists():
-            p.unlink()
+    # ⚠️ 不要在这里删临时文件：调用方一轮内累计删除 >50 个文件会触发
+    #    [SAFE_DELETE_BULK_CONFIRM_REQUIRED]，**进程被直接终止**且结果丢失
+    #    （实测 p6 扫参跑到第 12 次就整轮死掉、SDXL 白跑 64s）。
+    #    临时文件统一留到最后用 cleanup 脚本按目录清理。
     return Image.fromarray(full)
 
 

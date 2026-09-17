@@ -404,7 +404,8 @@ def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.055,
               lam: float = 2.40, phase: float = 0.55, power: float = 1.35,
               dilate: int = 1, seed: int = 0,
               h_var: float = 0.22, lean_var: float = 0.15,
-              bow_var: float = 0.055, w_var: float = 0.15) -> tuple[Image.Image, np.ndarray]:
+              bow_var: float = 0.055, w_var: float = 0.15,
+              uni_scale: bool = False) -> tuple[Image.Image, np.ndarray]:
     """v339→v341：**前景树层风弯 + 逐树姿态改写**。
 
     为什么不用"逐元素刚体旋转"：本图的棕榈是**多笔画叠画**、相邻树冠互相压叠，
@@ -439,6 +440,12 @@ def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.055,
     sv = 1.0 + float(h_var) * (0.70 * np.cos(2.0 * np.pi * xx / (1.10 * W) + 0.70 + ph)
                                + 0.30 * np.sin(2.0 * np.pi * yy / (0.62 * H) + 1.90 + ph))
     sw = 1.0 + float(w_var) * np.sin(2.0 * np.pi * xx / (0.86 * W) + 2.30 + ph)
+    # uni_scale：让"冠幅"改用与"高度"**同一个**缩放场（逐树等比）。
+    # 为什么需要：h_var 只压纵向、w_var 只张横向 → 两者独立时，纵向压到 0.55 的那棵树
+    # 面积直接掉 45%（实测 P1 墨 18.59% vs 原 22.63%），且横向拉长显得"糊"；等比缩放
+    # 面积守恒、笔宽随树大小成比例（近大远细），符合本图的画法逻辑。
+    if uni_scale:
+        sw = sv
     lean = float(lean_var) * np.sin(2.0 * np.pi * xx / (0.72 * W) + 1.15 + ph)
     bowf = float(bow_var) * H * np.sin(2.0 * np.pi * xx / (0.58 * W) + 3.05 + ph)
     base = tree_base_anchor(ink)
@@ -481,7 +488,7 @@ def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.055,
 
 
 def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None,
-            rebirth_path: str | None = None) -> list[Path]:
+            rebirth_path: str | None = None, ink_override: str | None = None) -> list[Path]:
     p = dict(default_params())
     ic = base.get_image_cfg(cfg, image_path) or {}
     p.update({k: v for k, v in (ic.get("comfyui_params", {}).get("camo_palm_pattern", {}) or {}).items()})
@@ -547,7 +554,29 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None,
         _members[_gid].append(_m)
     _base = np.asarray(warped, np.float32)
     _rb = Path(rebirth_path) if rebirth_path else None
-    if _rb is not None and _rb.exists():
+    _ov = Path(ink_override) if ink_override else None
+    if _ov is not None and _ov.exists():
+        # v346（用户第 14 轮"树木的处理按照蝙蝠的裂变去试试"）：SDXL **重画**这条线
+        # 已实测穷尽且必然掉档 —— 棕榈是专业矢量线稿（最细叶 7px、干净硬边），
+        # SDXL 是软气刷生成，无论 ProteusV0.4 / CounterfeitXL、无论 6 组
+        # prompt×denoise×CN×LoRA 怎么扫，二值化后一律"绒毛毛边/粗团块" →
+        # 用户判"比原图丑"（红线）。故改用**整棵仿射换位**（`src/v346_p4aff.py`）：
+        # 34 棵树错排置换 + 各向异性缩放 + 切变倾斜 + 镜像 → 剪影 IoU 仅 0.15
+        # （v344 是 0.96，即"没看到明显变化"的根因），而线质与原图逐像素同档。
+        # 这里只做「把换位后的墨层叠到干净迷彩底上」；擦除用的仍是**原图墨迹**
+        # （步骤②已按原墨擦干净），所以不会留下原树残影。
+        ov = Image.open(_ov).convert("L")
+        if ov.size != (W, H):
+            ov = ov.resize((W, H), Image.LANCZOS)
+        ov.save(str(out_dir / "_p4_ovink.png"))
+        _a3 = (np.asarray(ov, np.float32) / 255.0)[..., None]
+        _blk = np.array([12.0, 10.0, 9.0], np.float32)[None, None, :]
+        out = _base * (1.0 - _a3) + _blk * _a3
+        res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
+        n_morph = -1
+        print(f"[camo_palm_pattern] ink_override: {_ov.name} "
+              f"墨={100*(np.asarray(ov) > 127).mean():.1f}% (原 {100*ink.mean():.1f}%)")
+    elif _rb is not None and _rb.exists():
         # v344（用户第 12 轮："让我裂变前面的树木元素，改变其剪影形状"）：前景棕榈改走
         # **SDXL 结构级重生** —— 剪影形状由模型重新生成（而不是把原树扭转 7° 那种
         # "位移"，用户读成"没变/乱做"）。与 v343 的 p4 "墨迹回硬"同法：
@@ -596,6 +625,11 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None,
                             lam=float(p.get("tree_wind_lam", 2.40)),
                             phase=float(p.get("tree_wind_phase", 0.55)),
                             power=float(p.get("tree_wind_power", 1.35)),
+                            h_var=float(p.get("tree_wind_h_var", 0.22)),
+                            lean_var=float(p.get("tree_wind_lean_var", 0.15)),
+                            bow_var=float(p.get("tree_wind_bow_var", 0.055)),
+                            w_var=float(p.get("tree_wind_w_var", 0.15)),
+                            uni_scale=bool(p.get("tree_wind_uni_scale", False)),
                             dilate=1, seed=sd)
         tw.save(str(out_dir / "_p4_trees_wind.jpg"), quality=95)
         _twa = np.asarray(tw, np.float32)

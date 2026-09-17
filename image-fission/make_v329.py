@@ -49,9 +49,18 @@ SRC = Path('E:/Desktop/图裂变测试图')
 # SUBJECT_REBIRTH=0 可回退纯 PIL 形变（对比/调试用）。
 REBIRTH_DIR = ROOT / 'jobs' / 'v342_rebirth'
 REBIRTH_FILES = {
-    'pinterest6': 'p6_rebirth_v344.jpg',
-    '6978': '6978_rebirth_v344.jpg',
-    'pinterest4': 'p4_rebirth_v344.jpg',
+    # v346（用户第 14 轮）：p6 换成「放宽回贴区」修复版。
+    # 真根因：引擎把 SDXL 的 inpainting 噪声掩膜设成 dilate(mask,18)、回贴 dilate(mask,12)
+    # → 新剪影物理上长不出原剪影，实测 v344 成品主体 IoU=0.867、行宽相关 0.995 →
+    # 用户"主体元素不去裂变"。加 wide=120（+ bg_gate=35 只让判为主体的环带贴回，
+    # protect 挡住标题带）后 IoU 降到 0.612、bbox 仍守在原框架内
+    # （x190-3319 vs 原 191-3324）、主体量 18.1% ≈ 原 17.4%、连通块反而更少更整
+    # （4053 vs 5585）→ 有真变化但无"多长翅膀/形体崩坏"。
+    # cn_strength/end 与用户认可的 6978 蝙蝠（.38/.45）同档。
+    'pinterest6': 'p6_rebirth_v346.jpg',
+    '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
+    # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
+    # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
 }
 
 
@@ -520,10 +529,28 @@ def do_b78e60():
 
 # ---------------------------------------------------------------- pinterest4
 def do_pinterest4():
-    # v344：前景棕榈剪影换 SDXL 重生版（保持迷彩底/版式；本图无文字）
-    _rb = _rebirth_path('pinterest4')
+    # v349（用户第 14 轮："树木的处理按照蝙蝠的裂变去试试"）—— 按蝙蝠方法落地：
+    # SDXL 低 cn 结构级重生（cn .35/end .45/dn .90，与 6978 蝙蝠同档）+ **放宽回贴区**
+    # （wide=120 + bg_gate=120/暗色门控）。放宽回贴区是本轮的关键修复：旧引擎把噪声掩膜
+    # 设成 dilate(mask,18)、回贴 dilate(mask,12) → 新剪影物理上长不出原剪影，实测 v344
+    # 成品与原图 IoU：p4=0.960 / p6=0.867（逐行宽度相关 0.99+）= 用户说的"没看到明显变化"。
+    # 本版实测剪影 IoU 0.517、墨量按原墨密度匹配（22.4%）→ 树形整个换新且不是"糊团"。
+    # ⚠️ 已实测穷尽且禁用的路线（写在这里防回退）：
+    #   · 程序化 palm_art 重画 → "刺球"（v330 用户已否）；
+    #   · 原图墨迹极坐标重组 → 细叶被重采样+高阶谐波撕成"刮痕"；
+    #   · 逐棵树裁块 SDXL 重生（34 棵 × 1024）→ 毛边糊团；
+    #   · 逐棵树切分 + 换位 → 本图墨迹互相连通（膨胀 r=2 就只剩 20 组、最大组占全墨 42%），
+    #     逐棵渲染发现大量"树干环纹条/树冠碎片"被当成独立的树 → 搬动后散成悬空细碎块；
+    #   · 平滑姿态场加大幅度 → 细高树干被高度相关侧移拉成斜纹/拉丝。
+    # P4_MODE=swap 可切换成"整棵刚体换位"保真备选（线质零损失，见 src/v346_p4aff.py）。
+    if os.environ.get('P4_MODE', '').lower() == 'swap':
+        _ov = ROOT / 'jobs' / 'v346_p4aff' / '_swap_alpha.png'
+        return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
+                           rebirth_path=None,
+                           ink_override=(str(_ov) if _ov.exists() else None))
+    _rb = ROOT / 'jobs' / 'v349_p4bat' / 'B1_wide120_cn35e45.jpg'
     return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
-                       rebirth_path=(str(_rb) if _rb else None))
+                       rebirth_path=(str(_rb) if _rb.exists() else None))
 
 
 # ---------------------------------------------------------------- 6978
