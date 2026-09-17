@@ -543,12 +543,28 @@ def do_pinterest4():
     #     逐棵渲染发现大量"树干环纹条/树冠碎片"被当成独立的树 → 搬动后散成悬空细碎块；
     #   · 平滑姿态场加大幅度 → 细高树干被高度相关侧移拉成斜纹/拉丝。
     # P4_MODE=swap 可切换成"整棵刚体换位"保真备选（线质零损失，见 src/v346_p4aff.py）。
+    # P4_MODE=hires 用 H2（max_side=2048 原生 1:1 重生）；P4_MODE=pre15 用 H3（预放大 1.5x
+    # 重生，笔宽 4.00 比原图 4.47 更细，线稿感更强）。默认 = H2。
     if os.environ.get('P4_MODE', '').lower() == 'swap':
         _ov = ROOT / 'jobs' / 'v346_p4aff' / '_swap_alpha.png'
         return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
                            rebirth_path=None,
                            ink_override=(str(_ov) if _ov.exists() else None))
-    _rb = ROOT / 'jobs' / 'v349_p4bat' / 'B1_wide120_cn35e45.jpg'
+    # v351（本轮）：**提高重生分辨率**是唯一有效的精修路线。原 B1 走 max_side=1536，
+    # 把 1382x1894 的裁块降采样到 0.811x 再升回 → 最细 7px 叶片只剩 ~5.7px 有效像素
+    # → 二值化后碎成短虚线。实测（src/v351_p4hires.py，其余参数只差 max_side）：
+    #   H1 ms1536（旧交付）: 墨 22.29% 笔宽 5.66 碎块 177
+    #   H2 ms2048 原生 1:1 : 墨 22.38% 笔宽 5.66 碎块 126  ← 墨/笔宽不变、碎块 -29%
+    #   H3 预放大 1.5x      : 墨 21.99% 笔宽 4.00 碎块 130（更细的另一种风格）
+    # ⇒ H2 是旧交付的**严格改进**（帕累托），故默认切 H2。
+    # 同期实测无用并已排除：局部密度阈值(v350)、厚度门控阈值(v350d)、门控闭运算(v350f，
+    # 细线区厚度 4.0→6.3~10.0)、全局阈值扫描 t54/t58（树干环纹被压成粗梯子）。
+    _mode = os.environ.get('P4_MODE', '').lower()
+    _rb = ROOT / 'jobs' / 'v351_p4hires' / (
+        'H3_pre15_ms4096_raw.jpg' if _mode in ('pre15', 'hires15')
+        else 'H2_ms2048_raw.jpg')
+    if not _rb.exists():
+        _rb = ROOT / 'jobs' / 'v349_p4bat' / 'B1_wide120_cn35e45.jpg'
     return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
                        rebirth_path=(str(_rb) if _rb.exists() else None))
 
