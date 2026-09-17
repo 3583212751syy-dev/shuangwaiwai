@@ -187,21 +187,21 @@ def do_pinterest3():
         ys, xs = np.where(m_i)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()) + 1, int(ys.min()), int(ys.max()) + 1
         R = 0.5 * max(x1 - x0, y1 - y0)
-        # v338：pad 0.30R+16 → 0.45R+20（小元素新增 ±11.5° 斜掠 + 1.3x 体型，
-        # 形变后可能超出原 bbox；pad 不够会被裁掉翼尖）
-        pad = int(R * 0.45) + 20
+        # v342：pad 0.45R+20 → 0.75R+28。小蝶改"旋转 + 1.16~1.24x 等比"后，翼尖离质心
+        # 最远可达 ~1.75R（旋转不改变距离、等比把它乘大）→ 旧 pad 会把翼尖裁平（"缺角"）。
+        pad = int(R * 0.75) + 28
         bx0, by0 = max(0, x0 - pad), max(0, y0 - pad)
         bx1, by1 = min(W, x1 + pad), min(H, y1 + pad)
         sub_m = np.zeros((H, W), bool)
         sub_m[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
         rgba, mbox = smod.make_layer(src_img, sub_m, feather=1.4, box=(bx0, by0, bx1, by1))
         hh, ww = rgba.shape[:2]
-        if area > 50000:                         # 主蝴蝶：翼姿态变化（已获用户认可，不动）
-            dyy, dxx = smod.wing_pose((ww, hh), cx=float(xs.mean()) - bx0,
-                                      cy=float(ys.mean()) - by0,
-                                      theta=-0.34, pivot_dx=20.0, ramp=(12.0, 150.0),
-                                      k_up=0.0, span=1.10, tip_flick=-26.0,
-                                      tip_ramp=(80.0, 170.0))
+        if area > 50000:
+            # v342：**主体大蝴蝶原样保留**。用户第 11 轮："没让你把我主体大蝴蝶也修改，
+            # 也不允许私自做这种剪切效果" —— 旧版对主蝶跑 wing_pose 剪切（theta=-0.34,
+            # span=1.10, tip_flick=-26）→ 用户一眼看出"被改/被剪"。这里整只跳过：
+            # 不擦、不 warp、不贴回 → 主蝶像素零改动（连 1px 羽化都不动）。
+            continue
         else:
             # v336（用户："通过叠加乱七八糟达到裂变糊弄我"）：废 v335 镜像+缩放
             # （朝向/大小一变 = 贴纸感，用户一眼识破）。改**原位翅姿形变**：与主蝶
