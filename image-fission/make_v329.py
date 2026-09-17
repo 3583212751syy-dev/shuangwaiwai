@@ -173,6 +173,8 @@ def do_pinterest3():
     clab, cn = tf.ndi.label(cand, structure=np.ones((3, 3), bool))
     rng3 = np.random.default_rng(303)
     n_bf = 0
+    small_layers = []                            # v339：(rgba, 层内质心, 全图质心, area)
+    trail_ends = []                              # v339：每条轨迹的 (近端, 远端) 全图坐标
     dots = np.zeros((H, W), bool)                # v336: 虚线点收集（轨迹重画用）
     for i in range(1, cn + 1):
         m_i = clab == i
@@ -216,18 +218,24 @@ def do_pinterest3():
             # 位置仍**锚在原处**（绕自身质心变化，不搬移/不缩放整体尺寸），所以仍读得出关联。
             # 两条物理通道沿用（见下），互不干扰，细附件不会被拉丝。
             cxl, cyl = float(xs.mean()) - bx0, float(ys.mean()) - by0
+            # 幅度定稿（v339，用户第 10 轮："小元素裂变效果可以比主图要大一点，多点创意"）
+            # ⚠️ 实测：把"翅角 + 翼展 + 各向异性缩放 + 斜掠 + 翼尖甩"五重叠加在同一只
+            # 小蝶上 → 刺绣细节被搅成"糊团蝴蝶"（探针 p3_p1.jpg 第 2 行）。
+            # 小元素最干净的"更狠" = **刚体旋转 + 等比放大 + 小翅角**（等比/旋转是线性
+            # 场，刺绣针脚零扭曲）。定稿：
+            #   偶数只：×1.22 + 右倾 15° + 翼展 0.92（收翅立姿）
+            #   奇数只：×1.14 + 左倾 13° + 翼展 1.08（展翅扁姿）
             ev = (n_bf % 2 == 0)
-            # 偶数只：纵向拉长 1.30 / 横向收窄 0.84 + 双翅上扬 0.30rad + 翼展 1.12（修长立翅）
-            # 奇数只：纵向压扁 0.82 / 横向展宽 1.28 + 双翅下压 0.26rad + 翼展 0.88（扁宽展翅）
-            # 并各带 ±0.20rad 整体斜掠（偶数右倾、奇数左倾）→ 两只一眼可分、又同族。
-            # 幅度定稿（v338b）：±20% 体型 / ±15° 翅角 / 翼展 0.90-1.10 / ±8° 整体斜掠。
-            # 实测 1.30x 会把后翅拉成"泪滴"（不自然），20% 仍明显但翼形保住。
-            sx, sy = (0.86, 1.20) if ev else (1.20, 0.86)
-            th, span_ = (0.26, 1.10) if ev else (-0.22, 0.90)
-            tilt = 0.14 if ev else -0.14
+            if ev:
+                sx = sy = 1.22
+                th, span_, tilt, flick = 0.16, 0.92, 0.26, 0.0
+            else:
+                sx = sy = 1.14
+                th, span_, tilt, flick = -0.13, 1.08, -0.23, 0.0
             dyr, dxr = smod.wing_pose((ww, hh), cx=cxl, cy=cyl, theta=th,
                                       pivot_dx=0.34 * R, ramp=(0.30 * R, 1.00 * R),
-                                      k_up=0.0, span=span_, tip_flick=0.0)
+                                      k_up=0.0, span=span_, tip_flick=flick,
+                                      tip_ramp=(0.62 * R, 1.10 * R))
             _sol = tf.ndi.binary_opening(m_i[by0:by1, bx0:bx1], structure=tf._disk(3))
             if _sol.sum() < 0.25 * max(1, int(m_i[by0:by1, bx0:bx1].sum())):
                 _sol = m_i[by0:by1, bx0:bx1]
@@ -247,6 +255,9 @@ def do_pinterest3():
                 dyy = dyy + ((_u * _sa + _v * _ca) - _v)
                 dxx = dxx + ((_u * _ca - _v * _sa) - _u)
         wlay = smod.warp_layer(rgba, (dyy.astype(np.float32), dxx.astype(np.float32)), order=1)
+        if area <= 50000:
+            small_layers.append((rgba.copy(), (cxl, cyl),
+                                 float(xs.mean()), float(ys.mean()), area))
         # v337 关键修复：**先擦原蝶再贴回形变层**。此前只有 paste（原图仍带原蝶）→
         # 形变层叠在原蝶上 = 半透明叠影；振幅一小就"看不出变化"（用户历轮反馈），
         # 放大就"糊成一团"。背景是纯平灰，const 擦除零痕迹。
@@ -317,6 +328,7 @@ def do_pinterest3():
                 unv.discard(nxt)
             C = C[order]
             rads = [rads[j] for j in order]
+            trail_ends.append((C[0].astype(np.float32).copy(), C[-1].astype(np.float32).copy()))
             seg = np.hypot(np.diff(C[:, 0]), np.diff(C[:, 1]))
             t = np.concatenate([[0.0], np.cumsum(seg)])
             t = t / max(float(t[-1]), 1e-6)
@@ -363,6 +375,67 @@ def do_pinterest3():
             res = Image.fromarray(np.clip(reg, 0, 255).astype(np.uint8), 'RGB')
             n_tr += 1
     print(f'[pinterest3] trails redrawn={n_tr}')
+
+    # ---- v339 创意小元素修饰：**由主体刺绣蝶派生的迷你蝶飞行队列** ----
+    # 用户第 10 轮："小元素裂变效果可以比主图要大一点，多点创意效果，根据主体元素
+    # 生成相关小元素修饰。" 做法：取已有的小蝶像素层（与原图同材质/同刺绣质感），
+    # 等比缩小 0.58 / 0.40 并旋转，沿每条虚线轨迹的**远端外侧**依次排成一列
+    # （近大远小 = 飞行动线延伸），形成"蝶群"。
+    # 硬约束：① 只用原图元素像素派生（不程序化新画）；② 避开 DENIM 文本带与主蝶；
+    # ③ 贴出画布外则跳过。位置在全图坐标系里做边界与碰撞检查。
+    n_mini = 0
+    if small_layers:
+        # 禁区 = 字母带 ∪ 主蝶紧框(外扩 12) ∪ 小蝶紧框(外扩 12) ∪ 轨迹点(外扩 24)。
+        # ⚠️ 不能用"主蝶掩膜"当禁区：主蝶四周的**磨边白须** min-channel>222，不算
+        # 前景 → 掩膜漏掉，迷你蝶会压到毛边上（实测第一版就压在主蝶左缘）。
+        occ = np.zeros((H, W), bool)
+        occ[0:360, :] = True
+        for i in range(1, cn + 1):
+            m_ = clab == i
+            a_ = int(m_.sum())
+            if a_ < 2500:
+                continue
+            ys_, xs_ = np.where(m_)
+            occ[max(0, ys_.min() - 12):ys_.max() + 13,
+                max(0, xs_.min() - 12):xs_.max() + 13] = True
+        occ = tf.ndi.binary_dilation(occ, structure=tf._disk(1))
+        # 两块**已验证空场**（原图那里是纯灰底）：左上（文字带下、主蝶上、小蝶左）
+        # 与 右下（主蝶下、小蝶右）。迷你蝶排成"近小远大的飞行动线"，朝向小蝶。
+        src = max(small_layers, key=lambda s: s[4])          # 用面积最大的那只小蝶做源
+        rgba_s = src[0]
+        queues = [
+            # (x, y, scale, rotate_rad)
+            (128, 478, 0.36, -0.30), (232, 452, 0.46, -0.18), (336, 424, 0.58, -0.06),
+            (630, 1252, 0.36, 0.34), (528, 1224, 0.46, 0.20), (424, 1192, 0.58, 0.08),
+        ]
+        for (cx_t, cy_t, sc, ang) in queues:
+            lay = Image.fromarray(np.clip(rgba_s, 0, 255).astype(np.uint8), 'RGBA')
+            lay = lay.resize((max(1, int(round(lay.width * sc))),
+                              max(1, int(round(lay.height * sc)))), Image.LANCZOS)
+            lay = lay.rotate(math.degrees(ang), resample=Image.BICUBIC,
+                             expand=True, fillcolor=(0, 0, 0, 0))
+            la = np.asarray(lay, np.float32)
+            if la.shape[2] < 4:
+                continue
+            lh, lw = la.shape[:2]
+            px_ = int(round(cx_t - lw / 2.0))
+            py_ = int(round(cy_t - lh / 2.0))
+            if px_ < 4 or py_ < 4 or px_ + lw > W - 4 or py_ + lh > H - 4:
+                print(f'[p3-mini] skip(OOB) @({cx_t},{cy_t}) sc={sc}')
+                continue
+            al = np.clip(la[..., 3] / 255.0, 0.0, 1.0)
+            cov = al > 0.30
+            gsel = np.zeros((H, W), bool)
+            gsel[py_:py_ + lh, px_:px_ + lw] = cov
+            if (gsel & occ).any():
+                print(f'[p3-mini] skip(occupy) @({cx_t},{cy_t}) sc={sc}')
+                continue
+            reg = np.asarray(res, np.float32).copy()
+            sub = reg[py_:py_ + lh, px_:px_ + lw]
+            reg[py_:py_ + lh, px_:px_ + lw] = sub * (1 - al[..., None]) + la[..., :3] * al[..., None]
+            res = Image.fromarray(np.clip(reg, 0, 255).astype(np.uint8), 'RGB')
+            n_mini += 1
+    print(f'[pinterest3] mini-butterflies added={n_mini}')
 
     res.save(OUT / 'pinterest3_variant.jpg', quality=93)
     print(f'[pinterest3] letters={len(letters)} word={word!r} -> {OUT}')
@@ -690,6 +763,25 @@ def do_6978():
     dxx = dxx + _wR * (1.0 / B_ASY - 1.0) * (gxL - _cx)
     dyy = dyy + _wR * (1.0 / B_ASY - 1.0) * (gyL - _cy)
 
+    # ② 双翼绕肩**换姿态**（v339，用户第 10 轮："主体蝙蝠你到底裂不裂变了"）
+    # 纯仿射扩张只把蝠"拉高变壮"，轮廓形状没变 → 用户仍读成"没裂变"。
+    # 这里加真正的姿态变化：左右翼绕各自肩点旋转（**不等角 = 斜掠**）。
+    # 腾空区落在**碟内平滑紫**（见 v338_mask_on_plate 取证：底板蝠位是均匀紫），
+    # nn 回填无痕；权重带 (1-ylow) 冻结翼底 y>600 以下，避免下翼被拖成滴痕。
+    # 符号铁律：_rotB(theta) 等价内容旋转 φ=-theta → 左翼 theta<0、右翼 theta>0 = 上扬。
+    B_ROTL = float(os.environ.get('BAT_ROTL', 0.20))
+    B_ROTR = float(os.environ.get('BAT_ROTR', 0.32))
+    ylow = np.clip((gyL - 600.0) / 300.0, 0.0, 1.0)
+    ylow = ylow * ylow * (3.0 - 2.0 * ylow)
+    wWL = np.clip(tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_c & (gxL < 735), structure=tf._disk(6)).astype(np.float32),
+        14.0), 0.0, 1.0) * (1.0 - ylow)
+    wWR = np.clip(tf.ndi.gaussian_filter(
+        tf.ndi.binary_dilation(bat_c & (gxL > 817), structure=tf._disk(6)).astype(np.float32),
+        14.0), 0.0, 1.0) * (1.0 - ylow)
+    dyy, dxx = _rotB(dyy, dxx, wWL, 700.0, 600.0, -B_ROTL)
+    dyy, dxx = _rotB(dyy, dxx, wWR, 852.0, 600.0, B_ROTR)
+
     # ③ 抬头 + 头放大（头在碟内上部 r≈0.55-0.75，腾空区是**平滑紫**，nn 回填无痕）
     head_core = bat_c & (np.abs(gxL - 767.0) < 115.0) & (gyL < 620.0)
     wH = np.clip(tf.ndi.gaussian_filter(head_core.astype(np.float32), 18.0), 0.0, 1.0)
@@ -838,12 +930,22 @@ def do_6978():
                       char_spacing_px=2)
     out.save(OUT / '6978_variant.jpg', quality=93)
     print(f'[6978] lines={len(lines)} arc r={r:.0f}(orig) cap*1.02 shift+4deg spacing=2 '
-          f'bat=仿射扩张 x{SXL:.2f}/y{SYL:.2f}(枢轴y{_pyv:.0f})'
+          f'bat=仿射扩张x{SXL:.2f}/y{SYL:.2f}+双翼绕肩换姿L{B_ROTL:.2f}/R{B_ROTR:.2f}(不等=斜掠)'
           f'+head-{B_HL:.0f}x{B_HSC:.2f}+tailSway{B_TSW:.0f}px')
     return out
 
 
 # ---------------------------------------------------------------- pinterest6
+# v340：p6 主体裂变振幅（可用环境变量覆盖，便于探针扫参）
+# 第 10 轮用户："主体老鹰和骷髅头我一直说要裂变就是没有变" —— 旧版翼角仅 0.16/0.13rad
+# （翼尖位移 ~110px），且**双角完全没动**，在自相似插画上肉眼读不出来。
+P6_WL = float(os.environ.get('P6_WL', 0.30))     # 左翼绕肩上扬（rad，>0=顺时针=抬）
+P6_WR = float(os.environ.get('P6_WR', 0.22))     # 右翼（不等角 → 斜掠）
+P6_SK = float(os.environ.get('P6_SK', 0.13))     # 骷髅倾斜
+P6_HORN = float(os.environ.get('P6_HORN', 0.20))  # 双角外掀（绕角根）
+P6_JAW = float(os.environ.get('P6_JAW', 85.0))   # 下颌下沉（张嘴）px
+
+
 def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     """黑金属尖刺标题：擦掉旧标题（保留背景蓝烟），换上同字身高的尖刺字标。
 
@@ -925,23 +1027,34 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     H6, W6 = a6.shape[:2]
     yy6, xx6 = np.mgrid[0:H6, 0:W6].astype(np.float32)
 
-    def _wregion(m, close_r=21, frac=0.12):
+    def _wregion(m, close_r=21, frac=0.12, biggest_only=False):
         m = tf.ndi.binary_dilation(m, structure=tf._disk(7))
         m = tf.ndi.binary_closing(m, structure=tf._disk(close_r))
         lab, n = tf.ndi.label(m, structure=np.ones((3, 3), bool))
         if n:
             sz = tf.ndi.sum(np.ones_like(lab), lab, range(1, n + 1))
             keep = np.zeros(n + 1, bool)
-            keep[1:] = sz >= sz.max() * frac          # union 大组件（碎片全收，防 v334 碎片化）
+            if biggest_only:
+                keep[int(np.argmax(sz)) + 1] = True       # v340：只取最大组件（整只角）
+            else:
+                keep[1:] = sz >= sz.max() * frac          # union 大组件（碎片全收，防 v334 碎片化）
             m = keep[lab]
         m = tf.ndi.binary_fill_holes(m)
         w = tf.ndi.gaussian_filter(m.astype(np.float32), 36.0)
-        return w / max(float(w.max()), 1e-6)          # 归一化峰值=1，部件内全场饱和
+        return w / max(float(w.max()), 1e-6)              # 归一化峰值=1，部件内全场饱和
 
     wL = _wregion(brown6 & (xx6 < 1450) & (yy6 > 380) & (yy6 < 2380))
     wR = _wregion(brown6 & (xx6 > 2360) & (yy6 > 380) & (yy6 < 2380))
     wSK = _wregion(white6 & (((xx6 - 1850.0) / 620.0) ** 2
                              + ((yy6 - 3050.0) / 800.0) ** 2 <= 1.0), close_r=17, frac=0.20)
+    # v340：**整只角**（旧版完全没动 → 用户读成"主体没裂变"）。
+    # 角是可分离的大组件（实测左角 sz=306422 bbox x[347,1219] y[2188,3433]；右角 sz=247690
+    # x[2313,3165] y[2201,3231]），故用 biggest_only 取整只，绝不用 y 硬切
+    # （v340a 用 y>2450 切 → 角尖被截断、角变细，肉眼可见缺陷）。
+    wHL = _wregion(brown6 & (xx6 < 1500) & (yy6 > 1950) & (yy6 < 3600),
+                   close_r=21, biggest_only=True)
+    wHR = _wregion(brown6 & (xx6 > 2200) & (yy6 > 1950) & (yy6 < 3600),
+                   close_r=21, biggest_only=True)
 
     def _rot6(dyy, dxx, w, px, py, theta):
         ang = -theta * w                              # 采样端 -θ ⇔ 显示端 +θ（θ>0 顺时针）
@@ -950,14 +1063,32 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
         dy0 = yy6 - py
         return dyy + (dx0 * sa + dy0 * ca) - dy0, dxx + (dx0 * ca - dy0 * sa) - dx0
 
+    def _rramp(w, px, py, r0, r1):
+        """v340：径向斜坡 —— 让位移在**部件与邻接内容（躯干/爪/颅）的交界处 → 0**。
+        根因：区域权重只有轮廓处才有 0→1 的过渡带（σ36≈100px），0.3rad 的旋转要在
+        这 100px 里吸收 r·θ≈180px 的位移 → 局部 2.8× 拉伸。带的背景是黑/射线时看不出来，
+        压在**棕色躯干**上就是“翼根一团黑斑”（第 10 轮实测 y2250 x1250 处）。
+        乘一层径向斜坡后：交界处 θ_eff→0（无拉伸），翼尖保持满幅 → 形变仍肉眼可辨。"""
+        rr = np.sqrt((xx6 - px) ** 2 + (yy6 - py) ** 2)
+        t = np.clip((rr - float(r0)) / max(1e-6, float(r1) - float(r0)), 0.0, 1.0)
+        t = t * t * (3.0 - 2.0 * t)
+        return w * t
+
     dyy = np.zeros((H6, W6), np.float32)
     dxx = np.zeros((H6, W6), np.float32)
-    dyy, dxx = _rot6(dyy, dxx, wL, 1450.0, 1700.0, 0.16)    # 左翼上扬 9.2°
-    dyy, dxx = _rot6(dyy, dxx, wR, 2400.0, 1700.0, -0.13)   # 右翼上扬 7.4°（不对称）
-    dyy, dxx = _rot6(dyy, dxx, wSK, 1850.0, 2950.0, -0.07)  # 骷髅左倾 4.0°
-    # 下颌下沉 55px（张嘴）：y 3300..3750 带内、骷髅权重内，平滑过渡
+    # 翼：r0=480 起才动（翼根与躯干交界 0 位移 → 无黑斑），r1=1350 到满幅（翼尖位移 ~330px）
+    dyy, dxx = _rot6(dyy, dxx, _rramp(wL, 1450.0, 1700.0, 480.0, 1350.0), 1450.0, 1700.0, P6_WL)
+    dyy, dxx = _rot6(dyy, dxx, _rramp(wR, 2400.0, 1700.0, 480.0, 1350.0), 2400.0, 1700.0, -P6_WR)
+    dyy, dxx = _rot6(dyy, dxx, _rramp(wSK, 1850.0, 2950.0, 350.0, 1000.0), 1850.0, 2950.0, -P6_SK)
+    dyy, dxx = _rot6(dyy, dxx, _rramp(wHL, 1180.0, 3000.0, 180.0, 1150.0), 1180.0, 3000.0, -P6_HORN)
+    dyy, dxx = _rot6(dyy, dxx, _rramp(wHR, 2520.0, 3000.0, 180.0, 1150.0), 2520.0, 3000.0, P6_HORN)
+    # 下颌下沉（张嘴）：y 3300..3750 带内、骷髅权重内，平滑过渡
     jw = smod.smoothstep(yy6, 3260.0, 3450.0) * (1.0 - smod.smoothstep(yy6, 3720.0, 3920.0))
-    dyy = dyy - 55.0 * jw * wSK
+    dyy = dyy - P6_JAW * jw * wSK
+    _mag = np.sqrt(dyy * dyy + dxx * dxx)
+    print(f'[p6-subj] maxdisp={_mag.max():.0f}px p99={np.percentile(_mag, 99):.0f}px '
+          f'WL={P6_WL} WR={P6_WR} SK={P6_SK} HORN={P6_HORN} JAW={P6_JAW:.0f} '
+          f'hornLpx={int(wHL.sum())} hornRpx={int(wHR.sum())}')
     coords6 = [yy6 + dyy, xx6 + dxx]
     o6 = np.empty_like(a6)
     for c in range(3):
@@ -967,7 +1098,15 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     wvis = np.clip(np.stack([wL, wSK, wR], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis, 'RGB').save(VIS / 'v335_p6_weights.jpg', quality=90)
 
-    # ---- 字标贴回 ----
+    # ---- 字标贴回（v340：对齐原图标题排版框）----
+    # 第 10 轮用户批评："新的文本跟原图文本的排版位置大小不符合"。
+    # 旧版只用「字身高」定标（tgt=1200）→ 新标只占全宽 70%、且顶到 y=60，
+    # 左右各留一条黑带，视觉上比原标题又小又高。实测原图 MRCHOSR 白墨：
+    #   bbox y[88,1800] h=1713、x[12,3524] w=3513（见 jobs/_probe/p6_geo2.py）
+    # 字标 slab 的宽高比 2.063 与原图 2.052 几乎相等 → 纯等比：
+    # 只对齐**横向满幅**（宽=3513）再让 ink 顶落到 y=88，两个 bbox 即重合。
+    TGT_W = 3513.0          # 原图标题白墨全幅宽
+    TOP_Y = 88.0            # 原图标题白墨顶
     G = VIS / 'elemgen_mid' / WORD_SRC
     if G.exists():
         g = Image.open(G).convert('L')
@@ -983,10 +1122,15 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
         y1 = min(by1, int(dense.max()) + pad)
         sub = ga[y0:y1, bx0:bx1]
         sh, sw = sub.shape
-        sc = tgt / sh
+        sc = float(TGT_W) / float(sw)                        # v340：按原图横向满幅定标
         tw, th = int(round(sw * sc)), int(round(sh * sc))
         gly = Image.fromarray((sub * 255).astype(np.uint8), 'L').resize((tw, th), Image.LANCZOS)
         aa = np.asarray(gly, np.float32) / 255.0
+        # ink 顶对齐：sub 内首行有墨的行号（乘 sc 得落位后的偏移）
+        _ri = np.where((sub > 0.35).any(1))[0]
+        _ink_top = int(_ri.min()) if len(_ri) else 0
+        cy_place = int(round(TOP_Y - _ink_top * sc))
+        cy_place = max(0, min(cy_place, H - th))
         a = np.zeros((H, W), np.float32)
         cx0 = (W - tw) // 2
         a[cy_place:cy_place + th, cx0:cx0 + tw] = aa
@@ -997,7 +1141,8 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
             np.array([238, 240, 248], np.float32)[None, None, :] * a[..., None]
         out = Image.fromarray(np.clip(o, 0, 255).astype(np.uint8), 'RGB')
     out.save(OUT / 'pinterest6_variant.jpg', quality=93)
-    print(f'[pinterest6] erase_px={int(mask.sum())} title={tw}x{th}@{cy_place}')
+    print(f'[pinterest6] erase_px={int(mask.sum())} title={tw}x{th}@x{cx0} y{cy_place} '
+          f'(orig x[12,3524] y[88,1800])')
     return out
 
 

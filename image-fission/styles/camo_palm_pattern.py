@@ -45,6 +45,7 @@ def default_params() -> dict:
         "height_hi": 0.27,
         "lw_scale": 1.0,            # 线宽倍率
         "ink_darken": 0.75,         # 0=用原墨色, 1=纯黑
+        "tree_bend": 1.0,           # v339 树"风弯"倍率（冠顶侧移 = 0.24×树高×该值）
         "seed": 8888,
     }
 
@@ -306,13 +307,15 @@ def _element_kind(area: int, w_: int, h_: int) -> str:
     return "tuft"
 
 
-def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndarray] | None:
+def _element_disp(rgba: np.ndarray, kind: str, rng,
+                  bend: float = 0.24, crown_rot: float = 0.22,
+                  toward: float = 1.0) -> tuple[np.ndarray, np.ndarray] | None:
     """层坐标系位移场：绕枢轴的加权旋转（显示端旋转 +θ ⇔ 采样端旋转 -θ）。
 
-    · tree：枢轴在**根部**（元素最低点的中轴）→ 树冠摇摆而树干根部不动；
-    · tuft：枢轴在质心 → 整穗涡旋扭转（穗刺重新排布）；
-    · dash：绕自身中心微转；dot：不动。
-    只改方向，不改位置/大小（硬规则：同位同大）。
+    · tree：**风弯** —— 干身沿高度幂律侧弯（根不动、冠顶侧移 bend×树高）+ 冠部姿态旋转；
+    · tuft：枢轴移到叶柄端（下缘 18%）→ 整穗甩动（穗刺重新排布）；
+    · dash：绕自身中心转；dot：不动。
+    位置/大小不变（根仍在原处、冠幅不变），只改姿态（硬规则：同位同大）。
     """
     hh, ww = rgba.shape[:2]
     m = rgba[..., 3] > 120
@@ -321,19 +324,45 @@ def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndar
     ys, xs = np.where(m)
     cx, cy = float(xs.mean()), float(ys.mean())
     R = 0.5 * max(xs.max() - xs.min(), ys.max() - ys.min()) + 10.0
+    yy_ = np.mgrid[0:hh, 0:ww][0].astype(np.float32)
+    xx_ = np.mgrid[0:hh, 0:ww][1].astype(np.float32)
     # v334（用户："前面树木乱七八糟，排版有没有点审美"）：废**逐元素随机角**——
-    # 91 个元素各自乱转 = 噪声不是设计。本版改**统一设计性倾斜**：同类元素同向同角
-    # （树全部向右倾 7°、穗全部同向扭转、横线一致微倾），只留 ±0.02rad 微抖动保手工感
-    # → 排列有规律、有韵律，远看是"设计过的图案"而非"被吹乱的树林"。
+    # 91 个元素各自乱转 = 噪声不是设计。本版改**统一设计性倾斜**：同类元素同向同角，
+    # 只留 ±0.03rad 微抖动保手工感 → 排列有规律、有韵律。
     if kind == "tree":
-        px, py = cx, float(ys.max())
-        theta = 0.12 + float(rng.uniform(-0.02, 0.02))
-    elif kind == "tuft":
-        px, py = cx, cy
-        theta = 0.26 + float(rng.uniform(-0.02, 0.02))
+        # v339（用户第 10 轮："前面的树是不会裂变吗"）：旧版 tree 只绕根部转 6.9°，
+        # 树冠位移 ~40px（树高 300-500px）→ 肉眼读成"没变"。
+        # 新设计 = **风弯**：① 干身沿高度做幂律侧弯（根部 0、树冠最大，弯成自然弧线）
+        # ② 树冠（上 45%）再叠一次绕冠心的姿态旋转（叶片扇形重新排布）。
+        # 位置/大小不变（根仍在原处、冠幅不变），只改姿态——正是"同构异姿"。
+        h_tree = float(ys.max() - ys.min()) + 1.0
+        yroot = float(ys.max())
+        t = np.clip((yroot - (yy_)) / h_tree, 0.0, 1.0) ** 1.6      # 0=根 1=冠顶
+        A = bend * h_tree                                            # 冠顶侧移量
+        d_y = np.zeros_like(t)
+        d_x = (A * t).astype(np.float32)
+        # 冠部姿态旋转（绕冠心），只作用上半段，smoothstep 过渡避免颈部错位
+        crown = np.clip((yroot - yy_) / h_tree, 0.0, 1.0)
+        cw = smod.smoothstep(crown, 0.55, 0.92)
+        if cw.any():
+            yc = float(ys.min()) + 0.28 * h_tree
+            dxc = xx_ - cx
+            dyc = yy_ - yc
+            angc = -crown_rot * cw
+            cac, sac = np.cos(angc), np.sin(angc)
+            rx = dxc * cac - dyc * sac
+            ry = dxc * sac + dyc * cac
+            d_x = d_x + (rx - dxc)
+            d_y = d_y + (ry - dyc)
+        return d_y.astype(np.float32), d_x.astype(np.float32)
+    if kind == "tuft":
+        # v339：穗（叶冠/草丛）姿态旋转加大 0.26→0.40，并把枢轴放到叶柄端（下缘），
+        # 让扇形整体"甩"起来而不是自转。
+        px, py = cx, float(ys.max()) - 0.18 * (ys.max() - ys.min())
+        theta = 0.40 * toward + float(rng.uniform(-0.03, 0.03))
     elif kind == "dash":
         px, py = cx, cy
-        theta = 0.08 + float(rng.uniform(-0.01, 0.01))
+        theta = 0.14 * toward + float(rng.uniform(-0.02, 0.02))
     else:
         return np.zeros((hh, ww), np.float32), np.zeros((hh, ww), np.float32)
     yy, xx = np.mgrid[0:hh, 0:ww].astype(np.float32)
@@ -345,6 +374,52 @@ def _element_disp(rgba: np.ndarray, kind: str, rng) -> tuple[np.ndarray, np.ndar
     rx = dx0 * ca - dy0 * sa
     ry = dx0 * sa + dy0 * ca
     return (ry - dy0).astype(np.float32), (rx - dx0).astype(np.float32)
+
+
+def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.075,
+              lam: float = 2.40, phase: float = 0.55, power: float = 1.35,
+              dilate: int = 4, seed: int = 0) -> tuple[Image.Image, np.ndarray]:
+    """v339：**前景树层整体风弯**。
+
+    为什么不用"逐元素刚体旋转"：本图的棕榈是**多笔画叠画**、相邻树冠互相压叠，
+    连通分组实测会把 5 棵树并成一块 938×1075 的巨块（91 笔画 → 仅 11 组，最大一组
+    跨半张图）→ 按"组高"算弯曲量会得到 400px 的荒谬位移，树被搬走。
+    改为**位移只依赖坐标的全局平滑场**：
+        t  = (1 - y/H)^power      （底部 0 → 顶部 1，根不动、越高弯越多）
+        g  = cos(2πx/(lam·W) + phase)  （横向阵风：左半向右弯、右半向左弯）
+        dx = amp·H·t·g ，dy = 0
+    同一棵树内场随 y 连续增大 → 树干与叶冠**天然同步弯曲，绝不脱节**；
+    相邻树因 g 的相位不同而弯向不同 → 读成"一阵风穿过树林"而不是整片刚性平移。
+    位置/大小基本保持（底部与阵风节点处位移≈0），只改姿态。
+    """
+    a = np.asarray(img.convert("RGB"), np.float32)
+    H, W = ink.shape
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    t = np.clip(1.0 - yy / float(H), 0.0, 1.0) ** float(power)
+    g = np.cos(2.0 * np.pi * xx / (float(lam) * W) + float(phase))
+    # 叠加一个更长的副谐波（整幅呼吸），避免整列同向的机械感。
+    # ⚠️ 副谐波**波长必须远大于一棵树**（实测 0.47W≈580px ≈ 树宽 → 阵风节点落在
+    # 树身上，树被左右撕成一条横向黑涂抹）。
+    g = g + 0.30 * np.sin(2.0 * np.pi * xx / (1.75 * W) + phase * 2.1 + 0.9)
+    dx = (float(amp) * H * t * g).astype(np.float32)
+    dy = np.zeros_like(dx)
+    # ⚠️ dilate 必须≤1：树外圈若包进 4px，会把**原迷彩色**一起带进层，
+    # 贴到新迷彩上就是一圈浅色包边（实测 dilate=4 时黑剪影外一圈米色描边）。
+    al = (ndi.binary_dilation(ink, structure=tf._disk(int(dilate)))
+          if dilate > 0 else ink).astype(np.float32)
+    # ⚠️ 必须 mode="constant"（越界→0）。用 nearest 会把图缘列复制成整条黑竖纹
+    # （实测顶部左缘被拖出一条粗黑涂抹）。
+    coords = [yy + dy, xx + dx]
+    out = np.empty_like(a)
+    for c in range(3):
+        out[..., c] = ndi.map_coordinates(a[..., c], coords, order=1,
+                                          mode="constant", cval=0.0, prefilter=False)
+    alw = ndi.map_coordinates(al, coords, order=1, mode="constant", cval=0.0,
+                              prefilter=False)
+    alw = np.clip(ndi.gaussian_filter(alw, 0.65), 0.0, 1.0)
+    print(f"[tree_wind] amp={amp} lam={lam} |dx|max={np.abs(dx).max():.0f}px "
+          f"|dx|mean={np.abs(dx).mean():.1f}px")
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB"), alw
 
 
 def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) -> list[Path]:
@@ -397,13 +472,12 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
                          sp_min=200, sp_aa=1.6)
     warped.save(str(out_dir / "_p4_warped.jpg"), quality=95)
 
-    # ④ 逐元素结构形变贴回（100% 取自原图元素，同位同大，姿态各异）
+    # ④ 前景树层：**整体风弯**（v339 用户第 10 轮："前面的树是不会裂变吗"）
+    # 旧版逐"元素部落"绕枢轴转 6.9°，树冠位移仅 ~40px → 肉眼读成"没变"；
+    # 而按部落高度放大弯曲量又会踩坑（相邻树冠互相压叠，连通分组把 5 棵树并成
+    # 一块 938×1075 巨块 —— 见 tree_wind 文档）。改全局平滑风场：干与冠同步弯、
+    # 相邻树弯向不同（阵风），位移量 ~0.075H ≈ 90-130px，肉眼一眼可辨。
     lab, n = ndi.label(ink, structure=np.ones((3, 3), bool))
-    # v337 关键修复：**把"笔画级"连通块聚成"元素级"部落**。这幅图的棕榈叶冠是用
-    # 许多**独立笔画**画的（91 个连通块 ≈ 20 个真元素），逐笔画各自绕**自身质心**转
-    # 15° 会毁掉扇形的平行排线 → 叶冠碎成一堆散落短划线（用户会读成"元素没形变/
-    # 破了"）。改为：ink 膨胀 disk(12) 求空间邻接部落 → 同一棵树的干+全部叶笔合成
-    # 一个刚体，绕**共同枢轴**做统一倾斜 → 扇形排线整体转，元素形变可见且结构完整。
     _grp = ndi.binary_dilation(ink, structure=tf._disk(12))
     glab, gn = ndi.label(_grp, structure=np.ones((3, 3), bool))
     from collections import defaultdict
@@ -412,42 +486,19 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
         _m = lab == i
         _gid = int(np.bincount(glab[_m]).argmax())
         _members[_gid].append(_m)
-    out = np.asarray(warped, np.float32)
-    rng = np.random.default_rng(sd * 977 + 31)
-    n_morph = 0
-    for _gid, _ms in _members.items():
-        m_i = np.zeros((H, W), bool)
-        for _m in _ms:
-            m_i |= _m
-        area = int(m_i.sum())
-        ys, xs = np.where(m_i)
-        x0, x1 = int(xs.min()), int(xs.max()) + 1
-        y0, y1 = int(ys.min()), int(ys.max()) + 1
-        kind = _element_kind(area, x1 - x0, y1 - y0)
-        R = 0.5 * max(x1 - x0, y1 - y0)
-        pad = int(R * 0.35) + 14
-        bx0, by0 = max(0, x0 - pad), max(0, y0 - pad)
-        bx1, by1 = min(W, x1 + pad), min(H, y1 + pad)
-        sub_m = np.zeros((H, W), bool)
-        sub_m[by0:by1, bx0:bx1] = m_i[by0:by1, bx0:bx1]
-        rgba, box = smod.make_layer(img, sub_m, feather=1.0, box=(bx0, by0, bx1, by1))
-        # v334：贴边元素**原样贴回**（位置不变）——旋转会在图界外采样（nearest 复制）
-        # 拉出条纹拉丝（实测左缘两处）。中间元素才做统一倾斜。
-        edge_touch = (x0 <= 2) or (y0 <= 2) or (x1 >= W - 2) or (y1 >= H - 2)
-        if edge_touch:
-            hh_, ww_ = rgba.shape[:2]
-            disp = (np.zeros((hh_, ww_), np.float32), np.zeros((hh_, ww_), np.float32))
-        else:
-            disp = _element_disp(rgba, kind, rng)
-        if disp is None:
-            continue
-        wlay = smod.warp_layer(rgba, disp, order=1)
-        al = np.clip(wlay[..., 3:4] / 255.0, 0.0, 1.0)
-        bh, bw = wlay.shape[:2]
-        reg = out[box[1]:box[1] + bh, box[0]:box[0] + bw]
-        out[box[1]:box[1] + bh, box[0]:box[0] + bw] = reg * (1 - al) + wlay[..., :3] * al
-        n_morph += 1
+    tw, alw = tree_wind(img, ink,
+                        amp=float(p.get("tree_wind_amp", 0.075)),
+                        lam=float(p.get("tree_wind_lam", 2.40)),
+                        phase=float(p.get("tree_wind_phase", 0.55)),
+                        power=float(p.get("tree_wind_power", 1.35)),
+                        dilate=1, seed=sd)
+    tw.save(str(out_dir / "_p4_trees_wind.jpg"), quality=95)
+    _base = np.asarray(warped, np.float32)
+    _twa = np.asarray(tw, np.float32)
+    _a3 = alw[..., None]
+    out = _base * (1.0 - _a3) + _twa * _a3
     res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
+    n_morph = len(_members)
 
     # ⑤ 文字（本图无文字，plan 为空则跳过）
     plan = base.get_text_plan_for(cfg, image_path)
@@ -456,7 +507,8 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
     save_to = out_dir / f"{Path(image_path).stem}_variant.jpg"
     res.save(str(save_to), quality=93)
     base.save_variant(res, out_dir, save_to.name)
-    print(f"[camo_palm_pattern] strokes={n} elements={len(_members)} morphed={n_morph} ink_px={int(ink.sum())} -> {save_to}")
+    print(f"[camo_palm_pattern] strokes={n} groups={len(_members)} tree_wind ink_px={int(ink.sum())} "
+          f"-> {save_to}")
     return [save_to]
 
 
