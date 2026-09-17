@@ -57,7 +57,7 @@ REBIRTH_FILES = {
     # （x190-3319 vs 原 191-3324）、主体量 18.1% ≈ 原 17.4%、连通块反而更少更整
     # （4053 vs 5585）→ 有真变化但无"多长翅膀/形体崩坏"。
     # cn_strength/end 与用户认可的 6978 蝙蝠（.38/.45）同档。
-    'pinterest6': 'p6_rebirth_v346.jpg',
+    'pinterest6': 'p6_rebirth_v371.jpg',   # v372 第15轮：SDXL 重生被判"主体是什么东西"→ 改纯程序化分部件仿射(三层法)
     '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
     # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
     # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
@@ -155,6 +155,14 @@ def do_pinterest3():
     # v330: 不再用 ComfyUI 蝴蝶（_p3_lockA_0.jpg 带大量噪点/糊边），
     # 改用原图干净蝴蝶（零噪点）。后续可在此处接 subject_morph 做姿态裂变。
     img = src_img
+    # v372（第 15 轮）：主体蝶由 src/v370_p3design.py 做「轮廓再设计」裂变（极坐标
+    # 映射 Rn(φ)=R_old(φ_src)·f(φ)·s，边界恒采原轮廓 → 改形不丢牛仔毛边），小蝶改
+    # 干净刚体 镜像+旋转+等比。此处用 P3_BASE 指过去，让文字流程跑在已裂变的底图上；
+    # P3_SKIP_BF=1 跳过本函数的旧小蝶形变（避免二次形变叠加）。
+    _p3b = os.environ.get('P3_BASE', '')
+    if _p3b and os.path.exists(_p3b):
+        img = Image.open(_p3b).convert('RGB')
+        print(f'[p3] base = {_p3b}（主体蝶/小蝶已裂变）')
     W, H = img.size
     band = (0, 60, W, 348)                       # 只取字母带，排除下方小蝴蝶
     det = src_img                                # 字母检测/取材质一律用**原图**：
@@ -231,6 +239,8 @@ def do_pinterest3():
     for _m in dot_masks:
         dots |= _m                               # v343: 圆点已在组件分类阶段收集
     for m_i in bf_masks:                         # v343: 只遍历蝴蝶组件（字母已剔除）
+        if os.environ.get('P3_SKIP_BF', '') == '1':
+            break                                # v372: 小蝶已由 v370 裂变，勿二次形变
         area = int(m_i.sum())
         ys, xs = np.where(m_i)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()) + 1, int(ys.min()), int(ys.max()) + 1
