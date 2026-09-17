@@ -301,6 +301,53 @@ CFG = {
 }
 
 
+def snap_p4_ink(orig, gen, mask, ink0):
+    """p4「迷彩底 + 纯黑墨迹」两层重建。
+
+    p4 的设计语言只有两层：**迷彩底**与**纯黑墨迹**（棕榈剪影）。SDXL 重生后墨迹会发灰/
+    发糊（灰树、草簇）—— 与"硬黑剪影"语言不符，用户第 11 轮原话"不允许你这样乱做"。
+    本函数在掩膜内把两层重新分开：
+      ① base = 原图按 ink0(原墨迹)做**最近邻填充** → 干净迷彩底（背景版式逐像素不变）；
+      ② ink_new = 掩膜内 **Otsu 自适应阈值** 切出的暗部。⚠️ 不能用固定阈值+饱和度过滤：
+         实测 SDXL 的墨迹并非中性黑（rsat 偏高），固定 118+rsat<0.20 只剩 8% 墨 → 树被
+         削薄成残枝；Otsu 在掩膜内自适应分割（实测阈值 67.3 → 墨 20.8%，与原墨迹 22.6%
+         基本一致，密度不丢）；
+      ③ 输出 = 掩膜外原图；掩膜内 = base 迷彩 ⊕ ink_new 纯黑。
+    结果：**剪影形状换新、迷彩与版式分毫不动、墨迹回到硬黑**。
+    """
+    from skimage.filters import threshold_otsu
+    o = np.asarray(orig, np.float32)
+    g = np.asarray(gen, np.float32)
+    lg = _lum(g)
+    t = float(threshold_otsu(lg[mask])) if mask.any() else 100.0
+    t = min(max(t, 45.0), 140.0)
+    ink = (lg < t) & mask
+    ink = ndi.binary_closing(ink, structure=_disk(2))
+    ink = ndi.binary_opening(ink, structure=_disk(1))
+    # 去碎点：SDXL 在迷彩上留的孤立黑斑（< 60px）不是树，必须清掉，否则读作"乱做"
+    lab, n = ndi.label(ink, structure=np.ones((3, 3), bool))
+    if n:
+        sz = ndi.sum(np.ones_like(lab), lab, range(1, n + 1))
+        keep = np.zeros(n + 1, bool)
+        for j in range(1, n + 1):
+            if sz[j - 1] >= 60:
+                keep[j] = True
+        ink = keep[lab]
+    # 干净迷彩底：墨迹像素用"最近的非墨迹像素"颜色回填（camo 色块大而平滑，无违和）
+    idx = ndi.distance_transform_edt(ink0, return_distances=False, return_indices=True)
+    base = o[idx[0], idx[1]]
+    black = np.array([12.0, 10.0, 9.0], np.float32)[None, None, :]
+    # 硬切（不用软斜坡）：实测软斜坡会把 SDXL 的中调发丝（lum 80~150）打回迷彩、
+    # 只留笔画芯 → 树变成"灰雾+黑芯"的糊团；硬切虽然笔画偏粗，但剪影干净利落，
+    # 更接近 p4 的"纯黑墨迹"语言。
+    a = ink.astype(np.float32)[..., None] * mask[..., None]
+    inside = base * (1.0 - a) + black * a
+    mm = mask[..., None]
+    out = o * (1.0 - mm) + inside * mm
+    print(f"[p4-snap] otsu={t:.1f} ink={100 * ink.mean():.1f}%")
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
+
+
 def run(which, denoise=None, ipa=0.0, seed=7):
     ic = FILE[which]
     cand = [SRC_DIR / ic, ROOT / "ComfyUI" / "input" / ic]
@@ -320,6 +367,9 @@ def run(which, denoise=None, ipa=0.0, seed=7):
     if ipa:
         cfg["ipa_weight"] = ipa
     out = rebirth_subject(img, mask, prompt, neg, tag=which, **cfg)
+    if which == "p4":
+        ink0 = cpp.tree_ink_mask(img, lum_thr=55.0, sat_thr=14.0, min_px=25, thin_only=False)
+        out = snap_p4_ink(img, out, mask, ink0)             # 迷彩原样 + 墨迹回硬黑
     save = OUT / f"{which}_rebirth_v342.jpg"
     out.save(str(save), quality=93)                    # 先落盘，避免 QC 异常丢结果
     Image.fromarray((mask.astype(np.uint8) * 255), "L").save(str(OUT / f"{which}_mask_v342.png"))

@@ -141,11 +141,38 @@ def do_pinterest3():
     # 与背景逐像素同色，零色块、零残片。
     bg3 = (233, 233, 233)
     a3 = np.asarray(img, np.float32)
+    # ---- v343: **组件分类**（字母 / 蝴蝶 / 圆点），替代旧的 y=370 硬切 ----
+    # 旧版 `cand[370:, :] = notbg[370:, :]` 为了排除字母带而硬切一条水平线，但 bf0 小蝶的
+    # 上翼+触角在 y=342~369（共 732px、占该蝶 8%）→ 被连字母一起切掉：形变层天生缺一块、
+    # 切掉的原像素又没被擦 → 用户看到的正是"小蝴蝶翅膀不完整"。现改用**与字母补丁的重叠率**
+    # 判类（实测：字母 0.993~1.000 / 蝴蝶 0.000~0.037，界限极宽，阈值 0.5 极稳）。
+    notbg = a3.min(2) < 222
+    cand = tf.ndi.binary_closing(notbg, structure=tf._disk(3))
+    clab, cn = tf.ndi.label(cand, structure=np.ones((3, 3), bool))
+    lpatch = tf.ndi.binary_dilation(patch, structure=tf._disk(10))
+    bf_masks, dot_masks = [], []
+    for _i in range(1, cn + 1):
+        _m = clab == _i
+        _ar = int(_m.sum())
+        if _ar < 2500:                           # 小组件 → 分拣：圆点 vs 噪声
+            if 60 <= _ar <= 400:
+                _ys, _xs = np.where(_m)
+                if (_xs.max() - _xs.min()) <= 22 and (_ys.max() - _ys.min()) <= 22:
+                    dot_masks.append(_m)         # 圆点（实测 20 颗：99-150px、11-20px 宽）
+            continue
+        if (_m & lpatch).sum() > 0.5 * _ar:
+            continue                             # 字母（与字母补丁高度重叠）→ 交文字流程
+        bf_masks.append(_m)                      # 蝴蝶
+    bf_all = np.zeros((H, W), bool)
+    for _m in bf_masks:
+        bf_all |= _m
     band3 = np.zeros((H, W), bool)
-    band3[60:348, :] = True
+    band3[60:min(H, uy2 + 2), :] = True          # v343: 348 → 字母实际底边 uy2+2（护住蝶翼）
     notbg3 = np.abs(a3 - np.array(bg3, np.float32)[None, None, :]).sum(2) > 30
     md = md | (band3 & notbg3)
     md = tf.ndi.binary_dilation(md, structure=tf._disk(8))
+    md &= ~bf_all                                # v343: 字母擦除掩膜不得吞掉蝴蝶（patch 外扩
+                                                 # 14+8px 会盖到 y≈352，正好压在 bf0 上翼上）
     vis = np.asarray(det).copy(); vis[md] = [255, 0, 0]
     Image.fromarray(vis).save(VIS / 'v329_p3_mask.png')
     out = tf.erase(img, md, method='const', const_color=bg3, const_feather=6)
@@ -165,25 +192,14 @@ def do_pinterest3():
     # subject_morph 像素位移 = 材质/边缘零损失；位移场必须用**层内坐标**（v331 之鉴）。
     # 主蝴蝶=双翼绕肩枢轴旋转+翼尖下垂；小蝴蝶=自转微角；虚线点保持原样。
     from styles import subject_morph as smod
-    sa_ = np.asarray(src_img, np.float32)
-    notbg = sa_.min(2) < 222
-    cand = np.zeros((H, W), bool)
-    cand[370:, :] = notbg[370:, :]               # 排除字母带（虚线点后续按面积跳过）
-    cand = tf.ndi.binary_closing(cand, structure=tf._disk(3))
-    clab, cn = tf.ndi.label(cand, structure=np.ones((3, 3), bool))
     rng3 = np.random.default_rng(303)
     n_bf = 0
     trail_ends = []                              # v339：每条轨迹的 (近端, 远端) 全图坐标
     dots = np.zeros((H, W), bool)                # v336: 虚线点收集（轨迹重画用）
-    for i in range(1, cn + 1):
-        m_i = clab == i
+    for _m in dot_masks:
+        dots |= _m                               # v343: 圆点已在组件分类阶段收集
+    for m_i in bf_masks:                         # v343: 只遍历蝴蝶组件（字母已剔除）
         area = int(m_i.sum())
-        if area < 2500:                          # 小组件 → 分拣：圆点 vs 噪声
-            if 60 <= area <= 400:
-                ys_, xs_ = np.where(m_i)
-                if (xs_.max() - xs_.min()) <= 22 and (ys_.max() - ys_.min()) <= 22:
-                    dots |= m_i                  # 圆点（实测 20 颗：99-150px、11-20px 宽）
-            continue
         ys, xs = np.where(m_i)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()) + 1, int(ys.min()), int(ys.max()) + 1
         R = 0.5 * max(x1 - x0, y1 - y0)
@@ -245,9 +261,15 @@ def do_pinterest3():
         # 放大就"糊成一团"。背景是纯平灰，const 擦除零痕迹。
         # v341：按形变后 alpha 擦除（扩张足迹超出原掩膜 → 先擦扩张足迹再贴回，
         # 杜绝原蝶残影/缺角叠影）。背景纯平灰，const 擦除零痕迹。
+        # v343（用户第 11 轮"小蝴蝶翅膀不完整/整体设计偏丑"）：只擦**形变后**足迹是不够的
+        # ——绕质心旋转会把新形从原位置挪开，原蝶的翼尖/触角就落在新形之外 → 擦不掉 →
+        # 残留成漂浮在背景上的蓝色碎片（实测 bf0 58px / bf1 233px 未擦净，视觉上就是
+        # "翅膀缺角 + 旁边有碎渣"）。改为擦 **(原蝶足迹 ∪ 形变后足迹)** 的并集：
+        # 原蝶像素必被清空、新形再原样贴回 → 零残渣。背景纯平灰，const 擦除零痕迹。
         _em = np.zeros((H, W), bool)
         _em[by0:by1, bx0:bx1] = wlay[..., 3] > 60
-        res = tf.erase(res, tf.ndi.binary_dilation(_em, structure=tf._disk(5)),
+        _em |= sub_m                                  # v343：连原蝶足迹一起擦
+        res = tf.erase(res, tf.ndi.binary_dilation(_em, structure=tf._disk(6)),
                        method='const', const_color=bg3, const_feather=3)
         res = smod.paste_layer(res, wlay, mbox)
         n_bf += 1
