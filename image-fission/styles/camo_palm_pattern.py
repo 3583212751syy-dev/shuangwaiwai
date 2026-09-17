@@ -376,21 +376,50 @@ def _element_disp(rgba: np.ndarray, kind: str, rng,
     return (ry - dy0).astype(np.float32), (rx - dx0).astype(np.float32)
 
 
-def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.075,
+def tree_base_anchor(ink: np.ndarray, sm: float = 0.16) -> np.ndarray:
+    """v341：逐列**树基锚点**（该列最下方墨迹的 y），横向大核平滑成连续锚点曲线。
+
+    为什么需要它：要让"每棵树长得不一样"（高矮/倾斜/干弯），位移必须绕**各自树根**
+    作用；用图底当统一锚点会把整片树整体上下搬。逐列取墨迹最低点再横向 σ=0.16W
+    平滑 ⇒ 一棵树附近锚点≈该树根部，相邻树各有自己的锚点，且锚点曲线连续（不撕裂）。
+    """
+    H, W = ink.shape
+    base = np.full(W, np.nan, np.float32)
+    ys_any = np.where(ink.any(0))[0]
+    for x in range(W):
+        col = np.where(ink[:, x])[0]
+        if len(col):
+            base[x] = float(col.max())
+    if len(ys_any) == 0:
+        return np.full(W, float(H), np.float32)
+    # 空隙列用最近有效值填充
+    idx = np.arange(W)
+    good = ~np.isnan(base)
+    base = np.interp(idx, idx[good], base[good]).astype(np.float32)
+    base = ndi.gaussian_filter1d(base, max(2.0, float(sm) * W), mode="nearest")
+    return base.astype(np.float32)
+
+
+def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.055,
               lam: float = 2.40, phase: float = 0.55, power: float = 1.35,
-              dilate: int = 4, seed: int = 0) -> tuple[Image.Image, np.ndarray]:
-    """v339：**前景树层整体风弯**。
+              dilate: int = 1, seed: int = 0,
+              h_var: float = 0.22, lean_var: float = 0.15,
+              bow_var: float = 0.055, w_var: float = 0.15) -> tuple[Image.Image, np.ndarray]:
+    """v339→v341：**前景树层风弯 + 逐树姿态改写**。
 
     为什么不用"逐元素刚体旋转"：本图的棕榈是**多笔画叠画**、相邻树冠互相压叠，
     连通分组实测会把 5 棵树并成一块 938×1075 的巨块（91 笔画 → 仅 11 组，最大一组
     跨半张图）→ 按"组高"算弯曲量会得到 400px 的荒谬位移，树被搬走。
-    改为**位移只依赖坐标的全局平滑场**：
-        t  = (1 - y/H)^power      （底部 0 → 顶部 1，根不动、越高弯越多）
-        g  = cos(2πx/(lam·W) + phase)  （横向阵风：左半向右弯、右半向左弯）
-        dx = amp·H·t·g ，dy = 0
-    同一棵树内场随 y 连续增大 → 树干与叶冠**天然同步弯曲，绝不脱节**；
-    相邻树因 g 的相位不同而弯向不同 → 读成"一阵风穿过树林"而不是整片刚性平移。
-    位置/大小基本保持（底部与阵风节点处位移≈0），只改姿态。
+
+    v341 补的是用户第 11 轮的点名（"前置树木元素没看出与原图树木的区别"）：
+    v339 只做**整层水平剪切**（dx 只跟坐标有关、形状完全不变）→ 树还是那批树，
+    只是斜了。本版在剪切之外叠加**四个"逐树"姿态维度**，全部由只依赖 (x,y) 的
+    平滑场驱动（波长 ≫ 单棵树 → 树内一致、邻树不同，绝不撕裂）：
+      ① 高度 sv(x,y)  ±h_var   —— 绕**各自树基**缩放：有的树高挑、有的矮壮；
+      ② 倾斜 φ(x)     ±lean_var —— 绕树基**整体刚性倾斜**（不是剪切）：有的左倾右倾；
+      ③ 干弯 bow(x)   ±bow_var·H —— 树身中段侧弓（sin 包络，根/冠不动）：树干弧度不同；
+      ④ 冠幅/枝展 w(x)—— 水平缩放：有的冠幅宽、有的瘦。
+    位置（树基）与画框构图保持，改的是**树形本身**。
     """
     a = np.asarray(img.convert("RGB"), np.float32)
     H, W = ink.shape
@@ -403,6 +432,35 @@ def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.075,
     g = g + 0.30 * np.sin(2.0 * np.pi * xx / (1.75 * W) + phase * 2.1 + 0.9)
     dx = (float(amp) * H * t * g).astype(np.float32)
     dy = np.zeros_like(dx)
+
+    # ---------- v341：逐树姿态（高度 / 倾斜 / 干弯 / 冠幅） ----------
+    # 波长与相位都取"设计性"固定值（非随机）：同类走势有韵律，不做噪声式乱转。
+    ph = float(seed) * 0.37
+    sv = 1.0 + float(h_var) * (0.70 * np.cos(2.0 * np.pi * xx / (1.10 * W) + 0.70 + ph)
+                               + 0.30 * np.sin(2.0 * np.pi * yy / (0.62 * H) + 1.90 + ph))
+    sw = 1.0 + float(w_var) * np.sin(2.0 * np.pi * xx / (0.86 * W) + 2.30 + ph)
+    lean = float(lean_var) * np.sin(2.0 * np.pi * xx / (0.72 * W) + 1.15 + ph)
+    bowf = float(bow_var) * H * np.sin(2.0 * np.pi * xx / (0.58 * W) + 3.05 + ph)
+    base = tree_base_anchor(ink)
+    hgt = np.maximum(0.0, base[None, :] - yy)                    # 距树基高度(px)
+    # ① 高度：绕树基缩放（out[y]=src[base-(base-y)/sv] → dy=(base-y)(1/sv-1)）
+    dy = dy + (hgt * (1.0 / np.clip(sv, 0.55, 1.9) - 1.0)).astype(np.float32)
+    # ② 倾斜：绕树基刚体旋转 φ → dx=h·sinφ, dy=h(1-cosφ)
+    dy = dy + (hgt * (1.0 - np.cos(lean))).astype(np.float32)
+    dx = dx + (hgt * np.sin(lean)).astype(np.float32)
+    # ③ 干弯：树身中段侧弓（sin 包络：根与冠顶都归零）
+    tb = np.clip(hgt / (0.45 * H), 0.0, 1.0)
+    dx = dx + (bowf * np.sin(np.pi * np.clip(tb, 0.0, 1.0))).astype(np.float32)
+    # ④ 冠幅：绕**该列墨迹的水平质心**缩放（近处树轴，平滑过渡 → 不撕树）
+    _cen = ndi.gaussian_filter1d((xx * np.maximum(ink.astype(np.float32), 1e-3)).sum(0)
+                                 / np.maximum(ink.sum(0), 1.0), max(2.0, 0.10 * W),
+                                 mode="nearest")
+    _cx2 = np.tile(_cen.astype(np.float32)[None, :], (H, 1))
+    dx = dx + ((sw - 1.0) * (xx - _cx2)).astype(np.float32)
+    print(f"[tree_wind] amp={amp} h_var={h_var} lean±{math.degrees(lean_var):.1f}° "
+          f"bow±{np.abs(bowf).max():.0f}px sv[{sv.min():.2f},{sv.max():.2f}] "
+          f"sw[{sw.min():.2f},{sw.max():.2f}] |dx|max={np.abs(dx).max():.0f}px "
+          f"|dy|max={np.abs(dy).max():.0f}px")
     # ⚠️ dilate 必须≤1：树外圈若包进 4px，会把**原迷彩色**一起带进层，
     # 贴到新迷彩上就是一圈浅色包边（实测 dilate=4 时黑剪影外一圈米色描边）。
     al = (ndi.binary_dilation(ink, structure=tf._disk(int(dilate)))

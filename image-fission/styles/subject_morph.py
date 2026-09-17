@@ -191,6 +191,55 @@ def wing_pose(size, cx, cy, theta=0.0, pivot_dx=34.0, ramp=(28.0, 235.0),
     return dy.astype(np.float32), dx.astype(np.float32)
 
 
+def pose_field(size, px, py, theta=0.0, s=1.0, sx=None, sy=None, w=None):
+    """v341：绕枢轴的**刚性旋转 + 同步扩张**位移场（层内/全图坐标都可用）。
+
+    为什么需要它（第 11 轮根因）：只旋转 → 部件转走后原位置被背景/黑底填掉，
+    部件"被啃掉一角"（实测 p6 鹰左翼面积 0.731x、翼上缘掉 200px）；只缩放 →
+    轮廓形状不变，用户读成"没裂变"（实测 6978 蝠 IoU 0.668 但仍是同一只蝠）。
+    **旋转 + 同枢轴扩张**可以做到「新形完全覆盖旧形」：角度变了（形态变了）而
+    径向只增不减（零腾空）——既不啃本体，也不留需要底板想象的洞。
+
+    参数
+    ----
+    px, py : 枢轴（部件根/肩/心）。
+    theta  : 内容旋转角（弧度）。图像坐标 y 向下：theta>0 = 顺时针。
+             ⇒ 右翼(x>cx)上扬用 theta<0；左翼(x<cx)上扬用 theta>0。
+    s      : 各向同性扩张倍数（>1）。sx/sy 给定时覆盖 s 的分量（各向异性）。
+    w      : 权重场（同尺寸，0..1）。None = 全场生效。位移按 w 线性混合。
+
+    返回 (dy, dx)：语义 out[y,x] = src[y+dy, x+dx]（同 map_coordinates）。
+    """
+    h, ww = int(size[1]), int(size[0])
+    yy, xx = np.mgrid[0:h, 0:ww].astype(np.float32)
+    dx0 = xx - float(px)
+    dy0 = yy - float(py)
+    if w is None:
+        thi, sxi, syi = float(theta), float(sx if sx is not None else s), \
+            float(sy if sy is not None else s)
+    else:
+        wf = np.clip(np.asarray(w, np.float32), 0.0, 1.0)
+        thi = float(theta) * wf
+        sxi = 1.0 + (float(sx if sx is not None else s) - 1.0) * wf
+        syi = 1.0 + (float(sy if sy is not None else s) - 1.0) * wf
+    ca, sa = np.cos(thi), np.sin(thi)
+    # 逆映射：先反向旋转，再按 1/s 缩回
+    ux = (dx0 * ca + dy0 * sa) / np.maximum(sxi, 1e-4)
+    uy = (-dx0 * sa + dy0 * ca) / np.maximum(syi, 1e-4)
+    return (uy - dy0).astype(np.float32), (ux - dx0).astype(np.float32)
+
+
+def part_gain(size, m, px, py, theta, s=1.0, ramp=(0.55, 1.0), blur=6.0):
+    """从部件掩膜生成"根部冻结、远端满幅"的权重：保证部件与邻件交界处位移→0
+    （v340 铁律 b：边界带内吸收位移会局部拉伸 → 邻接内容上一坨斑）。"""
+    h, ww = int(size[1]), int(size[0])
+    yy, xx = np.mgrid[0:h, 0:ww].astype(np.float32)
+    rr = np.sqrt((xx - float(px)) ** 2 + (yy - float(py)) ** 2)
+    rmax = float(rr[m].max()) if m.any() else 1.0
+    t = smoothstep(rr, float(ramp[0]) * rmax, float(ramp[1]) * rmax)
+    return t.astype(np.float32)
+
+
 def carve_notch(mask, box, apex, base_l, base_r, depth_frac=1.0):
     """在 mask 的翼缘上"刻"一个 V 形凹口（= 设计细节差异）。
 
