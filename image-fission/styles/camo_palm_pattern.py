@@ -480,7 +480,8 @@ def tree_wind(img: Image.Image, ink: np.ndarray, amp: float = 0.055,
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB"), alw
 
 
-def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) -> list[Path]:
+def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None,
+            rebirth_path: str | None = None) -> list[Path]:
     p = dict(default_params())
     ic = base.get_image_cfg(cfg, image_path) or {}
     p.update({k: v for k, v in (ic.get("comfyui_params", {}).get("camo_palm_pattern", {}) or {}).items()})
@@ -544,19 +545,64 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None) 
         _m = lab == i
         _gid = int(np.bincount(glab[_m]).argmax())
         _members[_gid].append(_m)
-    tw, alw = tree_wind(img, ink,
-                        amp=float(p.get("tree_wind_amp", 0.075)),
-                        lam=float(p.get("tree_wind_lam", 2.40)),
-                        phase=float(p.get("tree_wind_phase", 0.55)),
-                        power=float(p.get("tree_wind_power", 1.35)),
-                        dilate=1, seed=sd)
-    tw.save(str(out_dir / "_p4_trees_wind.jpg"), quality=95)
     _base = np.asarray(warped, np.float32)
-    _twa = np.asarray(tw, np.float32)
-    _a3 = alw[..., None]
-    out = _base * (1.0 - _a3) + _twa * _a3
-    res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
-    n_morph = len(_members)
+    _rb = Path(rebirth_path) if rebirth_path else None
+    if _rb is not None and _rb.exists():
+        # v344（用户第 12 轮："让我裂变前面的树木元素，改变其剪影形状"）：前景棕榈改走
+        # **SDXL 结构级重生** —— 剪影形状由模型重新生成（而不是把原树扭转 7° 那种
+        # "位移"，用户读成"没变/乱做"）。与 v343 的 p4 "墨迹回硬"同法：
+        #   ① 重生图在**原墨迹掩膜**内做 Otsu 自适应阈值 → 新剪影（原图的墨也不是
+        #      中性黑，固定阈值会削薄）；
+        #   ② 去碎点（<60px 孤立黑斑 = 迷彩上的噪点，留着就读成"乱做"）；
+        #   ③ 硬切 → 底面用**重 blob 后的干净迷彩**，纯黑剪影叠上 → 迷彩/版式不动、
+        #      剪影形状换新。
+        from skimage.filters import threshold_otsu
+        reb = Image.open(_rb).convert("RGB")
+        if reb.size != (W, H):
+            reb = reb.resize((W, H), Image.LANCZOS)
+        reb.save(str(out_dir / "_p4_rebirth_raw.jpg"), quality=95)
+        _lg = np.asarray(reb, np.float32) @ np.array([0.299, 0.587, 0.114], np.float32)
+        _sel = ink_d
+        # v344b **密度匹配阈值**：Otsu 会把新剪影切得比原图厚 ~1.5x（实测 34.7% vs 原
+        # 22.6%）→ 棕榈变"粗团块"（用户："不允许你这样乱做"）。改为令掩膜内落墨像素数
+        # == 原墨迹像素数 → 密度与原图对齐，笔画粗细回到线稿量级。
+        _ns = int(_sel.sum())
+        if _ns:
+            _frac = min(0.95, max(0.02, float(ink.sum()) / float(_ns)))
+            _t = float(np.percentile(_lg[_sel], 100.0 * _frac))
+        else:
+            _t = float(threshold_otsu(_lg[_sel]))
+        _t = min(max(_t, 20.0), 200.0)
+        _newink = (_lg < _t) & _sel
+        _lab2, _n2 = ndi.label(_newink, structure=np.ones((3, 3), bool))
+        if _n2:
+            _sz2 = ndi.sum(np.ones_like(_lab2), _lab2, range(1, _n2 + 1))
+            _keep2 = np.zeros(_n2 + 1, bool)
+            for j in range(1, _n2 + 1):
+                if _sz2[j - 1] >= 60:
+                    _keep2[j] = True
+            _newink = _keep2[_lab2]
+        _a3 = _newink.astype(np.float32)[..., None]
+        _blk = np.array([12.0, 10.0, 9.0], np.float32)[None, None, :]
+        out = _base * (1.0 - _a3) + _blk * _a3
+        res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
+        res.save(str(out_dir / "_p4_rebirth_snap.jpg"), quality=95)
+        n_morph = -1
+        print(f"[camo_palm_pattern] rebirth ink: otsu={_t:.1f} ink_px={int(_newink.sum())} "
+              f"({100 * _newink.mean():.1f}% of img)")
+    else:
+        tw, alw = tree_wind(img, ink,
+                            amp=float(p.get("tree_wind_amp", 0.075)),
+                            lam=float(p.get("tree_wind_lam", 2.40)),
+                            phase=float(p.get("tree_wind_phase", 0.55)),
+                            power=float(p.get("tree_wind_power", 1.35)),
+                            dilate=1, seed=sd)
+        tw.save(str(out_dir / "_p4_trees_wind.jpg"), quality=95)
+        _twa = np.asarray(tw, np.float32)
+        _a3 = alw[..., None]
+        out = _base * (1.0 - _a3) + _twa * _a3
+        res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
+        n_morph = len(_members)
 
     # ⑤ 文字（本图无文字，plan 为空则跳过）
     plan = base.get_text_plan_for(cfg, image_path)

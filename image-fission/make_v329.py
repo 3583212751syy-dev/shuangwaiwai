@@ -41,6 +41,29 @@ cfg = json.load(open(ROOT / 'regression_set/set.json', encoding='utf-8'))
 BY = {i['id']: i for i in cfg['images']}
 SRC = Path('E:/Desktop/图裂变测试图')
 
+# ---- v344: 主体 SDXL 结构级重生接入（用户第 12 轮）--------------------------------
+# 用户原话：「给我反的结果图一定是**完完整整**的结果图展示，包含主体元素，小元素，文本裂变」。
+# 旧做法把"重生后的主体"单独裁图交付 → 用户看到的是**没有文字裂变/小元素**的半成品，
+# 且对比图只有主体区，读不出"完整成品"。现在把重生结果当作**主体步骤的输入**接进完整
+# 管线：主体换成重生版，文字与小元素流程照跑 → 最终图 = 主体重生 + 小元素裂变 + 文本裂变。
+# SUBJECT_REBIRTH=0 可回退纯 PIL 形变（对比/调试用）。
+REBIRTH_DIR = ROOT / 'jobs' / 'v342_rebirth'
+REBIRTH_FILES = {
+    'pinterest6': 'p6_rebirth_v344.jpg',
+    '6978': '6978_rebirth_v344.jpg',
+    'pinterest4': 'p4_rebirth_v344.jpg',
+}
+
+
+def _rebirth_path(iid):
+    if os.environ.get('SUBJECT_REBIRTH', '1') == '0':
+        return None
+    fn = REBIRTH_FILES.get(iid)
+    if not fn:
+        return None
+    p = REBIRTH_DIR / fn
+    return p if p.exists() else None
+
 
 def _new_word(iid, default):
     return (BY[iid].get('new_text') or {}).get('primary') or default
@@ -205,7 +228,9 @@ def do_pinterest3():
         R = 0.5 * max(x1 - x0, y1 - y0)
         # v342：pad 0.45R+20 → 0.75R+28。小蝶改"旋转 + 1.16~1.24x 等比"后，翼尖离质心
         # 最远可达 ~1.75R（旋转不改变距离、等比把它乘大）→ 旧 pad 会把翼尖裁平（"缺角"）。
-        pad = int(R * 0.75) + 28
+        # v344：扩张提到 1.40x，pad 同步抬到 0.95R+30（(s-1)*R_max ≈ 0.40*1.41R = 0.56R
+        # 远小于 pad，翼尖不会被裁）。
+        pad = int(R * 0.95) + 30
         bx0, by0 = max(0, x0 - pad), max(0, y0 - pad)
         bx1, by1 = min(W, x1 + pad), min(H, y1 + pad)
         sub_m = np.zeros((H, W), bool)
@@ -244,11 +269,15 @@ def do_pinterest3():
             # 刚体旋转(theta) + 同步扩张(s) + 各向异性身型。旋转改翼姿/朝向、
             # 扩张放大幅度、身型比例改轮廓 → 与原图及彼此都明显不同；扩张保证
             # 新形完全盖旧形 → 零腾空、触角不被啃（根除"缺角"）。
+            # v344（用户第 12 轮："小蝴蝶裂变变化不够大"）：在 v341 的"刚体旋转 + 等比扩张"
+            # 之上再放大幅——旋转 25°→41°/36°，扩张 1.18~1.24 → 1.34~1.40，身型比例差拉到
+            # 0.86/1.14（仍走线性场：旋转+等比+各向异性缩放都不扭曲刺绣针脚，不产"糊团"）。
+            # 依据：小元素只要求"看得出还是蝴蝶、跟主体是一家"，无"同位同大"硬约束（见 v338）。
             ev = (n_bf % 2 == 0)
             if ev:
-                theta, s, body_sx, body_sy = 0.44, 1.24, 1.10, 0.90
+                theta, s, body_sx, body_sy = 0.72, 1.40, 1.14, 0.86
             else:
-                theta, s, body_sx, body_sy = -0.38, 1.18, 0.90, 1.12
+                theta, s, body_sx, body_sy = -0.62, 1.34, 0.86, 1.16
             # ① 姿态场：旋转 + 扩张（pose_field 逆映射，新形盖旧形，零腾空）
             dyy, dxx = smod.pose_field((ww, hh), cxl, cyl, theta=theta, s=s)
             # ② 各向异性身型：绕质心独立缩放宽/高（改轮廓比例 = 不同"特质"）
@@ -491,7 +520,10 @@ def do_b78e60():
 
 # ---------------------------------------------------------------- pinterest4
 def do_pinterest4():
-    return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21)
+    # v344：前景棕榈剪影换 SDXL 重生版（保持迷彩底/版式；本图无文字）
+    _rb = _rebirth_path('pinterest4')
+    return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
+                       rebirth_path=(str(_rb) if _rb else None))
 
 
 # ---------------------------------------------------------------- 6978
@@ -580,7 +612,16 @@ def do_6978():
     vis = np.asarray(img).copy(); vis[bat] = [255, 0, 0]
     Image.fromarray(vis).save(VIS / 'v330_6978_bat_mask.png')
 
-    out = img
+    # v344：主体蝙蝠换 SDXL 重生版（文字/弧字流程照跑 → 完整成品）
+    _rb = _rebirth_path('6978')
+    if _rb is not None:
+        _rbimg = Image.open(_rb).convert('RGB')
+        if _rbimg.size != (W, H):
+            _rbimg = _rbimg.resize((W, H), Image.LANCZOS)
+        out = _rbimg
+        print(f'[6978] subject rebirth = {_rb}（跳过 PIL 蝙蝠形变）')
+    else:
+        out = img
     # 碟面内允许取样区（蝙蝠以外的碟面像素）
     yy0, xx0 = yy, xx
     for tag, msk, kw in (('arc', m_arc, dict(method='nn', nn_median=31, src_allow=src_ribbon)),
@@ -807,7 +848,8 @@ def do_6978():
     kb = np.clip((1.0 - v_badge) / 0.03, 0.0, 1.0)
     kb = kb * kb * (3.0 - 2.0 * kb)
     wlay[..., 3] = wlay[..., 3] * kb
-    out = smod.paste_layer(plate, wlay, bbox_b)
+    if _rb is None:
+        out = smod.paste_layer(plate, wlay, bbox_b)
     # v337：**轮廓重画**。原蝠的亮紫描边是 3-5px 细线，形变会把细线抹成条带
     # （腾空区实测溜进 188,122,186 亮紫 → "幽灵边"）。用形变后 alpha 的轮廓重画
     # 一圈均匀描边（外描边 4px + 1.2σ 羽化），既盖住抹开的旧描边，又让新蝠有
@@ -869,8 +911,9 @@ def do_6978():
         _ringf = np.clip(tf.ndi.gaussian_filter(_ring.astype(np.float32), 0.9), 0.0, 1.0) * 0.72
     _oa = np.asarray(out, np.float32)
     _edge_col = np.array([150.0, 80.0, 148.0], np.float32)
-    _oa = _oa * (1 - _ringf[..., None]) + _edge_col[None, None, :] * _ringf[..., None]
-    out = Image.fromarray(np.clip(_oa, 0, 255).astype(np.uint8), 'RGB')
+    if _rb is None:
+        _oa = _oa * (1 - _ringf[..., None]) + _edge_col[None, None, :] * _ringf[..., None]
+        out = Image.fromarray(np.clip(_oa, 0, 255).astype(np.uint8), 'RGB')
     wvis7 = np.clip(np.stack([wH, bat_c * 0.3, wT], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis7, 'RGB').save(VIS / 'v334_6978_weights.jpg', quality=90)
 
@@ -932,6 +975,16 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     ic = BY['pinterest6']
     img = Image.open(ic['path']).convert('RGB')
     W, H = img.size
+    # v344：主体（鹰+骷髅）换 SDXL 重生版；文字/烟雾流程照跑 → 完整成品
+    _rb = _rebirth_path('pinterest6')
+    if _rb is not None:
+        _rbimg = Image.open(_rb).convert('RGB')
+        if _rbimg.size != (W, H):
+            _rbimg = _rbimg.resize((W, H), Image.LANCZOS)
+        base6 = _rbimg
+        print(f'[p6] subject rebirth = {_rb}（跳过 PIL 主体位移场）')
+    else:
+        base6 = img
 
     # ---- v336 先行：标题带内**蓝烟全部擦黑**（全分辨率 + const 黑填充）----
     # v335 教训：蓝烟判据带 lum>40（DS4 下采样）→ 暗蓝(lum≈32)大量漏网；nn 填充又
@@ -945,7 +998,7 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     blue = tf.ndi.binary_dilation(blue, structure=tf._disk(4))
     visb = np.asarray(img).copy(); visb[blue] = [255, 0, 0]
     Image.fromarray(visb).save(VIS / 'v336_p6_blue_mask.png')
-    out = tf.erase(img, blue, method='const', const_color=(2, 2, 3), const_feather=10)
+    out = tf.erase(base6, blue, method='const', const_color=(2, 2, 3), const_feather=10)
     out.save(VIS / 'v336_p6_smoke_erased.jpg', quality=95)
 
     # ---- 擦除掩膜（v332 重写：笔画级 + 标题带限定 + LaMa 小掩膜重建）----
@@ -1077,7 +1130,8 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     for c in range(3):
         o6[..., c] = tf.ndi.map_coordinates(a6[..., c], coords6, order=1,
                                             mode='nearest', prefilter=False)
-    out = Image.fromarray(np.clip(o6, 0, 255).astype(np.uint8), 'RGB')
+    if _rb is None:
+        out = Image.fromarray(np.clip(o6, 0, 255).astype(np.uint8), 'RGB')
     wvis = np.clip(np.stack([wL, wSK, wR], -1) * 255, 0, 255).astype(np.uint8)
     Image.fromarray(wvis, 'RGB').save(VIS / 'v335_p6_weights.jpg', quality=90)
 

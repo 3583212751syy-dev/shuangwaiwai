@@ -158,6 +158,8 @@ def mask_p4(img):
 def rebirth_subject(img, mask, prompt, neg,
                     ckpt="ProteusV0.4.safetensors",
                     denoise=0.72, ipa_weight=0.65, ipa_end=0.5, color_match=0.85,
+                    cn_name=None, cn_strength=0.70, cn_pre="canny", cn_end=1.0,
+                    cn_low=0.35, cn_high=0.75, lora=None,
                     margin=70, grow=12, seed=12345, tag="subj", max_side=1536):
     W, H = img.size
     ys, xs = np.where(mask)
@@ -203,6 +205,16 @@ def rebirth_subject(img, mask, prompt, neg,
     }
     # IPAdapter style-lock 可选：weight>0 才挂（end_at 早收 → 只在前段控色、后段放开改结构）
     model_ref = ["1", 0]
+    # v344b：可选 LoRA（p4 的"细笔线稿感"要靠 line-art/vector LoRA 拉回——
+    # 纯 SDXL 会把棕榈画成粗团块，用户会说"乱做"）。
+    if lora:
+        wf["30"] = {"class_type": "LoraLoader",
+                    "inputs": {"model": ["1", 0], "clip": ["1", 1],
+                               "lora_name": lora[0][0],
+                               "strength_model": lora[0][1], "strength_clip": lora[0][1]}}
+        model_ref = ["30", 0]
+        for _n in ("9", "10"):
+            wf[_n]["inputs"]["clip"] = ["30", 1]
     if ipa_weight > 0:
         wf.update({
             "6": {"class_type": "IPAdapterUnifiedLoader",
@@ -214,9 +226,37 @@ def rebirth_subject(img, mask, prompt, neg,
                              "end_at": ipa_end, "weight_type": "style transfer"}},
         })
         model_ref = ["8", 0]
+    # v344：ControlNet 结构引导 —— 治「乱码/失真」的唯一正解。
+    # 根因：无结构约束 + denoise 0.85 → 模型自由发挥 → 白羽乱飞/形体崩坏。
+    # 做法：用**原裁块**做 canny/depth 线稿 → ControlNetApplyAdvanced 引导前 cn_end 段，
+    # 让新内容落在原构图/剪影骨架里（满足用户 p6 原话"只保留原物种性质跟色彩构图"）。
+    # cn_end<1.0 → 后段放开、允许细节自由重生（不然只是描一遍原图、变化为零）。
+    pos_ref, neg_ref = ["9", 0], ["10", 0]
+    if cn_name:
+        _pre = "20"
+        if cn_pre == "canny":
+            wf[_pre] = {"class_type": "Canny",
+                        "inputs": {"image": ["2", 0], "low_threshold": cn_low,
+                                   "high_threshold": cn_high}}
+        elif cn_pre == "lineart":
+            wf[_pre] = {"class_type": "LineArtPreprocessor",
+                        "inputs": {"image": ["2", 0], "coarse": "disable", "resolution": 1024}}
+        elif cn_pre == "depth":
+            wf[_pre] = {"class_type": "DepthAnythingPreprocessor",
+                        "inputs": {"image": ["2", 0], "resolution": 1024}}
+        elif cn_pre == "tile":
+            _pre = None                              # tile 直接用原图
+        wf["21"] = {"class_type": "ControlNetLoader", "inputs": {"control_net_name": cn_name}}
+        wf["22"] = {"class_type": "ControlNetApplyAdvanced",
+                    "inputs": {"positive": ["9", 0], "negative": ["10", 0],
+                               "control_net": ["21", 0],
+                               "image": (["2", 0] if _pre is None else [_pre, 0]),
+                               "strength": cn_strength,
+                               "start_percent": 0.0, "end_percent": cn_end}}
+        pos_ref, neg_ref = ["22", 0], ["22", 1]
     wf.update({
-        "11": {"class_type": "KSampler", "inputs": {"model": model_ref, "positive": ["9", 0],
-              "negative": ["10", 0], "latent_image": ["5", 0], "seed": seed,
+        "11": {"class_type": "KSampler", "inputs": {"model": model_ref, "positive": pos_ref,
+              "negative": neg_ref, "latent_image": ["5", 0], "seed": seed,
               "steps": 30, "cfg": 6.5, "sampler_name": "dpmpp_2m",
               "scheduler": "karras", "denoise": denoise}},
         "12": {"class_type": "VAEDecode", "inputs": {"samples": ["11", 0], "vae": ["1", 2]}},
@@ -274,30 +314,42 @@ def qc(img_orig, img_new, mask):
 
 PROMPTS = {
     "6978": ("a heraldic bat emblem, dark violet and deep purple ornamental linework, "
-             "spread bat wings with dark membrane, glowing eyes, different wing and ear shape, "
+             "spread bat wings with dark membrane, different wing and ear shape, "
              "centered oval emblem on a purple circular disc, symmetrical, purple color palette, "
-             "no text, no letters, no gold, no yellow",
+             "flat matte vector colors, dark purple and near-black only, bold clean outline, "
+             "no text, no letters, no gold, no yellow, no glow, no highlight",
              "text, letters, words, watermark, blurry, low quality, photo, realistic, "
-             "gold, yellow, orange, extra limbs, deformed wings"),
+             "gold, yellow, orange, pink, magenta, neon, glow, luminous, shiny, "
+             "sparkle, gradient, white, bright highlights, extra limbs, deformed wings"),
     "p6": ("a bald eagle head with brown and white feathers, and a bone-white horned skull, "
            "sharp beak, fierce eyes, ornate dark engraving, brown tan white and black colors, "
            "black background, different feather arrangement and skull shape, no text, no letters",
            "text, letters, words, watermark, blurry, low quality, photo, realistic, "
            "extra heads, extra skulls, deformed"),
-    "p4": ("clean tropical palm tree silhouettes, solid jet-black, pure black trunks and "
-           "fronds with sharp crisp edges, monochrome black ink on camouflage, high contrast, "
-           "different crown shapes, no gray, no white, no blur, no smudge, seamless, "
+    "p4": ("elegant tropical palm trees drawn as fine black line art, thin smooth curving "
+           "trunks with delicate ring texture, airy crown of many thin separate fronds with "
+           "fine leaflets, solid jet-black ink on camouflage, crisp sharp edges, high contrast, "
+           "flat vector look, lots of open space between fronds, seamless pattern, "
            "no text, no letters",
            "text, letters, words, color, colorful, photo, realistic, blurry, low quality, "
-           "gradient, gray, white fronds, smudge, blotch, semi-transparent, faded"),
+           "gradient, gray, white fronds, smudge, blotch, thick trunks, fat, blobby, "
+           "solid black mass, chunky, heavy bold strokes, clump, semi-transparent, faded"),
 }
 
 
-# 定稿参数（无 IPAdapter：避免把原主体外观锁死/迁移出幽灵；靠 LAB 色彩回锁保配色）
+# 定稿参数（v344）：
+#  - 挂 **ControlNet canny（结构引导）** 治「乱码/失真」（用户第 12 轮核心批评：
+#    "图片乱码很严重，失真情况太明显"）。根因是无结构约束 + 高 denoise → 自由发挥崩形。
+#  - 仍不挂 IPAdapter（它把原主体外观锁死/泄幽灵，v342 已证）。
+#  - cn_end<1.0：前段跟原骨架、后段放开改细节（= 用户要的"保留物种/配色/构图，其余全改"）。
+_CN = "controlnet-canny-sdxl-1.0.fp16.safetensors"
 CFG = {
-    "6978": dict(denoise=0.88, ipa_weight=0.0, color_match=0.90, seed=7),
-    "p6": dict(denoise=0.85, ipa_weight=0.0, color_match=0.90, seed=7),
-    "p4": dict(denoise=0.80, ipa_weight=0.0, color_match=0.90, seed=7),
+    "6978": dict(denoise=0.92, ipa_weight=0.0, color_match=0.92, seed=7,
+                 cn_name=_CN, cn_strength=0.38, cn_pre="canny", cn_end=0.45),
+    "p6": dict(denoise=0.85, ipa_weight=0.0, color_match=0.90, seed=7,
+               cn_name=_CN, cn_strength=0.60, cn_pre="canny", cn_end=0.75),
+    "p4": dict(denoise=0.85, ipa_weight=0.0, color_match=0.90, seed=7,
+               cn_name=_CN, cn_strength=0.35, cn_pre="canny", cn_end=0.45),
 }
 
 
@@ -319,8 +371,16 @@ def snap_p4_ink(orig, gen, mask, ink0):
     o = np.asarray(orig, np.float32)
     g = np.asarray(gen, np.float32)
     lg = _lum(g)
-    t = float(threshold_otsu(lg[mask])) if mask.any() else 100.0
-    t = min(max(t, 45.0), 140.0)
+    # **密度匹配阈值**（v344b）：Otsu 会把新剪影切得比原图厚 ~1.5x（实测 34.7% vs 原
+    # 22.6%）→ 棕榈变"粗团块"，用户读作"乱做"。改为令掩膜内落墨像素数 == 原墨迹像素数
+    # → 密度与原图对齐，笔画粗细回到线稿量级。（保留 Otsu 作为退化回退）
+    _ns = int(mask.sum())
+    if _ns > 0:
+        _frac = min(0.95, max(0.02, float(ink0.sum()) / float(_ns)))
+        t = float(np.percentile(lg[mask], 100.0 * _frac))
+    else:
+        t = float(threshold_otsu(lg[mask])) if mask.any() else 100.0
+    t = min(max(t, 20.0), 200.0)
     ink = (lg < t) & mask
     ink = ndi.binary_closing(ink, structure=_disk(2))
     ink = ndi.binary_opening(ink, structure=_disk(1))
@@ -370,9 +430,9 @@ def run(which, denoise=None, ipa=0.0, seed=7):
     if which == "p4":
         ink0 = cpp.tree_ink_mask(img, lum_thr=55.0, sat_thr=14.0, min_px=25, thin_only=False)
         out = snap_p4_ink(img, out, mask, ink0)             # 迷彩原样 + 墨迹回硬黑
-    save = OUT / f"{which}_rebirth_v342.jpg"
+    save = OUT / f"{which}_rebirth_v344.jpg"
     out.save(str(save), quality=93)                    # 先落盘，避免 QC 异常丢结果
-    Image.fromarray((mask.astype(np.uint8) * 255), "L").save(str(OUT / f"{which}_mask_v342.png"))
+    Image.fromarray((mask.astype(np.uint8) * 255), "L").save(str(OUT / f"{which}_mask_v344.png"))
     print(f"[{which}] saved {save}")
     qc(img, out, mask)
     return save
