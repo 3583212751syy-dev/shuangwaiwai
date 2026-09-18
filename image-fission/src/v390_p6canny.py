@@ -31,8 +31,8 @@
        防 SDXL 把平涂制版风画成照片写实（v384 的病）
      · 结果：鹰（翼羽改人字纹/翼展姿态/白首黄喙黄眼）、骷髅（颅形/裂纹/下颌）、
              双角（加粗分节）全部重构 = 真·异内容同构，且硬边清晰、逻辑正常。
-     · seed 777：6 变体（F1~F6）中唯一同时满足
-       「变化量最大 + 无黄色杂斑 + 无深色污斑」（见 _p6_final.py 的扫描结论）。
+     · v393 定稿 seed 888：二轮共扫 8 种子中唯一同时满足
+       「白头侧转 + 黄喙在鹰脸上 + 颅骨无黄渍 + 无结构洞」（淘汰清单见 make_v329.py）。
 
 用法：
     python src/v390_p6canny.py            # 用定稿参数出图 → jobs/v390_p6canny/
@@ -64,22 +64,26 @@ CKPT = "juggernautXL_ragnarokBy.safetensors"
 DEF_CN_STRENGTH = 0.20
 DEF_CN_END = 0.55
 DEF_DENOISE = 0.98
-DEF_SEED = 777
+# v393 定稿种子：二轮扫 8 种子后选定（白头侧转+黄喙在鹰脸上+鼻腔纯黑，无黄渍无洞）
+DEF_SEED = 888
 DEF_MAX_SIDE = 2048
 
-POS = ("bald eagle with spread wings perched on a horned demon skull, "
-       "white feathered eagle head turned to one side at a new angle, "
-       "bright golden-yellow hooked beak, fierce visible eye, "
+POS = ("bald eagle with spread wings perched on top of a horned demon skull, "
+       "white feathered eagle head raised high above the skull, "
+       "head turned to one side at a new angle, "
+       "bright golden-yellow hooked beak attached to the eagle's face, "
+       "fierce visible eye, "
        "new wing shape with a different wingspan wider or narrower than before, "
        "different feather arrangement, very dark chocolate brown wing feathers, "
        "redesigned skull, "
        "clean white bone skull with even fine cross-hatch shading, "
-       "empty hollow pitch-black eye sockets and nasal cavity, no glowing eyes, "
+       "empty hollow pitch-black eye sockets and pitch-black nasal cavity, "
        "different curved ribbed horns, "
        "flat vector illustration, bold screen print, hard clean edges, crisp linework, "
        "solid flat colors, tan horns, pure black background, white lightning bolts, "
        "centered composition, high contrast, no text, no letters")
 NEG = ("yellow patches, yellow stains, yellow spots on skull, yellow feathers on skull, "
+       "yellow nose, yellow nasal cavity, yellow teeth, beak on the skull, second beak, "
        "dirty bone, dark stains, smudges, blotches, mud, grime, "
        "glowing eyes, luminous eyes, eye light, text, letters, words, watermark, "
        "blurry, low quality, photo, realistic, 3d render, airbrush, painterly, "

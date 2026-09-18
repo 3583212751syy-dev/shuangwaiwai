@@ -66,7 +66,18 @@ REBIRTH_FILES = {
     # 实测 v390 F5（seed 777）：主体 ΔE=30.3、IoU=0.681（真换内容、守结构）、
     #   黄像素 2.35% ≈ 原图 2.49%（喙/爪黄量正常，无黄渍）；1:1 目检鹰头/骷髅/肋角/闪电全重画且逻辑正常。
     # 淘汰的同类变体：F2/F4 seed 的黄渍、C2/C4 的鹰头崩坏（ΔE 40+ 但无逻辑）。
-    'pinterest6': 'p6_rebirth_v390_f5.jpg',
+    # v393（用户第19轮"canny 锁太死→只描羽片不换形"）：**放松引导 + 真换形**。
+    #   cn_strength .32→.20 / cn_end .42→.55 / denoise .94→.98（用户指定区间
+    #   cn .18~.22 / end .55 / dn .97~1.0）+ prompt 加「不同翼展 + 鹰头转向一侧」。
+    #   教训：一放松，白头/黄喙会丢失（v393 首扫 4 种子全头黑）、黄喙会跑到
+    #   颅骨鼻腔上（4/4 中招）→ 修法 = prompt 写死「white head raised high +
+    #   beak attached to the eagle's face + pitch-black nasal cavity」+ NEG 加
+    #   「yellow nose/yellow nasal cavity/yellow teeth/beak on the skull」。
+    #   二轮扫 8 种子定稿 **seed 888**：白头侧转+黄喙在鹰脸上+深巧克力翼羽+
+    #   颅骨纯白鼻腔黑，逻辑正常、结构真换新（羽序/颅形/角/头位全变）。
+    #   淘汰：s777(棕头)、s91/s555(黄鼻腔)、s2026( skull 戴鹰毛假发)、
+    #         s1234(翼间矩形黑洞)、s42(喙形怪)、s7(喙不可见)。
+    'pinterest6': 'p6_rebirth_v393_s888.jpg',
     '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
     # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
     # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
