@@ -57,7 +57,7 @@ REBIRTH_FILES = {
     # （x190-3319 vs 原 191-3324）、主体量 18.1% ≈ 原 17.4%、连通块反而更少更整
     # （4053 vs 5585）→ 有真变化但无"多长翅膀/形体崩坏"。
     # cn_strength/end 与用户认可的 6978 蝙蝠（.38/.45）同档。
-    'pinterest6': 'p6_rebirth_v371.jpg',   # v372 第15轮：SDXL 重生被判"主体是什么东西"→ 改纯程序化分部件仿射(三层法)
+    'pinterest6': 'p6_rebirth_v373.jpg',   # v373 第16轮：Juggernaut-Ragnarok+canny(dn.90/cn.45/end.45) 真重生
     '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
     # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
     # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
