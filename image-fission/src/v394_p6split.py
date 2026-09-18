@@ -46,12 +46,13 @@ CKPT = "juggernautXL_ragnarokBy.safetensors"
 OUT = ROOT / "jobs" / "v394_p6split"
 BAND = 1500                     # 标题带下缘（全分辨率 px）
 
-# v393 定稿的部位归属锁全部保留（治"黄喙跑颅骨/无头鹰"），只改构图指令
-POS = ("fierce bald eagle with wings raised in a steep upward V pose, "
-       "wings spread much higher and narrower than a perched eagle, "
-       "white feathered eagle head lowered snarling down toward the skull, "
+# v395：v394 seed 2026 解剖崩坏（鹰头太小埋进翼里/黄爪悬空）后的修复版。
+# 部位归属锁保留；新增「大头/爪抓颅骨/翼比例」约束；dn 0.92+wide 90 收贴原解剖。
+POS = ("fierce bald eagle with a LARGE detailed white feathered head held high, "
        "bright golden-yellow hooked beak attached to the eagle's face, "
-       "fierce visible eye, very dark chocolate brown wing feathers, "
+       "fierce visible eye, yellow eagle talons gripping the top of the skull, "
+       "broad dark chocolate brown wings spread behind the eagle, "
+       "different feather arrangement and new wing angle, "
        "large cracked horned demon skull tilted at an angle below the eagle, "
        "clean white bone skull with even fine cross-hatch shading, "
        "empty hollow pitch-black eye sockets and pitch-black nasal cavity, "
@@ -59,7 +60,7 @@ POS = ("fierce bald eagle with wings raised in a steep upward V pose, "
        "jagged white lightning bolts scattered in a new irregular pattern, "
        "flat vector illustration, bold screen print, hard clean edges, crisp linework, "
        "solid flat colors, tan horns, pure black background, "
-       "dynamic off-center composition, high contrast, no text, no letters")
+       "centered composition, high contrast, no text, no letters")
 NEG = ("yellow patches, yellow stains, yellow spots on skull, yellow feathers on skull, "
        "yellow nose, yellow nasal cavity, yellow teeth, beak on the skull, second beak, "
        "dirty bone, dark stains, smudges, blotches, mud, grime, "
@@ -71,8 +72,8 @@ NEG = ("yellow patches, yellow stains, yellow spots on skull, yellow feathers on
 
 
 # ------------------------------------------------------------- Stage A 主体
-def subject(seed=777, tag=None, cn_strength=0.15, cn_end=0.50, denoise=1.00,
-            wide=140, max_side=2048):
+def subject(seed=777, tag=None, cn_strength=0.20, cn_end=0.50, denoise=0.92,
+            wide=90, max_side=2048):
     out_dir = OUT / "subject"
     out_dir.mkdir(parents=True, exist_ok=True)
     tag = tag or f"v394_s{seed}"
@@ -178,55 +179,64 @@ def fission_text(seed=11, band=BAND):
     rng = np.random.default_rng(seed)
 
     alpha_f = np.clip((_lum(bandc) - 100.0) / 110.0, 0.0, 1.0) * ink
-    patches = []
+    # v395 布局（修 v394 叠压乱码）：先旋转 reshape → **实测**每簇宽高 →
+    # 再按实测总宽归一化缩放铺满 → 顺序铺放。旧版先算宽后旋转 → 变宽叠压。
+    raw = []
     for (a, b) in segs:
         cols = slice(a, b)
         rows = np.where(ink[:, cols].any(1))[0]
         if len(rows) == 0:
             continue
         r0, r1 = max(0, rows.min() - 6), min(band, rows.max() + 6)
-        patch_a = alpha_f[r0:r1, cols]
-        patch_c = bandc[r0:r1, cols]
-        patches.append((patch_a, patch_c, b - a))
-    # 布局：保序重排 + 每簇随机变换；间隙随机抖动，最后归一化铺满 W
-    n = len(patches)
-    gaps = [rng.integers(6, 42) for _ in range(n + 1)]
-    scales = [(rng.uniform(0.90, 1.10), rng.uniform(0.85, 1.15)) for _ in range(n)]
-    total = sum(p[2] * s[0] for p, s in zip(patches, scales)) + sum(gaps)
-    kfill = (src.shape[1] * 0.985) / total
-    new = np.zeros((band, src.shape[1], 3), np.float32)   # 文字色层（透明底）
-    na = np.zeros((band, src.shape[1]), np.float32)       # 文字 α 层
-    xcur = int(gaps[0] * kfill)
-    placed = []
-    for i, ((pa, pc, w0), (sx, sy)) in enumerate(zip(patches, scales)):
-        w1 = max(8, int(w0 * sx * kfill))
+        pa = alpha_f[r0:r1, cols]
+        pc = bandc[r0:r1, cols]
+        sy = rng.uniform(0.90, 1.12)
+        ang = rng.uniform(-6, 6)
         h1 = max(8, int(pa.shape[0] * sy))
-        pa_i = np.asarray(Image.fromarray((pa * 255).astype(np.uint8), "L")
+        w1 = max(8, int(pa.shape[1]))
+        pa_s = np.asarray(Image.fromarray((pa * 255).astype(np.uint8), "L")
                           .resize((w1, h1), Image.BILINEAR), np.float32) / 255.0
-        pc_i = np.asarray(Image.fromarray(pc.astype(np.uint8), "RGB")
+        pc_s = np.asarray(Image.fromarray(pc.astype(np.uint8), "RGB")
                           .resize((w1, h1), Image.BILINEAR), np.float32)
-        ang = rng.uniform(-8, 8)
-        pa_i = ndi.rotate(pa_i, ang, reshape=True, order=1, mode="constant", cval=0.0)
-        pc_i = ndi.rotate(pc_i, ang, reshape=True, order=1, mode="constant", cval=0.0)
+        pa_r = ndi.rotate(pa_s, ang, reshape=True, order=1, mode="constant", cval=0.0)
+        pc_r = ndi.rotate(pc_s, ang, reshape=True, order=1, mode="constant", cval=0.0)
+        raw.append((pa_r, pc_r))
+    if not raw:
+        return np.zeros((band, src.shape[1], 3), np.float32), np.zeros((band, src.shape[1]), np.float32)
+    gaps = [int(rng.integers(30, 90)) for _ in range(len(raw) + 1)]
+    total = sum(p[0].shape[1] for p in raw) + sum(gaps)
+    kfill = (src.shape[1] * 0.985) / total
+    kfill = min(kfill, 1.0)                    # 只缩不放，保证字身不糊
+    cy0 = int(band * 0.42)                     # 标题字身垂直中心（原题≈600px 处）
+    new = np.zeros((band, src.shape[1], 3), np.float32)
+    na = np.zeros((band, src.shape[1]), np.float32)
+    xcur = int(gaps[0] * kfill)
+    placed = 0
+    for i, (pa_i, pc_i) in enumerate(raw):
         ph, pw = pa_i.shape
-        dy = int(rng.integers(-55, 56)) + (band - ph) // 3
-        y0 = int(np.clip(dy, 0, max(0, band - ph)))
-        x1 = min(src.shape[1], xcur + pw)
-        if x1 <= xcur:
+        w2, h2 = max(8, int(pw * kfill)), max(8, int(ph * kfill))
+        pa_i = np.asarray(Image.fromarray((pa_i * 255).astype(np.uint8), "L")
+                          .resize((w2, h2), Image.BILINEAR), np.float32) / 255.0
+        pc_i = np.asarray(Image.fromarray(pc_i.astype(np.uint8), "RGB")
+                          .resize((w2, h2), Image.BILINEAR), np.float32)
+        dy = int(rng.integers(-40, 41))
+        y0 = int(np.clip(cy0 - h2 // 2 + dy, 0, max(0, band - h2)))
+        x1 = min(src.shape[1], xcur + w2)
+        if x1 - xcur < 8:
             break
         va = pa_i[:, :x1 - xcur]
         vc = pc_i[:, :x1 - xcur]
-        hh = min(va.shape[0], band - y0)       # 底部越界裁齐
+        hh = min(va.shape[0], band - y0)
         va, vc = va[:hh], vc[:hh]
         sa = na[y0:y0 + hh, xcur:x1]
         sa[:] = np.maximum(sa, va)
         new[y0:y0 + hh, xcur:x1] = (new[y0:y0 + hh, xcur:x1] * (1 - va[..., None])
                                     + vc * va[..., None])
-        placed.append((xcur, x1))
+        placed += 1
         xcur = x1 + int(gaps[i + 1] * kfill)
         if xcur >= src.shape[1]:
             break
-    print(f"[v394-text] 铺了 {len(placed)}/{n} 簇  kfill={kfill:.2f}  "
+    print(f"[v395-text] 铺了 {placed}/{len(raw)} 簇  kfill={kfill:.2f}  "
           f"α覆盖={100 * (na > 0.3).mean():.1f}%")
     return new, na                        # (RGB 文字色, α) —— 底透明，叠回用
 
@@ -237,8 +247,9 @@ def final(rebirth_path, text_seed=11, out_name=None):
     rp = Path(rebirth_path)
     img = Image.open(rp).convert("RGB")
     W, H = img.size
-    # ① 只擦**标题笔画**（_title_ink 已排除扇纹），LaMa 结构重建扇纹/烟雾
-    #    （v332 既有手段；整带清黑会在 y=1500 处留下直线切痕，弃用）
+    # ① 只擦**标题笔画**（_title_ink 已排除扇纹），LaMa 结构重建扇纹。
+    #    ⚠️ v395 教训：把蓝烟并入擦除会让 LaMa 在大块蓝烟区幻化白色雾团吞掉
+    #    新字母 —— 蓝烟是原设计元素，保留不擦。
     src = np.asarray(Image.open(SRC).convert("RGB"), np.float32)
     tink = _title_ink(src[:BAND])
     mask = np.zeros((H, W), bool)
@@ -263,10 +274,10 @@ if __name__ == "__main__":
     ps = sub.add_parser("subject")
     ps.add_argument("--seed", type=int, default=777)
     ps.add_argument("--tag", type=str, default=None)
-    ps.add_argument("--cn", type=float, default=0.15)
+    ps.add_argument("--cn", type=float, default=0.20)
     ps.add_argument("--cn-end", type=float, default=0.50)
-    ps.add_argument("--dn", type=float, default=1.00)
-    ps.add_argument("--wide", type=int, default=140)
+    ps.add_argument("--dn", type=float, default=0.92)
+    ps.add_argument("--wide", type=int, default=90)
     pf = sub.add_parser("final")
     pf.add_argument("--rebirth", type=str, required=True)
     pf.add_argument("--text-seed", type=int, default=11)
