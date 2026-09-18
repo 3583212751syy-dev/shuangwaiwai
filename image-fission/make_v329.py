@@ -57,7 +57,11 @@ REBIRTH_FILES = {
     # （x190-3319 vs 原 191-3324）、主体量 18.1% ≈ 原 17.4%、连通块反而更少更整
     # （4053 vs 5585）→ 有真变化但无"多长翅膀/形体崩坏"。
     # cn_strength/end 与用户认可的 6978 蝙蝠（.38/.45）同档。
-    'pinterest6': 'p6_rebirth_v373.jpg',   # v373 第16轮：Juggernaut-Ragnarok+canny(dn.90/cn.45/end.45) 真重生
+    # v386（用户第17轮否决"这点裂变跟原图的区别是什么"）：**主体源换回 canonical mode1**。
+    # 病根：v373 用本地 inpaint 重生（掩膜内小改）→ 主体近乎原图复制（z3 对照 ORIG/NEW 几乎同图）。
+    # 正解 = set.json/module 早已写明的 `subject_badge_textless` **mode1**（整幅 txt2img +
+    # IPAdapter 双锁 + Canny 0.5）= 用户当年"明确点赞"的那条路径，主体真正换形（异内容同构）。
+    'pinterest6': 'p6_rebirth_v386_mode1.jpg',
     '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
     # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
     # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
@@ -555,7 +559,13 @@ def do_pinterest4():
     # P4_MODE=swap 可切换成"整棵刚体换位"保真备选（线质零损失，见 src/v346_p4aff.py）。
     # P4_MODE=hires 用 H2（max_side=2048 原生 1:1 重生）；P4_MODE=pre15 用 H3（预放大 1.5x
     # 重生，笔宽 4.00 比原图 4.47 更细，线稿感更强）。默认 = H2。
-    if os.environ.get('P4_MODE', '').lower() == 'swap':
+    # v386（用户第17轮否决"怎么又是碎的，上一个不是好的吗"）：**默认 = 整棵仿射换位**。
+    # 病根：SDXL 重画这张矢量线稿，细叶在二值化后必被撕成短虚线（= 用户说的"碎"，
+    # 碎块数 177 vs 原图 91）；而整棵仿射换位只做刚体置换（错排/各向异性缩放/切变/镜像），
+    # 线宽·硬边·连通性零损失（墨 21.2% ≈ 原 22.6%），剪影 IoU 大幅下降 = 真换位。
+    # SDXL 重画路线改为**显式 opt-in**（P4_MODE=hires / pre15），默认不再走。
+    _mode = os.environ.get('P4_MODE', 'swap').lower()
+    if _mode not in ('hires', 'pre15', 'hires15'):
         _ov = ROOT / 'jobs' / 'v346_p4aff' / '_swap_alpha.png'
         return cpp.fission(BY['pinterest4']['path'], OUT, cfg, seed=21,
                            rebirth_path=None,
@@ -569,7 +579,8 @@ def do_pinterest4():
     # ⇒ H2 是旧交付的**严格改进**（帕累托），故默认切 H2。
     # 同期实测无用并已排除：局部密度阈值(v350)、厚度门控阈值(v350d)、门控闭运算(v350f，
     # 细线区厚度 4.0→6.3~10.0)、全局阈值扫描 t54/t58（树干环纹被压成粗梯子）。
-    _mode = os.environ.get('P4_MODE', '').lower()
+    # ⚠️ 但即便 H2(ms2048) 仍属「SDXL 重画」家族，二值化后仍碎（碎块 126 vs 原 91）；
+    #    故 H 系列只在显式 P4_MODE=hires/pre15 时启用，默认走上面的仿射换位。
     _rb = ROOT / 'jobs' / 'v351_p4hires' / (
         'H3_pre15_ms4096_raw.jpg' if _mode in ('pre15', 'hires15')
         else 'H2_ms2048_raw.jpg')
@@ -1230,6 +1241,17 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
         o = o * (1 - a[..., None]) + \
             np.array([238, 240, 248], np.float32)[None, None, :] * a[..., None]
         out = Image.fromarray(np.clip(o, 0, 255).astype(np.uint8), 'RGB')
+    # v386：mode1 主体源的 tonal 比原图暗一档（白点 p90 219 vs 原图 255）→ 整幅发灰，
+    # 用户会判"变暗/变糊"。线性 level 把成品白点拉回原图白点（只增益、不压黑，
+    # 背景纯黑不受影响），恢复与原图同档的"硬朗白墨"质感。
+    _on = np.asarray(out.convert('L'), np.float32)
+    _orl = np.asarray(img.convert('L'), np.float32)
+    _g = float(np.percentile(_orl, 90)) / max(float(np.percentile(_on, 90)), 1.0)
+    _g = min(max(_g, 1.0), 1.35)
+    if _g > 1.004:
+        o = np.asarray(out, np.float32)
+        out = Image.fromarray(np.clip(o * _g, 0, 255).astype(np.uint8), 'RGB')
+    print(f'[p6] tone-match gain={_g:.3f}')
     out.save(OUT / 'pinterest6_variant.jpg', quality=93)
     print(f'[pinterest6] erase_px={int(mask.sum())} title={tw}x{th}@x{cx0} y{cy_place} '
           f'(orig x[12,3524] y[88,1800])')
