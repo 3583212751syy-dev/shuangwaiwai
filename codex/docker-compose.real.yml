@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  model_worker:
+    build:
+      context: ./model_worker
+      dockerfile: Dockerfile.gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - USE_REAL_MODEL=true
+      - MODEL_ID=${MODEL_ID}
+      - CONTROLNET_ID=${CONTROLNET_ID}
+      - DEVICE=cuda
+    runtime: nvidia
+    ports:
+      - "7860:7860"

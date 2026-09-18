@@ -1,0 +1,57 @@
+name: AI Sync Hub
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 生成变更摘要
+        id: diff
+        run: |
+          echo ## 📦 仓库变更摘要 > sync-report.md
+          echo " >> sync-report.md
+          echo **提交者**: ${{ github.actor }} >> sync-report.md
+          echo **提交信息**: ${{ github.event.head_commit.message }} >> sync-report.md
+          echo **时间**: $(date -u '+%Y-%m-%d %H:%M UTC') >> sync-report.md
+          echo " >> sync-report.md
+          echo ### 变更文件 >> sync-report.md
+          echo '```' >> sync-report.md
+          git diff --name-status HEAD~1 HEAD >> sync-report.md 2>/dev/null || echo Initial commit >> sync-report.md
+          echo '```' >> sync-report.md
+          echo " >> sync-report.md
+          echo ### 变更统计 >> sync-report.md
+          echo '```' >> sync-report.md
+          git diff --stat HEAD~1 HEAD >> sync-report.md 2>/dev/null || echo Initial commit >> sync-report.md
+          echo '```' >> sync-report.md
+
+      - name: 更新同步时间
+        run: |
+          SYNC_TIME=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+          python3 -c 
+ import json
+ with open('.ai-sync/board.json', 'r') as f:
+ board = json.load(f)
+ board['last_sync'] = '$SYNC_TIME'
+ board['last_commit'] = '${{ github.event.head_commit.message }}'[:60]
+ board['last_actor'] = '${{ github.actor }}'
+ with open('.ai-sync/board.json', 'w') as f:
+ json.dump(board, f, indent=2, ensure_ascii=False)
+ 
+
+      - name: 提交同步更新
+        run: |
+          git config user.name AI Sync Bot
+          git config user.email ai-sync@bot.local
+          git add .ai-sync/board.json sync-report.md
+          git diff --cached --quiet || git commit -m 🤖 AI Sync: 自动同步 ${{ github.event.head_commit.message }} --no-verify
+          git push || echo Nothing to push (可能无变更)

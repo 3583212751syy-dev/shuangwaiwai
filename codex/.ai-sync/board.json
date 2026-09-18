@@ -1,0 +1,16 @@
+{
+  version: 1.0,
+  last_sync: ",
+  active_tasks: [],
+  completed_tasks: [],
+  file_locks: {},
+  warnings: [],
+  agents: {
+    claude-code: {status: idle, last_active: "},
+    wokebuddy: {status: idle, last_active: "},
+    trae-code: {status: idle, last_active: "},
+    kouzi: {status: idle, last_active: "},
+    marvis: {status: idle, last_active: "},
+    codex: {status: idle, last_active: "}
+  }
+}

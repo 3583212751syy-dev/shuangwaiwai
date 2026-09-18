@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f2e3c6"/>
+      <stop offset="50%" stop-color="#dfc8a3"/>
+      <stop offset="100%" stop-color="#d5b77b"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff1b5" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#fff1b5" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#8a6840" flood-opacity="0.28"/>
+    </filter>
+    <style>
+      .title { font-family: Georgia, 'Times New Roman', serif; font-size: 30px; letter-spacing: 1px; }
+      .small { font-family: Georgia, 'Times New Roman', serif; font-size: 16px; }
+      .micro { font-family: Georgia, 'Times New Roman', serif; font-size: 12px; }
+      .panel-label { font-family: Arial, sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 1px; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1200" fill="url(#bg)"/>
+  <circle cx="220" cy="150" r="180" fill="url(#glow1)"/>
+  <circle cx="1280" cy="150" r="200" fill="url(#glow1)" opacity="0.9"/>
+  <circle cx="1180" cy="980" r="170" fill="#efc98d" opacity="0.5"/>
+
+  <g opacity="0.25">
+    <path d="M0,100 L1600,100" stroke="#fdf7ef" stroke-width="2"/>
+    <path d="M0,1080 L1600,1080" stroke="#fdf7ef" stroke-width="2"/>
+  </g>
+
+  <g>
+    <rect x="30" y="30" width="740" height="540" rx="8" fill="rgba(255,255,255,0.08)" stroke="#fff" stroke-width="3"/>
+    <rect x="830" y="30" width="740" height="540" rx="8" fill="rgba(255,255,255,0.08)" stroke="#fff" stroke-width="3"/>
+    <rect x="30" y="630" width="740" height="540" rx="8" fill="rgba(255,255,255,0.08)" stroke="#fff" stroke-width="3"/>
+    <rect x="830" y="630" width="740" height="540" rx="8" fill="rgba(255,255,255,0.08)" stroke="#fff" stroke-width="3"/>
+  </g>
+
+  <g>
+    <rect x="610" y="12" width="380" height="68" rx="18" fill="rgba(255,255,255,0.24)"/>
+    <text x="800" y="55" text-anchor="middle" class="title" fill="#694b29">Rooibos Tea</text>
+  </g>
+
+  <!-- panel 1 -->
+  <g filter="url(#shadow)">
+    <g transform="translate(130 120) rotate(-5 190 250)">
+      <rect x="0" y="0" width="380" height="560" rx="28" fill="#b58957"/>
+      <rect x="45" y="40" width="290" height="460" rx="18" fill="#f4ebdc"/>
+      <rect x="58" y="58" width="264" height="14" fill="#a9b68d" opacity="0.7"/>
+      <circle cx="190" cy="165" r="75" fill="#e0c57d" opacity="0.8"/>
+      <text x="190" y="120" text-anchor="middle" class="title" fill="#7b4d30">TEVOYATEA</text>
+      <text x="190" y="155" text-anchor="middle" class="small" fill="#7b4d30" font-style="italic">Rooibos Tea</text>
+      <text x="190" y="260" text-anchor="middle" class="micro" fill="#4e5a45">A blend of natural herbs</text>
+      <text x="190" y="278" text-anchor="middle" class="micro" fill="#4e5a45">to help relieve stress</text>
+      <ellipse cx="190" cy="340" rx="80" ry="50" fill="#f7f6f2"/>
+      <ellipse cx="190" cy="345" rx="48" ry="28" fill="#bd6c2c" opacity="0.9"/>
+      <rect x="100" y="400" width="180" height="34" rx="12" fill="#7aa068"/>
+      <text x="190" y="423" text-anchor="middle" class="micro" fill="#f7d873" font-weight="700">100% NATURAL</text>
+      <text x="190" y="470" text-anchor="middle" class="micro" fill="#694b29">NET WT: 100g (3.53oz)</text>
+    </g>
+  </g>
+
+  <!-- panel 2 -->
+  <g filter="url(#shadow)">
+    <g transform="translate(890 140) rotate(7 190 250)">
+      <rect x="0" y="0" width="380" height="560" rx="28" fill="#b58957"/>
+      <rect x="45" y="40" width="290" height="460" rx="18" fill="#f4ebdc"/>
+      <circle cx="190" cy="168" r="72" fill="#e0c57d" opacity="0.8"/>
+      <text x="190" y="118" text-anchor="middle" class="title" fill="#7b4d30">TEVOYATEA</text>
+      <text x="190" y="151" text-anchor="middle" class="small" fill="#7b4d30" font-style="italic">Rooibos Tea</text>
+      <rect x="90" y="200" width="200" height="130" rx="14" fill="#dde8cf" opacity="0.6"/>
+      <text x="190" y="250" text-anchor="middle" class="micro" fill="#536d4b">natural herbs</text>
+      <text x="190" y="270" text-anchor="middle" class="micro" fill="#536d4b">calm &amp; restore</text>
+      <path d="M118 344 C150 308, 225 300, 262 344" stroke="#c5a05a" stroke-width="5" fill="none" opacity="0.8"/>
+      <ellipse cx="190" cy="382" rx="80" ry="50" fill="#f7f6f2"/>
+      <ellipse cx="190" cy="382" rx="48" ry="26" fill="#bd6c2c" opacity="0.9"/>
+      <rect x="110" y="420" width="160" height="34" rx="12" fill="#7aa068"/>
+      <text x="190" y="443" text-anchor="middle" class="micro" fill="#f7d873" font-weight="700">100% NATURAL</text>
+    </g>
+  </g>
+
+  <!-- panel 3 -->
+  <g filter="url(#shadow)">
+    <g transform="translate(120 710) rotate(-8 190 250)">
+      <rect x="0" y="0" width="380" height="560" rx="28" fill="#b58957"/>
+      <rect x="45" y="40" width="290" height="460" rx="18" fill="#f4ebdc"/>
+      <text x="190" y="110" text-anchor="middle" class="title" fill="#7b4d30">TEVOYATEA</text>
+      <ellipse cx="190" cy="350" rx="85" ry="52" fill="#f6f2ee"/>
+      <ellipse cx="190" cy="356" rx="62" ry="30" fill="#c86d2d" opacity="0.9"/>
+      <path d="M120 300 C150 260, 230 260, 260 300" stroke="#a1b080" stroke-width="5" fill="none"/>
+      <rect x="90" y="412" width="200" height="38" rx="12" fill="#7aa068"/>
+      <text x="190" y="436" text-anchor="middle" class="micro" fill="#f7d873" font-weight="700">100% NATURAL</text>
+      <circle cx="110" cy="320" r="24" fill="#6e6e4c" opacity="0.7"/>
+      <circle cx="270" cy="300" r="20" fill="#9f6e41" opacity="0.7"/>
+      <path d="M58 170 C98 110, 128 126, 150 170" stroke="#7e8d68" stroke-width="3" fill="none"/>
+      <path d="M245 175 C286 110, 318 128, 345 172" stroke="#7e8d68" stroke-width="3" fill="none"/>
+    </g>
+  </g>
+
+  <!-- panel 4 -->
+  <g filter="url(#shadow)">
+    <g transform="translate(930 720) rotate(6 190 250)">
+      <rect x="0" y="0" width="380" height="560" rx="28" fill="#b58957"/>
+      <rect x="45" y="40" width="290" height="460" rx="18" fill="#f4ebdc"/>
+      <circle cx="190" cy="175" r="60" fill="#e0c57d" opacity="0.7"/>
+      <text x="190" y="110" text-anchor="middle" class="title" fill="#7b4d30">TEVOYATEA</text>
+      <text x="190" y="145" text-anchor="middle" class="small" fill="#7b4d30" font-style="italic">Rooibos Tea</text>
+      <g>
+        <circle cx="260" cy="290" r="80" fill="#a1232c"/>
+        <circle cx="260" cy="290" r="52" fill="#be2d39"/>
+        <g stroke="#f0d6d8" stroke-width="4" fill="none" opacity="0.75">
+          <path d="M260 210 L260 370"/>
+          <path d="M180 290 L340 290"/>
+          <path d="M205 230 L315 350"/>
+          <path d="M205 350 L315 230"/>
+        </g>
+      </g>
+      <ellipse cx="180" cy="360" rx="80" ry="50" fill="#f7f6f2"/>
+      <ellipse cx="180" cy="360" rx="48" ry="26" fill="#bd6c2c" opacity="0.9"/>
+      <rect x="100" y="415" width="180" height="36" rx="12" fill="#7aa068"/>
+      <text x="190" y="438" text-anchor="middle" class="micro" fill="#f7d873" font-weight="700">100% NATURAL</text>
+    </g>
+  </g>
+
+  <g>
+    <text x="160" y="615" class="panel-label" fill="#fff" opacity="0.9">HERO SHOT</text>
+    <text x="930" y="615" class="panel-label" fill="#fff" opacity="0.9">DETAIL</text>
+    <text x="160" y="1160" class="panel-label" fill="#fff" opacity="0.9">BREW</text>
+    <text x="930" y="1160" class="panel-label" fill="#fff" opacity="0.9">LIFESTYLE</text>
+  </g>
+</svg>
