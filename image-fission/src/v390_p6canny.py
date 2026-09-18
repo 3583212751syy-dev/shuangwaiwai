@@ -22,8 +22,10 @@
      铁律：**重生分辨率不得低于原图** —— 降采样/放大 = 糊 = "错乱"。
 
   ✅ v390「Canny 结构引导 SDXL 原生 2048 重绘」（本文件）
-     · 用 ControlNet-Canny 出原图线稿骨架，cn_strength 0.32→0.42 线性、cn_end 0.45
-     · denoise 0.94 → 模型在骨架上真正重画（不是描一遍）
+     · 用 ControlNet-Canny 出原图线稿骨架，只做**构图骨架**引导（不锁死轮廓）
+     · v393 放松：cn_strength 0.20（弱引导）/ cn_end 0.55（骨架沿用更久）/
+       denoise 0.98（高噪声→真换形，不只描羽片）
+     · prompt 加「不同翼展(wider/narrower) + 鹰头转向一侧」以逼出结构级变化
      · max_side=2048 原生渲染（原图 3543px 的 0.58×，不放大）
      · prompt 锁「flat vector illustration / hard clean edges / solid flat colors」
        防 SDXL 把平涂制版风画成照片写实（v384 的病）
@@ -54,23 +56,29 @@ from v377_p6rb import snap_p6                              # noqa: E402
 SRC = Path("E:/Desktop/图裂变测试图/Pinterest (6).jpg")
 CN = "controlnet-canny-sdxl-1.0.fp16.safetensors"
 
-# ── 定稿参数（F5）──────────────────────────────────────────────────────────
+# ── 定稿参数（v393 放松：让 canny 只当构图骨架、模型真换形）─────────────────
+# 旧 F5(0.32/0.42/0.94) 被 user 判"canny 锁太死→只描羽片不换形"。
+# 本轮按 user 指示放松：cn_strength 0.18~0.22（弱引导）、cn_end 0.55（骨架沿用更久）、
+# denoise 0.97~1.0（高噪声→真重画）。取区间中值 0.20 / 0.98。
 CKPT = "juggernautXL_ragnarokBy.safetensors"
-DEF_CN_STRENGTH = 0.32
-DEF_CN_END = 0.42
-DEF_DENOISE = 0.94
+DEF_CN_STRENGTH = 0.20
+DEF_CN_END = 0.55
+DEF_DENOISE = 0.98
 DEF_SEED = 777
 DEF_MAX_SIDE = 2048
 
 POS = ("bald eagle with spread wings perched on a horned demon skull, "
-       "new wing shape and different feather arrangement, redesigned skull, "
+       "white feathered eagle head turned to one side at a new angle, "
+       "bright golden-yellow hooked beak, fierce visible eye, "
+       "new wing shape with a different wingspan wider or narrower than before, "
+       "different feather arrangement, very dark chocolate brown wing feathers, "
+       "redesigned skull, "
        "clean white bone skull with even fine cross-hatch shading, "
        "empty hollow pitch-black eye sockets and nasal cavity, no glowing eyes, "
-       "bright golden-yellow hooked beak, dark chocolate brown wing feathers, "
        "different curved ribbed horns, "
        "flat vector illustration, bold screen print, hard clean edges, crisp linework, "
        "solid flat colors, tan horns, pure black background, white lightning bolts, "
-       "symmetrical centered composition, high contrast, no text, no letters")
+       "centered composition, high contrast, no text, no letters")
 NEG = ("yellow patches, yellow stains, yellow spots on skull, yellow feathers on skull, "
        "dirty bone, dark stains, smudges, blotches, mud, grime, "
        "glowing eyes, luminous eyes, eye light, text, letters, words, watermark, "

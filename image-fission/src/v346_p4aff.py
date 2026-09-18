@@ -190,7 +190,8 @@ def collect(img, ink0, ink_a0, W, H, min_ink=120, atom_r=2, min_atom=20):
 
 def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p=0.5,
           pad=10, scl_lo=0.94, scl_hi=1.07, knee_lo=0.15, knee_w=0.20,
-          identity=False, outdir=None, gauss=0.0, assimilate_r=60.0):
+          identity=False, outdir=None, gauss=0.0, assimilate_r=60.0,
+          drop_iso=40.0, iso_gap=35.0):
     """v387（用户第 18 轮否决"乱七八糟一块一块的…不许一块块碎片化"）：
 
     量化根因（`_diag_p4.py`，ORIG vs v386 成品，均在 lum<30 墨迹掩膜上）：
@@ -211,10 +212,13 @@ def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p
     a_rgb_orig = np.asarray(img, np.float32)
     ink0 = cpp.tree_ink_mask(img, lum_thr=55.0, sat_thr=14.0, min_px=25, thin_only=False)
     # v392④（用户第 19 轮红框里的"短横线碎片"）：剔除**孤立小墨件**。
-    # 原图迷彩底上散落着少量离群的草痕/短横线（面积 <400px 且离任何大墨团 >35px）。
+    # 原图迷彩底上散落着少量离群的草痕/短横线（连通块面积 <drop_iso(默认40)px
+    # 且离任何大墨团(≥drop_iso) >iso_gap(默认35)px）。
     # 它们在换位时只能"就近归属"某棵树 → 被刚体搬到离该棕榈很远的位置 → 就成了
     # 用户圈出的"漂在迷彩上的短横线碎块"。直接从墨里剔除 ⇒ 输出不含它们，
     # 且底图本就是干净迷彩，不会留下任何痕迹。
+    # ⚠️ 这两个阈值此前是函数内未接线变量（drop_iso/iso_gap 未定义 → build() 在此崩），
+    # 本轮(v393)正式补成 build() 形参，默认 40/35，对应"剥离<40px孤立小墨"。
     if drop_iso > 0:
         _c, _cn = ndi.label(ink0, np.ones((3, 3), bool))
         _cs = np.bincount(_c.ravel()); _cs[0] = 0
@@ -475,8 +479,13 @@ if __name__ == "__main__":
     ap.add_argument("--gauss", type=float, default=0.0)
     ap.add_argument("--assimilate-r", type=float, default=120.0,
                     help="无主墨并入最近树的最大距离(px)；更远者剔除")
+    ap.add_argument("--drop-iso", type=float, default=40.0,
+                    help="v392④：剔除连通块面积<该值的孤立小墨件(px)")
+    ap.add_argument("--iso-gap", type=float, default=35.0,
+                    help="v392④：孤立小墨件离最近大墨团需>该距离(px)才剔除")
     a = ap.parse_args()
     build(seed=a.seed, max_ang=a.max_ang, scl_var=a.scl_var, skew=a.skew,
           aniso=a.aniso, flip_p=a.flip_p, scl_lo=a.scl_lo, scl_hi=a.scl_hi,
           knee_lo=a.knee_lo, knee_w=a.knee_w, identity=a.identity, outdir=a.outdir,
-          gauss=a.gauss, assimilate_r=a.assimilate_r)
+          gauss=a.gauss, assimilate_r=a.assimilate_r,
+          drop_iso=a.drop_iso, iso_gap=a.iso_gap)
