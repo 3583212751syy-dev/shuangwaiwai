@@ -570,12 +570,30 @@ def fission(image_path: str, out_dir: Path, cfg: dict, seed: int | None = None,
             ov = ov.resize((W, H), Image.LANCZOS)
         ov.save(str(out_dir / "_p4_ovink.png"))
         _a3 = (np.asarray(ov, np.float32) / 255.0)[..., None]
-        _blk = np.array([12.0, 10.0, 9.0], np.float32)[None, None, :]
-        out = _base * (1.0 - _a3) + _blk * _a3
+        # v387③（用户第 18 轮："乱七八糟一块一块的，不许一块块碎片化"）：
+        # 优先使用 v346_p4aff 新产出的**预乘原色层** `_swap_rgb.jpg`。
+        # 旧版把 α 覆盖到的像素一律涂成常数黑 [12,10,9] → 原图树干"**棕褐杆身 +
+        # 纯黑横档**"的内部层次被抹平，横档之间的抗锯齿过渡也被涂黑 →
+        # 整根杆糊成一根实心黑条。量化证据：连通块 832→193（原图 747 个 <12px 的
+        # 横档小件只剩 34）、平均笔宽 7.80→8.30px。
+        # 换成直传供体原色后，层次与线宽逐像素还原（横档仍是纯黑、杆身仍是棕褐）。
+        _rgbf = Path(_ov).parent / "_swap_rgb.jpg"
+        if _rgbf.exists():
+            _rgb = Image.open(_rgbf).convert("RGB")
+            if _rgb.size != (W, H):
+                _rgb = _rgb.resize((W, H), Image.LANCZOS)
+            _c = np.asarray(_rgb, np.float32)          # 已预乘 α，直接相加
+            out = _base * (1.0 - _a3) + _c
+            print(f"[camo_palm_pattern] ink_override: {_ov.name} + 原色层 "
+                  f"{_rgbf.name}（预乘，保杆身/横档层次）")
+        else:
+            _blk = np.array([12.0, 10.0, 9.0], np.float32)[None, None, :]
+            out = _base * (1.0 - _a3) + _blk * _a3
+            print(f"[camo_palm_pattern] ink_override: {_ov.name}（常数黑兜底）")
         res = Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
         n_morph = -1
-        print(f"[camo_palm_pattern] ink_override: {_ov.name} "
-              f"墨={100*(np.asarray(ov) > 127).mean():.1f}% (原 {100*ink.mean():.1f}%)")
+        print(f"[camo_palm_pattern] ink={100*(np.asarray(ov) > 127).mean():.1f}% "
+              f"(原 {100*ink.mean():.1f}%)")
     elif _rb is not None and _rb.exists():
         # v344（用户第 12 轮："让我裂变前面的树木元素，改变其剪影形状"）：前景棕榈改走
         # **SDXL 结构级重生** —— 剪影形状由模型重新生成（而不是把原树扭转 7° 那种
