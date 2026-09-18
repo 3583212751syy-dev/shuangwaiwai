@@ -18,6 +18,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import math
 import os
 import re
 import sqlite3
@@ -78,8 +79,18 @@ PLATFORMS = {
     },
 }
 # 区域物流费率库（国际段海运 ¥/kg；本地段：轻小件≤500g 按件价，>500g 按 ¥/kg×克重）
+# ---------------------------------------------------------------------------
+# v3.1 体积重计费（2026-09-14，按"国内发印尼"真实物流计费方式，数据源见文件尾注释）
+#   lcl_per_cbm     海运拼箱 LCL DDP 双清包税单价（元/CBM，1-5CBM 档）
+#   lcl_min_cbm     拼箱最低起运门槛（行业惯例 1 CBM，不足按 1 CBM 收）——单批件数越多，门槛摊得越薄
+#   vol_divisor     本地段体积重除数（长×宽×高÷6000，印尼快递通用标准）
+#   local_first_cny 本地派送首重（首 1kg，CNY）；local_next_cny 续重（每 +1kg，CNY）
+#   计费重量一律"体积重与实际重择大"（W/M 原则）：海运 1CBM=1000kg，本地段 ÷6000
+# ---------------------------------------------------------------------------
 REGIONS = {
-    "indonesia":   {"name": "印尼",   "sea_per_kg": 3.0, "local_small": 2.0, "local_per_kg": 4.0, "local_note": "JNE/J&T"},
+    "indonesia":   {"name": "印尼",   "sea_per_kg": 3.0, "local_small": 2.0, "local_per_kg": 4.0, "local_note": "SPX/SiCepat/JNE",
+                    "lcl_per_cbm": 600.0, "lcl_min_cbm": 1.0, "vol_divisor": 6000.0,
+                    "local_first_cny": 2.46, "local_next_cny": 1.23},
     "malaysia":    {"name": "马来",   "sea_per_kg": 3.0, "local_small": 2.0, "local_per_kg": 2.5, "local_note": "Pos/J&T"},
     "thailand":    {"name": "泰国",   "sea_per_kg": 3.5, "local_small": 2.0, "local_per_kg": 3.0, "local_note": "Flash Express"},
     "vietnam":     {"name": "越南",   "sea_per_kg": 3.5, "local_small": 2.0, "local_per_kg": 3.0, "local_note": "GHN/J&T"},
@@ -196,28 +207,82 @@ def pick_weight(product_name, weight):
             return w
     return DEFAULT_WEIGHT
 
-def region_fee(region_key, weight_g):
-    """按克重算运费：国际段 + 本地段（CNY/件）"""
+def parse_dim(s):
+    """解析 '长x宽x高'（cm），支持 x / × / * 分隔；返回 (L, W, H) 或 None"""
+    if not s:
+        return None
+    parts = re.split(r"[x×*,\s]+", str(s).strip().lower())
+    if len(parts) != 3:
+        return None
+    try:
+        L, W, H = (float(v) for v in parts)
+    except ValueError:
+        return None
+    return (L, W, H) if min(L, W, H) > 0 else None
+
+
+def billable(weight_g, dim, region_key, batch_qty=1):
+    """计费重量明细。
+    v3.1：体积重与实际重「择大」计费
+      · 海运：LCL 按 1CBM=1000kg 择大，且受最低起运门槛约束（按 batch_qty 摊销）
+      · 本地：按 长×宽×高÷6000 与实重择大
+    无 dim 时回退 v3.0 纯实重口径。
+    """
     r = REGIONS[region_key]
     kg = weight_g / 1000.0
-    sea = r["sea_per_kg"] * kg                       # 国际段海运
-    if weight_g <= 500:
-        local = r["local_small"]                     # 轻小件按件
+    if not dim:
+        return {"mode": "weight_only", "real_kg": kg,
+                "sea_ton": kg / 1000.0, "local_bill_kg": kg}
+    L, W, H = dim
+    vol_cm3 = L * W * H
+    cbm_pc = vol_cm3 / 1000000.0
+    qty = max(int(batch_qty or 0), 0)
+    min_cbm = r.get("lcl_min_cbm", 1.0)
+    # qty>0：按该批件数摊销 LCL 最低起运门槛；qty=0（默认）：视为多 SKU 混装整批已过门槛，按实际体积计费
+    eff_cbm = (max(cbm_pc * qty, min_cbm) / qty) if qty > 0 else cbm_pc
+    vol_kg = vol_cm3 / r.get("vol_divisor", 6000.0)
+    return {"mode": "dim", "real_kg": kg, "vol_cm3": vol_cm3, "cbm_pc": cbm_pc,
+            "eff_cbm": eff_cbm, "vol_kg": vol_kg, "batch_qty": qty,
+            "batch_cbm": cbm_pc * qty, "min_cbm": min_cbm,
+            "sea_ton": max(eff_cbm, kg / 1000.0),
+            "local_bill_kg": max(kg, vol_kg)}
+
+
+def region_fee(region_key, weight_g, dim=None, batch_qty=1):
+    """运费（CNY/件）：国际段海运 + 本地段。
+    有 dim → v3.1 择大计费（海运 LCL 按 CBM 单价，本地按 ÷6000 体积重）；
+    无 dim → v3.0 按实重费率（向后兼容）。
+    """
+    r = REGIONS[region_key]
+    b = billable(weight_g, dim, region_key, batch_qty)
+    if b["mode"] == "dim":
+        sea = b["sea_ton"] * r.get("lcl_per_cbm", 600.0)
+        first = r.get("local_first_cny", r["local_small"])
+        nxt = r.get("local_next_cny", first * 0.5)
+        local = first + max(0, math.ceil(b["local_bill_kg"]) - 1) * nxt
     else:
-        local = r["local_per_kg"] * kg               # 重件按 kg
+        sea = r["sea_per_kg"] * b["real_kg"]
+        local = r["local_small"] if weight_g <= 500 else r["local_per_kg"] * b["real_kg"]
     return sea, local
 
-def calc_profit(price_cur, ad_rate, purchase_cny, plat, weight_g, extra_cny=0.0):
-    """单件净利 CNY（v3：按克重算运费）"""
+
+def calc_profit(price_cur, ad_rate, purchase_cny, plat, weight_g, extra_cny=0.0,
+                dim=None, batch_qty=1):
+    """单件净利 CNY（v3.1：运费按「实重 vs 体积重」择大计费）"""
     rev_cny = to_cny(price_cur, plat["currency"])
-    sea_fee, local_fee = region_fee(plat["region"], weight_g)
-    cost = purchase_cny + 0.5 + sea_fee + 2.0 + local_fee + 1.0
+    sea_fee, local_fee = region_fee(plat["region"], weight_g, dim, batch_qty)
+    cost = purchase_cny + 0.5 + sea_fee + 2.0 + local_fee + 1.0 + extra_cny
     fee = rev_cny * (plat["commission"] + plat["trans"] + plat["pay"] + ad_rate)
     return rev_cny - fee - cost
 
-def calc_rate(price_cur, ad_rate, purchase_cny, plat, weight_g, extra_cny=0.0):
+
+def calc_rate(price_cur, ad_rate, purchase_cny, plat, weight_g, extra_cny=0.0,
+              dim=None, batch_qty=1):
     rev = to_cny(price_cur, plat["currency"])
-    return 0.0 if rev == 0 else calc_profit(price_cur, ad_rate, purchase_cny, plat, weight_g, extra_cny) / rev
+    if rev == 0:
+        return 0.0
+    return calc_profit(price_cur, ad_rate, purchase_cny, plat, weight_g,
+                       extra_cny, dim, batch_qty) / rev
 
 # ============================================================
 # 4. 样式
@@ -278,14 +343,15 @@ def embed_images(ws, anchor, img_paths, col_span=4, img_h=110):
 
 
 def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_steps,
-                 comp_1688, comp_plat, weight_g, result_meta):
+                 comp_1688, comp_plat, weight_g, result_meta, dim=None, batch_qty=1):
     out_path = args.output
     wb = Workbook()
     ws = wb.active
     ws.title = "产品与竞品图"
     ncol = 3 + 4 * 2
     region = REGIONS[plat["region"]]
-    sea_fee, local_fee = region_fee(plat["region"], weight_g)
+    sea_fee, local_fee = region_fee(plat["region"], weight_g, dim, batch_qty)
+    bl = billable(weight_g, dim, plat["region"], batch_qty)
 
     # ---------- Sheet 0: 产品与竞品图 ----------
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ncol)
@@ -296,11 +362,15 @@ def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_s
         cell = ws.cell(row=3, column=i, value=h)
         cell.font = HEADER_FONT; cell.fill = HEADER_FILL; cell.alignment = CENTER; cell.border = BORDER
     embed_images(ws, "A4", {"产品图": args.product_image, "1688采购图": args.purchase_image, "平台售卖图": args.platform_image})
+    dim_txt = (f" | 包装 {dim[0]:g}×{dim[1]:g}×{dim[2]:g}cm → 体积重 {bl['vol_kg'] * 1000:.0f}g"
+               f"（实重 {weight_g:.0f}g，抛货 {max(1.0, bl['vol_kg'] / max(bl['real_kg'], 1e-9)):.1f}×）"
+               if dim else "（未提供尺寸，按实重计费）")
     ws.cell(row=4, column=4, value=(
         f"产品：{args.product_name}\n平台：{plat['name']}\n物流：{logi['label']}\n"
-        f"采购价：{fmt_cny(purchase_cny)}\n克重：{weight_g}g/件\n"
+        f"采购价：{fmt_cny(purchase_cny)}\n克重/体积：{weight_g}g/件{dim_txt}\n"
         f"基准售价：{fmt_money(benchmark, plat['currency'])} ≈ {fmt_cny(to_cny(benchmark, plat['currency']))}\n"
-        f"国际段海运：{fmt_cny(sea_fee)}/件 | 本地段({region['local_note']})：{fmt_cny(local_fee)}/件"
+        f"海运计费重 {bl['sea_ton'] * 1000:.1f}kg → {fmt_cny(sea_fee)}/件 | "
+        f"本地派送计费重 {bl['local_bill_kg'] * 1000:.0f}g → {fmt_cny(local_fee)}/件"
     )).font = BODY_FONT
     ws.cell(row=4, column=4).alignment = LEFT
     for cc in range(1, 5):
@@ -317,7 +387,9 @@ def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_s
     ws1["A1"].font = TITLE_FONT
     ws1.merge_cells(start_row=2, start_column=1, end_row=2, end_column=ncol)
     ws1["A2"] = (f"基准售价 {fmt_money(benchmark, plat['currency'])}（≈{fmt_cny(to_cny(benchmark, plat['currency']))}） | "
-                 f"采购价 {fmt_cny(purchase_cny)} | 克重 {weight_g}g | 国际段海运 {fmt_cny(sea_fee)}/件 + 本地段 {fmt_cny(local_fee)}/件 | "
+                 f"采购价 {fmt_cny(purchase_cny)} | 克重 {weight_g:g}g"
+                 + (f" / 包装 {dim[0]:g}×{dim[1]:g}×{dim[2]:g}cm" if dim else "") +
+                 f" | 海运 {fmt_cny(sea_fee)}/件 + 本地派送 {fmt_cny(local_fee)}/件（实重/体积重择大） | "
                  f"佣金{plat['commission']*100:.0f}%+交易{plat['trans']*100:.0f}%+支付{plat['pay']*100:.0f}%")
     ws1["A2"].font = SUB_FONT
     headers = ["降价档", f"售价({plat['currency']})", "售价(CNY)"]
@@ -336,8 +408,8 @@ def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_s
         ws1.cell(row=row, column=3, value=f"≈{fmt_cny(to_cny(price, plat['currency']))}").font = BODY_FONT
         col = 4
         for ad in ad_rates:
-            p = calc_profit(price, ad, purchase_cny, plat, weight_g)
-            r = calc_rate(price, ad, purchase_cny, plat, weight_g)
+            p = calc_profit(price, ad, purchase_cny, plat, weight_g, 0.0, dim, batch_qty)
+            r = calc_rate(price, ad, purchase_cny, plat, weight_g, 0.0, dim, batch_qty)
             c1 = ws1.cell(row=row, column=col, value=fmt_cny(p)); c1.alignment = RIGHT; col += 1
             c2 = ws1.cell(row=row, column=col, value=fmt_pct(r)); c2.alignment = RIGHT; col += 1
             for c in (c1, c2):
@@ -425,21 +497,34 @@ def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_s
     ws3.column_dimensions["A"].width = 18
     ws3.column_dimensions["B"].width = 110
 
-    # ---------- Sheet 4: 供应链物流（v3：仅海运，按克重） ----------
+    # ---------- Sheet 4: 供应链物流（v3.1：海运 LCL 择大计费 + 体积重） ----------
     ws4 = wb.create_sheet("供应链物流")
     ws4.merge_cells("A1:G1")
-    ws4["A1"] = f"供应链与物流（按克重计费） — {logi['label']} | 单件克重 {weight_g}g | 区域：{region['name']}（{region['local_note']}）"
+    ws4["A1"] = (f"供应链与物流（实重/体积重择大计费） — {logi['label']} | 实重 {weight_g:g}g"
+                 + (f" | 包装 {dim[0]:g}×{dim[1]:g}×{dim[2]:g}cm = {bl['vol_cm3']:.0f}cm³（{bl['cbm_pc']:.6f} CBM/件）" if dim else "")
+                 + f" | 区域：{region['name']}（{region['local_note']}）")
     ws4["A1"].font = TITLE_FONT
     headers4 = ["环节", "说明", "计费方式", "费用(CNY/件)", "备注", "", ""]
     for c, h in enumerate(headers4, 1):
         cell = ws4.cell(row=2, column=c, value=h)
         cell.font = HEADER_FONT; cell.fill = HEADER_FILL; cell.alignment = CENTER; cell.border = BORDER
+    if dim:
+        min_cbm = bl["min_cbm"]
+        hit_min = bl["batch_qty"] > 0 and bl["batch_cbm"] < min_cbm
+        sea_mode = (f"LCL {region.get('lcl_per_cbm', 600):g}¥/CBM × {bl['sea_ton']:.4f}"
+                    f"（择大：体积{bl['eff_cbm']:.4f}CBM vs 实重{bl['real_kg']:.4f}吨）"
+                    + (f"；含{min_cbm:g}CBM起运门槛÷{bl['batch_qty']}件摊销" if hit_min else ""))
+        local_mode = (f"首1kg ¥{region.get('local_first_cny', 2.46):g} + 续重×{max(0, math.ceil(bl['local_bill_kg']) - 1)}kg"
+                      f"（计费重{bl['local_bill_kg'] * 1000:.0f}g = max(实重{weight_g:g}g, 体积重{bl['vol_kg'] * 1000:.0f}g)）")
+    else:
+        sea_mode = f"{region['sea_per_kg']}¥/kg × {weight_g:g}g"
+        local_mode = ("≤500g按件" if weight_g <= 500 else f"{region['local_per_kg']}¥/kg × {weight_g:g}g")
     rows4 = [
         ("① 采购", "工厂采购", "按件", purchase_cny, f"采购价 {fmt_cny(purchase_cny)}", "", ""),
         ("② 国内集运", "工厂→集货仓", "按件", 0.50, "含国内运输", "", ""),
-        ("③ 国际段海运", "中国→" + region["name"], f"{region['sea_per_kg']}¥/kg × {weight_g}g", sea_fee, "海运LCL 20-35天", "", ""),
-        ("④ 清关+仓", "清关入库", "按件", 2.00, "需进口资质", "", ""),
-        ("⑤ 本地配送", "仓→买家", ("≤500g按件" if weight_g <= 500 else f"{region['local_per_kg']}¥/kg × {weight_g}g"), local_fee, f"{region['local_note']} 1-3天", "", ""),
+        ("③ 国际段海运", "中国→" + region["name"], sea_mode, round(sea_fee, 2), "海运LCL 20-35天 · DDP双清包税", "", ""),
+        ("④ 印尼仓操作", "清关入库上架", "按件", 2.00, "DDP已含关税，此处为海外仓操作费", "", ""),
+        ("⑤ 本地派送", "仓→买家", local_mode, round(local_fee, 2), f"{region['local_note']} 1-3天", "", ""),
         ("⑥ 包装", "彩盒+袋", "按件", 1.00, "防压", "", ""),
     ]
     r = 3
@@ -456,6 +541,24 @@ def build_report(args, plat, logi, purchase_cny, benchmark, ad_rates, discount_s
     ws4.cell(row=r, column=5, value="全海运（无空运方案）").font = RED_FONT
     for cc in range(1, 8):
         ws4.cell(row=r, column=cc).border = BORDER; ws4.cell(row=r, column=cc).fill = WARN_FILL
+    r += 2
+    if dim:
+        ws4.cell(row=r, column=1, value="计费口径").font = BOLD_FONT
+        notes = [
+            f"包装体积 {dim[0]:g}×{dim[1]:g}×{dim[2]:g}cm = {bl['vol_cm3']:.0f}cm³ = {bl['cbm_pc']:.6f} CBM/件（含彩盒/外箱，未计装箱空隙）",
+            f"海运体积重＝体积×1000kg/CBM＝{bl['cbm_pc'] * 1000:.2f}kg；实重 {bl['real_kg']:.3f}kg → 择大取 {'体积重' if bl['sea_ton'] > bl['real_kg'] / 1000 + 1e-12 else '实重'}",
+            f"本地段体积重＝长×宽×高÷6000＝{bl['vol_kg'] * 1000:.0f}g；实重 {weight_g:g}g → 择大取 {'体积重' if bl['local_bill_kg'] > bl['real_kg'] + 1e-9 else '实重'}",
+            (f"批次：{bl['batch_qty']} 件/批，本批体积 {bl['batch_cbm']:.4f} CBM ≥ 最低起运 {bl['min_cbm']:g} CBM → 按实际体积计费"
+             if bl["batch_qty"] > 0 and bl["batch_cbm"] >= bl["min_cbm"] else
+             f"批次：{bl['batch_qty']} 件/批，本批仅 {bl['batch_cbm']:.4f} CBM < 最低起运 {bl['min_cbm']:g} CBM → 按 {bl['min_cbm']:g} CBM 计费后摊薄"
+             if bl["batch_qty"] > 0 else
+             f"未指定批次件数（默认）：视为多 SKU 混装、整批已过 LCL 最低起运 {bl['min_cbm']:g} CBM 门槛 → 按实际体积 {bl['cbm_pc']:.6f} CBM/件计费"),
+        ]
+        for n in notes:
+            r += 1
+            ws4.cell(row=r, column=1, value="·").font = BODY_FONT
+            ws4.merge_cells(start_row=r, start_column=2, end_row=r, end_column=7)
+            ws4.cell(row=r, column=2, value=n).font = BODY_FONT
     for i, w in enumerate([16, 20, 22, 16, 30, 8, 8], 1):
         ws4.column_dimensions[get_column_letter(i)].width = w
     ws4.freeze_panes = "A3"
@@ -504,7 +607,10 @@ def main(argv=None):
     ap.add_argument("--logistics", default="sea", choices=list(LOGISTICS.keys()), help="物流方式：sea/mixed（v3无空运）")
     ap.add_argument("--purchase", type=float, default=0.0, help="采购价 CNY")
     ap.add_argument("--benchmark", type=float, default=0.0, help="基准售价（当地货币）")
-    ap.add_argument("--weight", type=float, default=0.0, help="单件克重 g（默认按品类库估算）")
+    ap.add_argument("--weight", type=float, default=0.0, help="单件实重 g（默认按品类库估算）")
+    ap.add_argument("--dim", default="", help="单件包装尺寸 长x宽x高 cm（含彩盒/外箱）；启用后按体积重与实重择大计费")
+    ap.add_argument("--batch-qty", dest="batch_qty", type=int, default=0,
+                    help="本批件数；>0 时按 LCL 最低起运门槛摊销，0=默认（多SKU混装整批已过门槛，按实际体积计费）")
     ap.add_argument("--currency", default="", help="币种（默认跟随平台；可自主选 IDR/USD/MYR/THB/VND/PHP/SGD/CNY）")
     ap.add_argument("--ad", default="0,5,10,15", help="广告率百分比，逗号分隔")
     ap.add_argument("--discount", default="5,10,15,20,25", help="降价阶梯百分比（不含原价）")
@@ -535,8 +641,10 @@ def main(argv=None):
         base = os.path.basename(prod_img) if prod_img else "未命名产品"
         args.product_name = os.path.splitext(base)[0]
 
-    # 克重：--weight 优先，否则品类估算
+    # 克重：--weight 优先，否则品类估算；尺寸用于体积重择大计费
     weight_g = pick_weight(args.product_name, args.weight)
+    dim = parse_dim(getattr(args, "dim", ""))
+    batch_qty = max(0, int(getattr(args, "batch_qty", 0) or 0))
     purchase = args.purchase if args.purchase > 0 else 4.0
 
     # ---------- 禁用条件 ----------
@@ -581,8 +689,8 @@ def main(argv=None):
         checks.append(("自动搜索", True, "ℹ️ 未启用自动搜索"))
 
     main_ad = ad_rates[1] if len(ad_rates) > 1 else ad_rates[0]
-    main_p = calc_profit(args.benchmark, main_ad, purchase, plat, weight_g, args.extra_cost)
-    main_rate = calc_rate(args.benchmark, main_ad, purchase, plat, weight_g, args.extra_cost)
+    main_p = calc_profit(args.benchmark, main_ad, purchase, plat, weight_g, args.extra_cost, dim, batch_qty)
+    main_rate = calc_rate(args.benchmark, main_ad, purchase, plat, weight_g, args.extra_cost, dim, batch_qty)
     checks.append(("利润判定", main_p > 0,
                    f"{'✅' if main_p > 0 else '❌'} 主力场景（基准原价+{int(main_ad*100)}%广告+{args.logistics}）"
                    f"单件净利 {fmt_cny(main_p)}，利润率 {fmt_pct(main_rate)}"))
@@ -593,10 +701,25 @@ def main(argv=None):
         return 1
 
     region = REGIONS[plat["region"]]
-    sea_fee, local_fee = region_fee(plat["region"], weight_g)
+    sea_fee, local_fee = region_fee(plat["region"], weight_g, dim, batch_qty)
+    bl = billable(weight_g, dim, plat["region"], batch_qty)
+    if dim:
+        logi_desc = (
+            f"物流（v3.1 全海运 · 实重/体积重择大）：海运 {fmt_cny(sea_fee)}/件 "
+            f"[LCL {region.get('lcl_per_cbm', 600):g}¥/CBM × 计费 {bl['sea_ton']:.4f}（体积 {bl['eff_cbm']:.4f}CBM vs 实重 {bl['real_kg']:.4f}吨择大）]"
+            f" + 本地 {region['local_note']} {fmt_cny(local_fee)}/件"
+            f"[首1kg+续重，计费重 {bl['local_bill_kg'] * 1000:.0f}g = max(实重 {weight_g:g}g, 体积重 {bl['vol_kg'] * 1000:.0f}g)]"
+            + (f"；本批 {bl['batch_qty']} 件 = {bl['batch_cbm']:.3f}CBM"
+               + ("（已达起运门槛）" if bl["batch_cbm"] >= bl["min_cbm"] else f"（未达 {bl['min_cbm']:g}CBM 门槛，已摊薄）")
+               if bl["batch_qty"] > 0 else f"；默认按多 SKU 混装，已过 {bl['min_cbm']:g}CBM 起运门槛")
+            + f"；包装 {dim[0]:g}×{dim[1]:g}×{dim[2]:g}cm"
+        )
+    else:
+        logi_desc = (f"物流（v3 全海运）：国际段 {fmt_cny(sea_fee)}/件（{region['sea_per_kg']}¥/kg × {weight_g:g}g）"
+                     f" + 本地段 {region['local_note']} {fmt_cny(local_fee)}/件；未提供尺寸，按实重计费（--dim 可启用体积重）")
     advice = [
         f"✅ 项目可行：主力场景（基准原价+{int(main_ad*100)}%广告+{args.logistics}）单件净利 {fmt_cny(main_p)}，利润率 {fmt_pct(main_rate)}",
-        f"物流（v3 全海运）：国际段 {fmt_cny(sea_fee)}/件（{region['sea_per_kg']}¥/kg × {weight_g}g）+ 本地段 {region['local_note']} {fmt_cny(local_fee)}/件；克重 {weight_g}g 由品类库估算（--weight 可覆盖）",
+        logi_desc,
         f"币种：{args.currency}（1 {args.currency} = {CURRENCIES[args.currency]} CNY），全部金额已换算人民币",
         "定价建议：日常价建议落在基准价 60-85% 区间保利润；FLASH 促销价若亏本仅作引流款。",
     ]
@@ -605,7 +728,8 @@ def main(argv=None):
         os.path.expanduser("~"), "Desktop", f"{args.product_name}_{args.platform}_选品分析报表.xlsx")
     try:
         built = build_report(args, plat, logi, purchase, args.benchmark,
-                             ad_rates, discount_steps, comp_1688, comp_plat, weight_g, result_meta)
+                             ad_rates, discount_steps, comp_1688, comp_plat, weight_g, result_meta,
+                             dim, batch_qty)
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -614,13 +738,19 @@ def main(argv=None):
         conn.close()
         return 1
 
+    dim_meta = (f",dim={dim[0]:g}x{dim[1]:g}x{dim[2]:g},batch={batch_qty}" if dim else "")
     save_report(conn, args.product_name, args.platform, args.logistics, purchase,
-                args.benchmark, "OK", f"weight={weight_g}g,cur={args.currency}", out_path)
+                args.benchmark, "OK", f"weight={weight_g}g{dim_meta},cur={args.currency}", out_path)
     conn.close()
 
     result = {
         "status": "OK", "product": args.product_name, "platform": args.platform,
         "logistics": args.logistics, "weight_g": weight_g, "currency": args.currency,
+        "dim": list(dim) if dim else None, "batch_qty": batch_qty,
+        "vol_kg": round(bl["vol_kg"], 4) if dim else None,
+        "bill_local_kg": round(bl["local_bill_kg"], 4),
+        "sea_ton": round(bl["sea_ton"], 5),
+        "sea_fee": round(sea_fee, 3), "local_fee": round(local_fee, 3),
         "output": built, "main_profit": main_p, "main_rate": main_rate,
         "checks": [{"name": n, "ok": b, "detail": d} for n, b, d in checks],
     }
@@ -630,7 +760,8 @@ def main(argv=None):
 
     print("DONE")
     print("OUTPUT:", built)
-    print("WEIGHT_G:", weight_g, "CURRENCY:", args.currency)
+    print("WEIGHT_G:", weight_g, "DIM:", dim, "BATCH:", batch_qty, "CURRENCY:", args.currency)
+    print("SEA_TON:", round(bl["sea_ton"], 4), "SEA_FEE:", round(sea_fee, 3), "LOCAL_FEE:", round(local_fee, 3))
     print("MAIN_PROFIT:", fmt_cny(main_p), "RATE:", fmt_pct(main_rate))
     print("CHECKS:", json.dumps([n for n, b, d in checks], ensure_ascii=False))
     return 0

@@ -95,26 +95,28 @@ def place(alpha, donor_xy, target_xy, A, box):
     return acc
 
 
-def collect(img, ink0, ink_a0, W, H, min_ink=120):
-    """按树干定位 + **测地洪泛**归属，抽出每棵树的 alpha。
+def collect(img, ink0, ink_a0, W, H, min_ink=120, atom_r=2, min_atom=20):
+    """按树干定位 + **棕榈原子（neck-cut）整块归属**，抽出每棵树的 alpha。
 
-    v387⑤（用户第 18 轮否决"乱七八糟一块一块的"）：
-      旧版用 **Euclidean Voronoi**（按到树干轴的直线距离）把墨分给最近的干。
-      棕榈是**细高的**：树冠（叶片团）离树干轴可达 150px 以上，常比邻居的干更远
-      → 树冠被判给邻树 → **干走了而冠留在原地**（或反之）→ 用户看到的
-      "乱七八糟"：漂浮的冠 + 孤立的干 + 满地游离碎块（1:1 目检确认）。
-      修法：**测地归属** —— 以树干为种子、沿墨迹洪泛（细缝由 3px 膨胀桥接），
-      每个墨像素归给**沿墨连通的最近树干**。冠与自己的干在墨上连通，
-      因此冠必然随自己的干一起搬；邻树不连通则抢不走。
-      （对照旧结论：直接用"全局连通域"取树会把 51 倍面积卷进来——那是**全图**
-      连通；测地洪泛是**以每个干为源**的分水岭，天然按连通分割，不会卷邻树。）
+    v392③（用户第 19 轮否决"碎成一块一块"的真根因）：
+      旧版用「树干种子 + 扁平场 watershed」归属。扁平场上"最近种子"按**路径长度**判，
+      在高度互联的墨网里，一棵棕榈的树冠常沿墨路更"近"邻树的干 → **冠被判给邻树**
+      → 干与冠分属两棵树，各自按自己的变换飞走后：干成了**孤立横档梯**、冠成了
+      **漂浮叶簇**（正是用户红框圈出的 4 处）；细长的横档梯还会被邻树整根抢走。
+      修法：**先按"脖颈"把墨切成棕榈尺度的原子，再整原子归属**
+        · 原子种子 = 腐蚀 r=2 的墨块 + **每根树干轴带**；
+        · 对 **-EDT 分水岭**（分水岭落在两团之间的**窄颈** = 两棵棕榈相接处）；
+        · 每个原子**整块**归给"其像素多数最近的那根树干"（逐像素最近干 → 原子内多数票）；
+        · 一棵树 = 若干完整原子 → 变换时整块刚体搬运 ⇒ **原子永不撕裂**。
+      树干轴带也做种子 ⇒ 横档梯自成原子、永远跟自己的树干走（治"孤立树干"）。
     """
+    min_atom = int(__import__("os").environ.get("P4_MIN_ATOM", str(min_atom)))
     _, segs = trunks(ink0, H, W, 25, 60)
     segs = [s for s in segs if 0.06 * H < s["h"] < 0.62 * H]
     if not segs:
         return []
-    # ① 树干种子（沿树干轴的窄带 ∩ 墨）
-    mk = np.zeros((H, W), np.int32)
+    # ① 树干轴带（同时是种子 + 归属判据）
+    tlab = np.zeros((H, W), np.int32)
     for i, s in enumerate(segs):
         x = int(np.clip(round(float(s["x"])), 0, W - 1))
         y0 = int(np.clip(round(float(s["y_top"])), 0, H - 1))
@@ -126,66 +128,69 @@ def collect(img, ink0, ink_a0, W, H, min_ink=120):
         band &= ink0
         if int(band.sum()) < 2:
             band[max(0, y1 - 2):y1, x:min(W, x + 1)] = True
-        mk[band] = i + 1
-    # ② 测地洪泛：扁平场 + mask ⇒ 按 mask 内路径长度展开（≈连通最近邻）
-    mask = ndi.binary_dilation(ink0, structure=_disk(3))
-    lab = watershed(np.zeros((H, W), np.uint8), mk, mask=mask)
-    # ③ 洪泛不到的孤立墨岛 → 就近指派（EDT 最近标签）
-    unreach = (lab == 0) & mask
-    if unreach.any() and mk.any():
-        _, ind = ndi.distance_transform_edt(lab == 0, return_indices=True)
-        lab = np.where(unreach, mk[ind[0], ind[1]], lab)
-    # ④ 丢弃过小的干域（噪点误检），其墨**就近并入保留树** → 不留原位残片
-    area = np.array([int(((lab == i + 1) & ink0).sum()) for i in range(len(segs))])
-    keep = [i for i in range(len(segs)) if area[i] >= min_ink]
-    if not keep:
-        keep = list(range(len(segs)))
-    if len(keep) < len(segs):
-        cy = np.zeros(len(segs)); cx = np.zeros(len(segs))
-        for i in range(len(segs)):
-            ys, xs = np.where(lab == i + 1)
-            if len(ys):
-                cy[i] = ys.mean(); cx[i] = xs.mean()
-        remap = np.arange(len(segs) + 1)
-        ks = np.array(keep)
-        for i in range(len(segs)):
-            if i in keep:
-                continue
-            d = np.hypot(cx[ks] - cx[i], cy[ks] - cy[i])
-            remap[i + 1] = int(ks[int(np.argmin(d))]) + 1
-        lab = remap[lab]
+        tlab[band] = i + 1
+    # ② 原子种子：腐蚀墨块 + 树干轴带
+    er = ndi.binary_erosion(ink0, structure=_disk(atom_r))
+    mlab, mn = ndi.label(er, np.ones((3, 3), bool))
+    if mn:
+        msz = np.bincount(mlab.ravel()); msz[0] = 0
+        bad = np.where(msz < min_atom)[0]
+        if len(bad):
+            mlab[np.isin(mlab, bad)] = 0
+    mk = mlab.astype(np.int32)
+    off = int(mk.max())
+    mk = np.maximum(mk, np.where(tlab > 0, tlab + off, 0).astype(np.int32))
+    # ③ 对 -EDT 分水岭 → 原子（边界切在两团之间的窄颈）
+    dist = ndi.distance_transform_edt(ink0).astype(np.float32)
+    atom = watershed(-dist, mk, mask=ink0)
+    un = (atom == 0) & ink0
+    if un.any():
+        _, ind = ndi.distance_transform_edt(atom == 0, return_indices=True)
+        atom = np.where(un, atom[ind[0], ind[1]], atom)
+    # ④ 逐像素"最近树干" → 每个原子取多数票 → 原子整块归属
+    _, ind2 = ndi.distance_transform_edt(tlab == 0, return_indices=True)
+    near = tlab[ind2[0], ind2[1]]
+    na = int(atom.max())
+    owner = np.zeros(na + 1, np.int32)
+    ays, axs = np.nonzero(ink0)
+    al = atom[ays, axs].astype(np.int64)
+    nt = near[ays, axs].astype(np.int64)
+    v = nt > 0
+    if v.any():
+        nseg = len(segs)
+        key = al[v] * (nseg + 1) + nt[v]
+        bc = np.bincount(key, minlength=(na + 1) * (nseg + 1)).reshape(na + 1, nseg + 1)
+        owner = bc.argmax(1).astype(np.int32)
+        owner[bc.max(1) == 0] = 0
+    own_of_px = owner[atom]
     a_rgb = np.asarray(img, np.float32)
     trees = []
-    for i in keep:
-        own = (lab == i + 1) & ink0
+    for i, s in enumerate(segs):
+        own = ink0 & (own_of_px == (i + 1))
         if int(own.sum()) < min_ink:
             continue
-        s = segs[i]
-        # ② 小元素（树基旁草痕/短横线）**随最近的树一起搬**，不做就地保留。
-        #    实测"留在原位"会让它们变成悬空孤块（1:1 目检 = 一撮浮在迷彩上的脏点），
-        #    因为周围那棵树已经走了。跟着最近的树干走 → 仍贴在一棵树旁，观感自然。
-        sup = ndi.binary_dilation(own, structure=_disk(1), iterations=6, mask=ink0)
+        # 小元素（树基旁草痕/短横线）随最近的树一起搬（3px 内桥接即可，原子已足够完整）
+        sup = ndi.binary_dilation(own, structure=_disk(1), iterations=3, mask=ink0)
         full = ink_a0 * sup
         rows = np.where(full.any(1))[0]
         cols = np.where(full.any(0))[0]
         if len(rows) == 0 or len(cols) == 0:
             continue
-        # v387③：**连同供体的原色一起搬**（只搬 α=1 的墨/杆身像素；α=0 的迷彩档
-        # 不参与，因为最终合成是 base*(1-α)+rgb*α，α=0 处 RGB 被完全丢弃）。
-        # 这是"不许一块块"的关键：原图树干是「棕褐杆身 + 纯黑横档」，只搬黑白掩膜
-        # 再统一涂常数黑 → 杆身/抗锯齿过渡像素全变黑 → 档与缝糊成一根实心条。
+        # **连同供体原色一起搬**（树干是「棕褐杆身 + 纯黑横档」，只搬掩膜再涂常数黑
+        # 会把层次抹平 → 实心黑条 = "一块块"）
         rgb = a_rgb * (full > 0.5)[..., None].astype(np.float32)
         trees.append(dict(own=own, cx=float(s["x"]), base=float(s["y_bot"]),
                           x0=int(cols.min()), x1=int(cols.max()),
                           y0=int(rows.min()), y1=int(rows.max()),
                           trunk=float(max(1.0, s["y_bot"] - s["y_top"])), alpha=full,
                           rgb=rgb))
+    print(f"[p4aff] 原子归属：树干={len(segs)}  树={len(trees)}  原子={na}")
     return trees
 
 
 def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p=0.5,
           pad=10, scl_lo=0.94, scl_hi=1.07, knee_lo=0.15, knee_w=0.20,
-          identity=False, outdir=None, gauss=0.0):
+          identity=False, outdir=None, gauss=0.0, assimilate_r=60.0):
     """v387（用户第 18 轮否决"乱七八糟一块一块的…不许一块块碎片化"）：
 
     量化根因（`_diag_p4.py`，ORIG vs v386 成品，均在 lum<30 墨迹掩膜上）：
@@ -205,6 +210,27 @@ def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p
     W, H = img.size
     a_rgb_orig = np.asarray(img, np.float32)
     ink0 = cpp.tree_ink_mask(img, lum_thr=55.0, sat_thr=14.0, min_px=25, thin_only=False)
+    # v392④（用户第 19 轮红框里的"短横线碎片"）：剔除**孤立小墨件**。
+    # 原图迷彩底上散落着少量离群的草痕/短横线（面积 <400px 且离任何大墨团 >35px）。
+    # 它们在换位时只能"就近归属"某棵树 → 被刚体搬到离该棕榈很远的位置 → 就成了
+    # 用户圈出的"漂在迷彩上的短横线碎块"。直接从墨里剔除 ⇒ 输出不含它们，
+    # 且底图本就是干净迷彩，不会留下任何痕迹。
+    if drop_iso > 0:
+        _c, _cn = ndi.label(ink0, np.ones((3, 3), bool))
+        _cs = np.bincount(_c.ravel()); _cs[0] = 0
+        _small_ids = np.where((_cs > 0) & (_cs < drop_iso))[0]
+        _bigm = np.isin(_c, np.where(_cs >= drop_iso)[0])
+        if len(_small_ids) and _bigm.any():
+            _d = ndi.distance_transform_edt(~_bigm)
+            _drop = np.zeros_like(ink0)
+            for _sid in _small_ids:
+                _m = (_c == _sid)
+                if _d[_m].min() > iso_gap:
+                    _drop |= _m
+            _nd = int(_drop.sum())
+            if _nd:
+                ink0 = ink0 & ~_drop
+            print(f"[p4aff] 剔除孤立小墨件：候选 {len(_small_ids)} 个 → 去掉 {_nd}px")
     # v387④：**不再对掩膜做高斯模糊**（旧版 sigma=0.7）。
     # 模糊会在每条笔画外生成 ~1.5px 的 α 晕圈；原图树干是**细密横档**（档间距仅几 px），
     # 相邻两档的晕圈在缝里叠加 → 缝被提亮/变暗成"半墨" → 档与缝连成一体（实测
@@ -213,6 +239,43 @@ def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p
     ink_a0 = (ndi.gaussian_filter(ink0.astype(np.float32), float(gauss))
               if float(gauss) > 0 else ink0.astype(np.float32))
     trees = collect(img, ink0, ink_a0, W, H)
+    # v392②（用户第 19 轮否决"碎成一块一块"的真凶）：**把无人认领的墨就近并入最近的树**。
+    #
+    # 机理：`collect()` 里 `sup = dilate(own, disk1, 6, mask=ink0)` 只能跨 **≤6px** 的缝。
+    # 这张画的墨是**高度互联的一整片网**，分水岭边界会从树内部切过，切出来的碎岛常离
+    # 自己那棵树 >6px → 既不在任何 `sup` 内（不被搬走），也不在 `union` 内（不被擦除）
+    # → 落到 `acc` 里，合成时以**原图原色留在原位**。邻居树一搬走，它就是一块**悬浮的
+    # 原树残片**（实测 0.453% / 14 块 / 11 块 ≥100px —— 与用户红框逐处对应）。
+    #
+    # 修法：对 `ink0 & ~covered` 的每个像素，找**最近那棵树**；≤ assimilate_r 的并入该树
+    # （α 与 RGB 都按原图写入，bbox 同步外扩，于是它跟着那棵树**刚体一起搬**，不再孤立）；
+    # 更远的（真的无主）直接**从墨里剔除** → 底图露干净迷彩，也不留悬浮块。
+    if trees:
+        _seeds = np.zeros((H, W), np.int32)
+        for _k, _t in enumerate(trees):
+            _seeds[_t["alpha"] > 0.5] = _k + 1
+        _cov = _seeds > 0
+        _left = ink0 & ~ndi.binary_dilation(_cov, structure=_disk(2))
+        if _left.any():
+            _dd, _ind = ndi.distance_transform_edt(~_cov, return_indices=True)
+            _near = _seeds[_ind[0], _ind[1]] - 1
+            _ok = _left & (_near >= 0) & (_dd <= float(assimilate_r))
+            _n_ok = int(_ok.sum())
+            _n_no = int((_left & ~_ok).sum())
+            for _k in np.unique(_near[_ok]):
+                _mk = _ok & (_near == _k)
+                trees[int(_k)]["alpha"][_mk] = ink_a0[_mk]
+                trees[int(_k)]["rgb"][_mk] = a_rgb_orig[_mk]
+            for _t in trees:
+                _al = _t["alpha"] > 0.5
+                if not _al.any():
+                    continue
+                _rr = np.where(_al.any(1))[0]
+                _cc = np.where(_al.any(0))[0]
+                _t["x0"], _t["x1"] = int(_cc.min()), int(_cc.max())
+                _t["y0"], _t["y1"] = int(_rr.min()), int(_rr.max())
+            print(f"[p4aff] 无主墨接管：并入最近树 {_n_ok}px / 剔除(>"
+                  f"{int(assimilate_r)}px 无主) {_n_no}px")
     n = len(trees)
     rng = np.random.default_rng(int(seed))
     # 置换 = **尺寸+墨量匹配的最优分配**（不是随机错排）。
@@ -261,6 +324,14 @@ def build(seed=20260917, max_ang=12.0, scl_var=0.06, skew=0.0, aniso=0.0, flip_p
     # v387③：颜色累加器。初值 = **原图本身**——`acc` 里那部分"不属于任何树而留在原位"
     # 的墨（残件）必须带上它自己的原色，否则会被当成"α>0 但 rgb=0"而涂黑。
     accc = (a_rgb_orig * acc[..., None]).copy()
+    # v392 诊断（用户第 19 轮否决"碎成一块一块"）：把"**没被任何树认领、只能留在原位**"
+    # 的墨量打出来。这部分会以**原图原色**留在原地（合成 base*(1-α)+accc*a），
+    # 周围那棵树一旦搬走，它就是一块**悬浮的原树残片** —— 用户红框看到的正是它。
+    _rl, _rn = ndi.label(acc > 0, structure=np.ones((3, 3), bool))
+    _rsz = np.bincount(_rl.ravel()); _rsz[0] = 0
+    print(f"[p4aff] 残件诊断：未归属墨={100 * (acc > 0).mean():.3f}% "
+          f"({int((acc > 0).sum())}px)  块数={_rn}  >=30px 块={int((_rsz >= 30).sum())}  "
+          f">=100px 块={int((_rsz >= 100).sum())}")
 
     moved, stats = 0, []
     for i, t in enumerate(trees):
@@ -402,8 +473,10 @@ if __name__ == "__main__":
                     help="自检：恒等置换+零角+零缩放 → 输出应逐像素还原原图")
     ap.add_argument("--outdir", type=str, default=None)
     ap.add_argument("--gauss", type=float, default=0.0)
+    ap.add_argument("--assimilate-r", type=float, default=120.0,
+                    help="无主墨并入最近树的最大距离(px)；更远者剔除")
     a = ap.parse_args()
     build(seed=a.seed, max_ang=a.max_ang, scl_var=a.scl_var, skew=a.skew,
           aniso=a.aniso, flip_p=a.flip_p, scl_lo=a.scl_lo, scl_hi=a.scl_hi,
           knee_lo=a.knee_lo, knee_w=a.knee_w, identity=a.identity, outdir=a.outdir,
-          gauss=a.gauss)
+          gauss=a.gauss, assimilate_r=a.assimilate_r)
