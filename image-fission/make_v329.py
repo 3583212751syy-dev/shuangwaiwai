@@ -84,7 +84,7 @@ REBIRTH_FILES = {
     #   实测：A 单独 2048→2560 只解决一半（眼睛回来了、喙仍偏大偏低），B 贴回后
     #        鹰头解剖正常（见 jobs/_probe/p6_step1_cmp.jpg）。
     # 第②步（文本裂变）仍由本函数在主体定稿之后单独执行（🔴37）。
-    'pinterest6': 'p6_rebirth_v397_step1.jpg',
+    'pinterest6': 'p6_rebirth_v402_step1.jpg',
     '6978': '6978_rebirth_v344.jpg',          # 用户："蝙蝠设计可以" → 冻结不动
     # p4 不走重生（矢量线稿经 SDXL 必掉档 = "比原图丑"，踩红线），
     # 改用 src/v346_p4aff.py 的「整棵仿射换位」→ 见 do_pinterest4()
@@ -1047,8 +1047,11 @@ P6_HORN = float(os.environ.get('P6_HORN', 0.20))  # 双角外掀（绕角根）
 P6_JAW = float(os.environ.get('P6_JAW', 85.0))   # 下颌下沉（张嘴）px
 
 
-def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
+def do_pinterest6(WORD_SRC=None, pad=55, tgt=1200.0, cy_place=60):
     """黑金属尖刺标题：擦掉旧标题（保留背景蓝烟），换上同字身高的尖刺字标。
+
+    WORD_SRC 默认取 P6_WORD_SRC 环境变量（缺省 n5_0.png）——便于对多个
+    Harrlogos 候选字标做 A/B（n4/n6 笔画更粗，更贴原图 MRCHOSR 的粗壮度）。
 
     ⚠️ 擦除改法（v329 首版漏擦）：旧版用 detect_lines 只取**最大连通域**，且扫描窗口
     限到 y<1140 —— 原标题"翼状尖刺"左右两端一直伸到画框边缘、末端低于 y=1140，
@@ -1069,6 +1072,8 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     if _v394 and Path(_v394).exists():
         print(f'[p6] v394 主体/文本分离定稿（已含裂变文本），跳过旧流程 → {_v394}')
         return Image.open(_v394).convert('RGB')
+    if WORD_SRC is None:
+        WORD_SRC = os.environ.get('P6_WORD_SRC', 'n4_0.png')
     ic = BY['pinterest6']
     img = Image.open(ic['path']).convert('RGB')
     W, H = img.size
