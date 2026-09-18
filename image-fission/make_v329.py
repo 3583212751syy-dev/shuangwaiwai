@@ -1051,7 +1051,17 @@ def do_pinterest6(WORD_SRC='n5_0.png', pad=55, tgt=1200.0, cy_place=60):
     只擦白墨、不擦蓝烟：闭运算会把稀疏蓝雾排除，背景烟雾得以保留。
     重画：Harrlogos XL 生成的尖刺字标，裁掉过长"发丝"尖刺后按**原图标题字身高度**
     缩放居中 —— 同风格 / 同材质(白墨) / 同字体语言。
+
+    v394 分流：设环境变量 P6_V394_FINAL=<成品路径> 时直接采用该成品
+    （src/v394_p6split.py 的两段式产出：主体 wide=140 解锁剪影重生 + 原标题
+    字母簇重排的裂变文本）——本函数的旧主体位移/擦字/叠字全跳过，防止把
+    已裂变的文本再擦掉换成 VORTCRAVEN。
     """
+    import os as _os
+    _v394 = _os.environ.get('P6_V394_FINAL')
+    if _v394 and Path(_v394).exists():
+        print(f'[p6] v394 主体/文本分离定稿（已含裂变文本），跳过旧流程 → {_v394}')
+        return Image.open(_v394).convert('RGB')
     ic = BY['pinterest6']
     img = Image.open(ic['path']).convert('RGB')
     W, H = img.size
