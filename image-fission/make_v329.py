@@ -94,6 +94,11 @@ REBIRTH_FILES = {
 def _rebirth_path(iid):
     if os.environ.get('SUBJECT_REBIRTH', '1') == '0':
         return None
+    # 环境变量直指某个重生成品（便于 A/B 多版主体，不必改 REBIRTH_FILES）
+    _ov = os.environ.get('P6_REBIRTH' if iid == 'pinterest6' else f'{iid}_REBIRTH')
+    if _ov:
+        p = Path(_ov)
+        return p if p.exists() else None
     fn = REBIRTH_FILES.get(iid)
     if not fn:
         return None
@@ -1247,6 +1252,7 @@ def do_pinterest6(WORD_SRC=None, pad=55, tgt=1200.0, cy_place=60):
     TGT_W = 3513.0          # 原图标题白墨全幅宽
     TOP_Y = 88.0            # 原图标题白墨顶
     G = VIS / 'elemgen_mid' / WORD_SRC
+    tw = th = cx0 = cy_place = 0          # 无字标（底板模式）时下面日志用的占位
     if G.exists():
         g = Image.open(G).convert('L')
         ga = np.asarray(g, np.float32) / 255.0
