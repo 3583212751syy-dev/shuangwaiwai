@@ -44,8 +44,9 @@ try:
 except Exception:                               # pragma: no cover
     Image = None
 
-MAX_W = 1100          # 展示图最大宽度（控制体积）
+MAX_W = 1100          # 展示图默认最大宽度（控制体积）
 THUMB_W = 380         # 总览缩略图宽度
+WIDE_W = 1700         # 宽幅对比图（多格拼版）用的展示宽度：shot 里写 "width": 1700
 
 
 # ---------------------------------------------------------------- 工具
@@ -100,19 +101,20 @@ def prepare_assets(cfg: dict) -> dict:
         shots_out = []
         for k, sh in enumerate(nd.get("shots", [])):
             img_key = sh.get("img", "")
+            mw = int(sh.get("width") or (WIDE_W if sh.get("wide") else MAX_W))
             before_p = _resolve(sh["before"]) if sh.get("before") else (
                 _resolve(srcs[img_key]) if img_key in srcs else None)
             after_p = _resolve(sh["after"])
 
             a_name = f"{nid}_{k}_after.jpg"
             a_thumb = f"{nid}_{k}_after_t.jpg"
-            ok_a = _copy_scaled(after_p, ASSETS / a_name, MAX_W)
+            ok_a = _copy_scaled(after_p, ASSETS / a_name, mw)
             ok_at = _copy_scaled(after_p, ASSETS / a_thumb, THUMB_W)
 
             b_name = f"{nid}_{k}_before.jpg"
             b_thumb = f"{nid}_{k}_before_t.jpg"
             ok_b_thumb = _copy_scaled(before_p, ASSETS / b_thumb, THUMB_W) if (before_p and before_p.exists()) else False
-            ok_b = _copy_scaled(before_p, ASSETS / b_name, MAX_W) if (before_p and before_p.exists()) else False
+            ok_b = _copy_scaled(before_p, ASSETS / b_name, mw) if (before_p and before_p.exists()) else False
 
             if not ok_a:
                 print(f"  ! 缺图 [{nid}] {sh.get('after')}")
@@ -121,6 +123,7 @@ def prepare_assets(cfg: dict) -> dict:
                 "img": img_key,
                 "label": sh.get("label", img_key),
                 "note": sh.get("note", ""),
+                "w": mw,
                 "after": a_name if ok_a else "",
                 "after_thumb": a_thumb if ok_at else "",
                 "before": b_name if ok_b else "",
@@ -228,18 +231,21 @@ def build_html(cfg: dict, pack: dict) -> str:
             if not sh["after"]:
                 continue
             sid = f"sl_{nid}_{k}"
+            mw = int(sh.get("w") or MAX_W)
+            style_w = f"max-width:{mw}px"
             if sh["before"]:
                 cmp_html = (
-                    f"<div class='slider' id='{sid}'>"
+                    f"<div class='slider' id='{sid}' style='{style_w}'>"
                     f"<img src='assets/{sh['after']}' alt='after'>"
                     f"<div class='top' style='width:50%'>"
-                    f"<img src='assets/{sh['before']}' style='width:{MAX_W}px;max-width:none' alt='before'></div>"
+                    f"<img src='assets/{sh['before']}' style='width:{mw}px;max-width:none' alt='before'></div>"
                     f"<div class='hd' style='left:50%'></div>"
                     f"<div class='tag l'>原图</div><div class='tag r'>{nid} 产出</div></div>"
-                    f"<input class='range' type='range' min='0' max='100' value='50' "
+                    f"<input class='range' type='range' min='0' max='100' value='50' style='{style_w}' "
                     f"oninput=\"slide('{sid}', this.value)\">")
             else:
-                cmp_html = f"<img src='assets/{sh['after']}' style='max-width:1100px;width:100%;border-radius:8px'>"
+                cmp_html = (f"<img src='assets/{sh['after']}' "
+                            f"style='max-width:{mw}px;width:100%;border-radius:8px'>")
             shots_html.append(
                 f"<div class='shot'><div class='cap'><b>{sh['label']}</b>"
                 + (f" —— {sh['note']}" if sh.get('note') else "") + "</div>"

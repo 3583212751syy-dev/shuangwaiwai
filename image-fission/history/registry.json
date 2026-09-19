@@ -1,7 +1,7 @@
 {
   "project": "image-fission",
   "note": "每轮对话结束后追加一个节点，然后跑 history/build_history.py 重建 index.html。图片路径为 image-fission 相对路径或绝对路径。",
-  "updated": "2026-09-19 09:35",
+  "updated": "2026-09-19 09:48",
   "baseline": "v403",
   "sources": {
     "pinterest4": "E:/Desktop/图裂变测试图/Pinterest (4).jpg",
@@ -151,9 +151,21 @@
           "after": "E:/Desktop/v395_两图返修_第21轮/p6_v395_final.jpg"
         },
         {
+          "img": "",
+          "label": "p6 原图 ↔ 成品（1:1 并排）",
+          "wide": true,
+          "after": "jobs/v395_p4trees/S_p6原图vs成品.jpg"
+        },
+        {
           "img": "pinterest4",
           "label": "p4 成品（被判叠加原图元素）",
           "after": "E:/Desktop/v395_两图返修_第21轮/p4_v395_trees+camo.jpg"
+        },
+        {
+          "img": "",
+          "label": "p4 原图 ↔ 成品（1:1 并排）",
+          "wide": true,
+          "after": "jobs/v395_p4trees/S_p4原图vs成品.jpg"
         }
       ]
     },
@@ -272,6 +284,24 @@
       "note": "当前基线。骷髅颅盖变回干净白骨 + 牙列；双角变回完整棕色分节牛角；鹰头白头 + 贴脸黄喙 + 怒眼。文本第②步（换词 + 按原图满幅排版）在其后单独执行。",
       "shots": [
         {
+          "img": "",
+          "label": "★ 整幅对照（原图 ↔ v402）",
+          "wide": true,
+          "after": "jobs/v401_p6parts/S_整幅对照.jpg"
+        },
+        {
+          "img": "",
+          "label": "C 档 a / b 两版自由重绘候选对照",
+          "wide": true,
+          "after": "jobs/v401_p6parts/S_两档候选a对b.jpg"
+        },
+        {
+          "img": "",
+          "label": "a 档三处硬伤（主体特写）",
+          "wide": true,
+          "after": "jobs/v401_p6parts/S_a档三处硬伤.jpg"
+        },
+        {
           "img": "pinterest6",
           "label": "p6 主体定稿",
           "after": "jobs/v401_p6parts/p6_v402_final.jpg"
@@ -358,13 +388,44 @@
         "src/v368_p4v2.py",
         "history/build_history.py"
       ],
-      "params": "词库 10 词（每词一个不同词义）· 字标 SDXL+Harrlogos_XL_v2 @1344x768 · 排版 = 横向满幅 3513px + 墨迹顶对齐 y88",
-      "note": "①「字体裂变」= 词库里每个词都是**另一个意思**，逐词出一版可直接对比（沿用 src/text_fission.py 的词库机制）。② 新字标出现「黑字浅底」极性 → 加极性自动判定 + 反相字标更严阈值，消除标题后的淡灰矩形鬼影。③ p4 按 A~B 档出 4 版程序化重绘候选（禁搬移原笔画、背景迷彩保持）。④ 新建可回滚进度历史系统 history/。",
+      "params": "词库 10 词（每词一个不同词义）· 字标 SDXL+Harrlogos_XL_v2 @1344x768 · 排版 = 横向满幅 3513px + 墨迹顶对齐 y88 · p4 四版 = A_steady / B_pose(tilt26) / C_big(1.18) / D_small(0.84)",
+      "note": "①「字体裂变」= 词库里每个词都是**另一个意思**，逐词出一版可直接对比（沿用 src/text_fission.py 的词库机制）。② 新字标出现「黑字浅底」极性 → 加极性自动判定 + 反相字标更严阈值，消除标题后的淡灰矩形鬼影。③ p4 按 A~B 档出 4 版程序化重绘候选（禁搬移原笔画、背景迷彩保持）。④ 新建可回滚进度历史系统 history/。本节点共 20 张图，覆盖 p6 文本裂变全部产出 + p4 四版候选。",
       "shots": [
         {
-          "img": "pinterest6",
-          "label": "p6 词库 10 版对比（标题带）",
+          "img": "",
+          "label": "★ p6 词库裂变 10 版总览",
+          "note": "10 个词 = 10 个互不相同的词义（本图即对话里那张 10 宫格）",
+          "wide": true,
+          "after": "jobs/v403_wordbank/S_词库10版总览.jpg"
+        },
+        {
+          "img": "",
+          "label": "p6 词库 · 标题带逐版对比",
+          "note": "每版只截标题带，横向并排看排版是否与原标题同位同大",
+          "wide": true,
           "after": "jobs/v403_wordbank/S_词库对比_标题带.jpg"
+        },
+        {
+          "img": "",
+          "label": "p6 词库 · 标题 1:1 细看",
+          "note": "原图尺度的标题细节（拼写 / 描边 / 尖刺是否连贯）",
+          "after": "jobs/v403_wordbank/S_词库1比1细看.jpg"
+        },
+        {
+          "img": "",
+          "label": "p6 词库 · 字标拼写校对",
+          "note": "逐字核对 SDXL+Harrlogos 生成的字标有无缺字母 / 错字母",
+          "after": "jobs/v403_wordbank/S_字标拼写校对.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · RAVEN（渡鸦）",
+          "after": "jobs/v403_wordbank/p6_word_RAVEN.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · VORGRAVEN（前墓）",
+          "after": "jobs/v403_wordbank/p6_word_VORGRAVEN.jpg"
         },
         {
           "img": "pinterest6",
@@ -373,8 +434,52 @@
         },
         {
           "img": "pinterest6",
+          "label": "p6 词库 · SKARVALD（残垣王）",
+          "after": "jobs/v403_wordbank/p6_word_SKARVALD.jpg"
+        },
+        {
+          "img": "pinterest6",
           "label": "p6 词库 · IRONVEIL（铁幕）",
           "after": "jobs/v403_wordbank/p6_word_IRONVEIL.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · GRAVETIDE（墓潮）",
+          "after": "jobs/v403_wordbank/p6_word_GRAVETIDE.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · STORMHELM（风暴舵）",
+          "after": "jobs/v403_wordbank/p6_word_STORMHELM.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · ASHREAVER（灰烬劫掠者）",
+          "after": "jobs/v403_wordbank/p6_word_ASHREAVER.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · DUSKBANE（暮祸）",
+          "after": "jobs/v403_wordbank/p6_word_DUSKBANE.jpg"
+        },
+        {
+          "img": "pinterest6",
+          "label": "p6 词库 · THORNMOURN（荆棘悲悼）",
+          "after": "jobs/v403_wordbank/p6_word_THORNMOURN.jpg"
+        },
+        {
+          "img": "",
+          "label": "★ p4 候选四版总览",
+          "note": "A_steady / B_pose / C_big / D_small（本图即对话里那张四版拼版）",
+          "wide": true,
+          "after": "jobs/v403_p4cands/S_p4候选四版总览.jpg"
+        },
+        {
+          "img": "",
+          "label": "★ p4 候选 1:1 细节",
+          "note": "原图尺度看叶/干是否连贯、有没有碎块（本图即对话里那张 1:1 细节图）",
+          "wide": true,
+          "after": "jobs/v403_p4cands/S_p4候选1比1细节.jpg"
         },
         {
           "img": "pinterest4",
@@ -383,8 +488,18 @@
         },
         {
           "img": "pinterest4",
-          "label": "p4 候选 B_pose（姿态更放）",
+          "label": "p4 候选 B_pose（姿态更放 tilt26）",
           "after": "jobs/v403_p4cands/B_pose.jpg"
+        },
+        {
+          "img": "pinterest4",
+          "label": "p4 候选 C_big（整体放大 1.18）",
+          "after": "jobs/v403_p4cands/C_big.jpg"
+        },
+        {
+          "img": "pinterest4",
+          "label": "p4 候选 D_small（整体收缩 0.84）",
+          "after": "jobs/v403_p4cands/D_small.jpg"
         }
       ]
     }
