@@ -110,14 +110,19 @@ def glyph_to_alpha(path: Path, W: int, H: int):
 
 
 def make_base() -> None:
-    """用空字标跑一次管线，拿到「主体定稿 + 旧标题已擦净」的底板。"""
+    """用**不存在的字标名**跑一次管线 → 得到「主体定稿 + 旧标题已擦净」的纯底板。
+
+    ⚠️ 坑（2026-09-19 第 26 轮踩到）：旧版传 `w_BLANK.png`（纯黑图）当"空字标"。
+    `make_v329.do_pinterest6` 里字标分支是 `if G.exists():` —— 文件存在就进分支，
+    然后在 `ys, xs = np.where(inkm)` 上对空 ink 调 `.min()` 崩掉；更糟的是缓存下来的
+    旧底板其实是**默认字标 n4_0.png（MOURNGRAVE）**贴上去的版本 → 之后每次贴词都是
+    「MOURNGRAVE + 新词」双字重影（本轮实测：合成后标题出现两层叠字）。
+    正解 = 传一个**根本不存在**的文件名，`G.exists()` 为假 → 分支整体跳过 → 底板干净。
+    """
     if BASE.exists():
-        print(f"[base] 已存在 {BASE.name}")
+        print(f"[base] 已存在 {BASE.name}（要重做请先删掉它）")
         return
-    blank = GLYPH_DIR / "w_BLANK.png"
-    if not blank.exists():
-        Image.new("RGB", (1024, 1024), (0, 0, 0)).save(blank)
-    env = {"P6_WORD_SRC": "w_BLANK.png"}
+    env = {"P6_WORD_SRC": "__no_such_glyph__.png"}
     print("[base] 跑管线生成无标题底板 ...")
     r = subprocess.run([sys.executable, "make_v329.py", "pinterest6"],
                        cwd=str(PROJ), env={**__import__("os").environ, **env},

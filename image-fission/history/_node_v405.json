@@ -1,0 +1,155 @@
+{
+  "id": "v405",
+  "version": "v405",
+  "date": "2026-09-19 10:50",
+  "round": "第26轮",
+  "title": "p6 词库 10 词统一按原图词体风格重做 + p4 选定候选 2/3",
+  "code": [
+    "src/v404_vorg_style.py",
+    "src/v405_bank_style.py",
+    "src/v404_sheets.py",
+    "src/v403_words.py"
+  ],
+  "params": "MetalMania 骨架(canny cn.50/end.50) + Harrlogos_XL_v2 lora 1.30 + cfg7.5 @1536x512；VORGRAVEN 用 R5b seed888",
+  "note": "① p6 词库选定 #2 = VORGRAVEN，并按原图 MRCHOSR 词体风格（粗壮宽体 + 尖刺刀刃）重做；其余 9 个词同法定式批量重做，10 个词风格/排版统一。② 关键坑：历史底板文件 _base_notitle.jpg 是脏的（默认字标 n4=MOURNGRAVE 被贴上去），导致第25轮 10 版成品全部带双字重影 —— 改为传不存在的字标名让 make_v329 跳过贴字，底板重生成。③ 生成器结论：LoRA 自由发挥→风格对拼写崩；纯 canny 传构图→构图对拼写崩；**MetalMania 排版骨架 + 弱 canny + 高 LoRA 权重**才能同时守住拼写与风格。④ p4 按用户红框选定候选 2·3（B_pose / C_big）。",
+  "shots": [
+    {
+      "img": "",
+      "label": "★ p6 词库 10 个词标 —— 统一按原图词体风格重做（对照 ORIG）",
+      "note": "MetalMania 骨架锁拼写 + Harrlogos 长尖刺；这是本轮「字体按原图风格设计」的核心对比图",
+      "wide": true,
+      "after": "jobs/v405_bank/S_词库风格重做_对比.jpg"
+    },
+    {
+      "img": "",
+      "label": "★ 原图标题 ↔ 新 VORGRAVEN（排版对齐）",
+      "note": "同尺度对照：新词高度 804px vs 原图字带 926px，横向满幅同宽、顶对齐 y88",
+      "wide": true,
+      "after": "jobs/v404_vorg/S_标题带_原图vs新VORGRAVEN.jpg"
+    },
+    {
+      "img": "",
+      "label": "★ p6 词库 10 版成品总览",
+      "note": "10 个词各自一版成品（可直接横向对比）",
+      "wide": true,
+      "after": "jobs/v403_wordbank/S_词库10版总览.jpg"
+    },
+    {
+      "img": "",
+      "label": "★ p6 整幅：原图 ↔ 新 VORGRAVEN 成品",
+      "note": "主体仍是 v402 C 档结果（本轮未改主体）",
+      "wide": true,
+      "after": "jobs/v404_vorg/S_整幅_原图vs新VORGRAVEN.jpg"
+    },
+    {
+      "img": "",
+      "label": "★ p6 整幅：原图 ↔ 新 VORGRAVEN 成品",
+      "note": "主体仍是 v402 C 档结果（本轮未改主体）",
+      "wide": true,
+      "after": "jobs/v404_vorg/S_整幅_原图vs新VORGRAVEN.jpg"
+    },
+    {
+      "img": "",
+      "label": "p6 词库 · 标题带逐版对比",
+      "wide": true,
+      "after": "jobs/v403_wordbank/S_词库对比_标题带.jpg"
+    },
+    {
+      "img": "",
+      "label": "p6 词库 · 1:1 细看",
+      "after": "jobs/v403_wordbank/S_词库1比1细看.jpg"
+    },
+    {
+      "img": "",
+      "label": "p6 字标拼写校对",
+      "note": "骨架锁拼写后逐词核对",
+      "after": "jobs/v403_wordbank/S_字标拼写校对.jpg"
+    },
+    {
+      "img": "",
+      "label": "⚠️ 底板修复：脏底板（双字重影）↔ 干净底板",
+      "note": "上=脏底板(残留 MOURNGRAVE)、下=新底板+VORGRAVEN。第25轮 10 版成品即因此带重影",
+      "wide": true,
+      "after": "jobs/v404_vorg/_dbg_base_vs_new.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · RAVEN（渡鸦）",
+      "after": "jobs/v403_wordbank/p6_word_RAVEN.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · VORGRAVEN（前墓）",
+      "after": "jobs/v403_wordbank/p6_word_VORGRAVEN.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · MOURNGRAVE（哀悼之墓）",
+      "after": "jobs/v403_wordbank/p6_word_MOURNGRAVE.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · SKARVALD（残垣王）",
+      "after": "jobs/v403_wordbank/p6_word_SKARVALD.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · IRONVEIL（铁幕）",
+      "after": "jobs/v403_wordbank/p6_word_IRONVEIL.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · GRAVETIDE（墓潮）",
+      "after": "jobs/v403_wordbank/p6_word_GRAVETIDE.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · STORMHELM（风暴舵）",
+      "after": "jobs/v403_wordbank/p6_word_STORMHELM.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · ASHREAVER（灰烬劫掠者）",
+      "after": "jobs/v403_wordbank/p6_word_ASHREAVER.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · DUSKBANE（暮祸）",
+      "after": "jobs/v403_wordbank/p6_word_DUSKBANE.jpg"
+    },
+    {
+      "img": "pinterest6",
+      "label": "p6 成品 · THORNMOURN（荆棘悲悼）",
+      "after": "jobs/v403_wordbank/p6_word_THORNMOURN.jpg"
+    },
+    {
+      "img": "",
+      "label": "★ p4 选定候选 2·3（1:1 对照原图）",
+      "note": "B_pose / C_big",
+      "wide": true,
+      "after": "jobs/v403_p4cands/S_p4选定2和3_1比1对照.jpg"
+    },
+    {
+      "img": "",
+      "label": "p4 候选2 B_pose：原图 ↔ 成品",
+      "wide": true,
+      "after": "jobs/v403_p4cands/B_pose_cmp.jpg"
+    },
+    {
+      "img": "",
+      "label": "p4 候选3 C_big：原图 ↔ 成品",
+      "wide": true,
+      "after": "jobs/v403_p4cands/C_big_cmp.jpg"
+    },
+    {
+      "img": "pinterest4",
+      "label": "p4 候选2 B_pose（成品全图）",
+      "after": "jobs/v403_p4cands/B_pose.jpg"
+    },
+    {
+      "img": "pinterest4",
+      "label": "p4 候选3 C_big（成品全图）",
+      "after": "jobs/v403_p4cands/C_big.jpg"
+    }
+  ]
+}
