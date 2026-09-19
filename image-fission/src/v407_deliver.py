@@ -88,8 +88,17 @@ def main() -> None:
     ap.add_argument("--subject", required=True)
     ap.add_argument("--words", default=",".join(BANK))
     ap.add_argument("--force-base", action="store_true")
+    ap.add_argument("--desk", default=None, help="交付目录（默认 v407_第27轮交付）")
+    ap.add_argument("--base-name", default=None, help="底板缓存文件名（换主体时务必换名）")
+    ap.add_argument("--tag", default="v407", help="图上标注的版本名")
     a = ap.parse_args()
 
+    global DESK, BASE
+    if a.desk:
+        DESK = Path(a.desk)
+    if a.base_name:
+        BASE = OUT / a.base_name
+    tag = a.tag
     subj = Path(a.subject)
     if not subj.exists():
         raise SystemExit(f"缺主体文件 {subj}")
@@ -128,20 +137,20 @@ def main() -> None:
     # ② VORGRAVEN 1:1 左右半
     v = finals.get("VORGRAVEN", list(finals.values())[0])
     stack([("ORIG 左半", half(orig, (0, 0, 1772, 1500))),
-           ("v407 左半", half(v, (0, 0, 1772, 1500))),
+           (f"{tag} 左半", half(v, (0, 0, 1772, 1500))),
            ("ORIG 右半", half(orig, (1771, 0, 3543, 1500))),
-           ("v407 右半", half(v, (1771, 0, 3543, 1500)))],
+           (f"{tag} 右半", half(v, (1771, 0, 3543, 1500)))],
           520, cols=2, out=DESK / "01_VORGRAVEN_1比1_左右半.jpg", gap=12)
     # ③ 整幅
     f = lambda im: im.resize((520, int(im.height * 520 / im.width)), Image.LANCZOS)
-    stack([("ORIG", f(orig)), ("v407", f(v))], 520, cols=2,
-          out=DESK / "02_整幅_原图_vs_v407.jpg")
+    stack([("ORIG", f(orig)), (tag, f(v))], 520, cols=2,
+          out=DESK / f"02_整幅_原图_vs_{tag}.jpg")
     # ④ 主体对比
     stack([("ORIG 主体", half(orig, (700, 1150, 2900, 4400), 540)),
-           ("v407 主体（重生）", half(Image.open(subj).convert("RGB"), (700, 1150, 2900, 4400), 540))],
+           (f"{tag} 主体（裂变）", half(Image.open(subj).convert("RGB"), (700, 1150, 2900, 4400), 540))],
           540, cols=2, out=DESK / "20_主体对比" / "主体_原图_vs_新.jpg", gap=12)
     stack([("ORIG 颅骨", half(orig, (900, 2900, 2700, 4500), 520)),
-           ("v407 颅骨", half(v, (900, 2900, 2700, 4500), 520))],
+           (f"{tag} 颅骨", half(v, (900, 2900, 2700, 4500), 520))],
           520, cols=2, out=DESK / "20_主体对比" / "颅骨_原图_vs_新.jpg", gap=12)
 
     # 全分辨率
