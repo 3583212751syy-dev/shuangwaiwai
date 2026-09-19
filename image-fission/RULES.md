@@ -58,6 +58,19 @@
 - **🔴42 p6 标题排版几何**：横向满幅 `TGT_W=3513` + 墨迹顶对齐 `TOP_Y=88`
   （原图 MRCHOSR 白墨 `x[12,3524] y[88,1800]`）；字标 slab 宽高比 2.06 ≈ 原图 2.05 → 纯等比即可重合。
 
+- **🔴43 字标风格对齐原图 = 骨架 + 弱 canny + 高 LoRA**（用户第26轮："字体按照原图字体风格做相同风格设计"）
+  - **症状**：LoRA 自由生成 → 风格对但 ≥2:1 宽画布上 ≥9 字母**拼写必崩**（🔴14）；纯强 canny 结构透传 →
+    拼写对但风格被压平成骨架字（≈MetalMania，无尖刺）。
+  - **正解**：PIL 用 **MetalMania 排好 `{WORD}`** → 取 canny 骨架 → ComfyUI `ControlNetApplyAdvanced`
+    **弱引导 `cn .50 / end .50`** + Harrlogos_XL_v2 **LoRA weight 1.30** + `cfg 7.5` @ **1536×512** + seed 888。
+    骨架锁字母结构（拼写 100%）；弱 canny + 高 LoRA 让模型在骨架周围"长出"尖刺/刀锋（风格到位）。
+    `cn_end<1.0` 是关键（=1.0 只描一遍、无尖刺）；`cn .60-.75 / end .85` 会把风格压平。
+  - **验收（对齐原图 MRCHOSR）**：`aspect≈4.49 / fill≈0.40 / stroke≈52.3`，成品高度落在原图 **926px 带内**（实测新 10 词 742–1156px）。
+  - **载体**：`src/v404_vorg_style.py`（6 轮探索，`R5b_c50_e50_l13_s888` 定稿）+ `src/v405_bank_style.py`（9 词批量同规格重做）；拼版 `src/v404_sheets.py` 确定性再生成。
+  - ⚠️ **脏底板 bug（必查）**：`jobs/**/_base_notitle.jpg` 若曾用默认字标 `n4(MOURNGRAVE)` 跑过 → 标题已烙进底板 →
+    之后**每一版词变体都会双字重影**（第25轮 10 版全中招）。修法：`make_base()` 传**不存在的字标名**
+    （`P6_WORD_SRC="__no_such_glyph__.png"`）使 `make_v329` 的 `if G.exists()` 为假、跳过贴字分支 → 干净底板。
+
 ---
 
 ## 形变层
