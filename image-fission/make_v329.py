@@ -1250,7 +1250,18 @@ def do_pinterest6(WORD_SRC=None, pad=55, tgt=1200.0, cy_place=60):
     if G.exists():
         g = Image.open(G).convert('L')
         ga = np.asarray(g, np.float32) / 255.0
-        ga = np.clip((ga - 0.42) / 0.30, 0.0, 1.0)          # 只取白色笔画
+        # v403：字标极性自动判定 —— SDXL+Harrlogos 有时吐「黑字浅底」（如 n1/IRONVEIL），
+        # 硬取白笔画会把整块背景当笔画。按图缘中位亮度判：底亮 ⇒ 先反相。
+        _bw = max(2, int(round(min(g.size) * 0.04)))
+        _bd = np.concatenate([ga[:_bw].ravel(), ga[-_bw:].ravel(),
+                              ga[:, :_bw].ravel(), ga[:, -_bw:].ravel()])
+        _inv = float(np.median(_bd)) > 0.5
+        if _inv:
+            ga = 1.0 - ga
+        # 反相过的字标（黑字浅底）浅底带渐变/晕影，反相后残值会以极低 alpha 漏进
+        # 成品 → 标题后浮出一块淡灰矩形。用更严阈值切掉中灰。
+        _thr, _span = (0.55, 0.35) if _inv else (0.42, 0.30)
+        ga = np.clip((ga - _thr) / _span, 0.0, 1.0)          # 只取白色笔画
         inkm = ga > 0.35
         ys, xs = np.where(inkm)
         by0, by1 = int(ys.min()), int(ys.max()) + 1

@@ -1,0 +1,18 @@
+{
+  "id": "v403",
+  "version": "v403",
+  "date": "2026-09-19 09:36",
+  "round": "第25轮",
+  "title": "p6 文本裂变词库（把单词都裂变）+ p4 候选四版",
+  "status": "new",
+  "code": ["src/v403_glyphs.py", "src/v403_words.py", "src/v368_p4v2.py", "history/build_history.py"],
+  "params": "词库 10 词（每词一个不同词义）· 字标 SDXL+Harrlogos_XL_v2 @1344x768 · 排版 = 横向满幅 3513px + 墨迹顶对齐 y88",
+  "note": "①「字体裂变」= 词库里每个词都是**另一个意思**，逐词出一版可直接对比（沿用 src/text_fission.py 的词库机制）。② 新字标出现「黑字浅底」极性 → 加极性自动判定 + 反相字标更严阈值，消除标题后的淡灰矩形鬼影。③ p4 按 A~B 档出 4 版程序化重绘候选（禁搬移原笔画、背景迷彩保持）。④ 新建可回滚进度历史系统 history/。",
+  "shots": [
+    { "img": "pinterest6", "label": "p6 词库 10 版对比（标题带）", "after": "jobs/v403_wordbank/S_词库对比_标题带.jpg" },
+    { "img": "pinterest6", "label": "p6 词库 · MOURNGRAVE（哀悼之墓）", "after": "jobs/v403_wordbank/p6_word_MOURNGRAVE.jpg" },
+    { "img": "pinterest6", "label": "p6 词库 · IRONVEIL（铁幕）", "after": "jobs/v403_wordbank/p6_word_IRONVEIL.jpg" },
+    { "img": "pinterest4", "label": "p4 候选 A_steady（均衡）", "after": "jobs/v403_p4cands/A_steady.jpg" },
+    { "img": "pinterest4", "label": "p4 候选 B_pose（姿态更放）", "after": "jobs/v403_p4cands/B_pose.jpg" }
+  ]
+}
