@@ -10,6 +10,21 @@
 4. 如需远程访问，双击“开启远程访问.cmd”，使用窗口显示的 HTTPS 地址。地址可能在重启后变化，电脑和服务必须保持运行。登录仍需个人账号密码。
 5. 使用“停止全部服务.cmd”停止本项目启动的服务。
 
+## 从 Git 仓库部署
+
+仓库：`https://github.com/3583212751syy-dev/shuangwaiwai`（分支 `imageai`）。
+
+1. 克隆到本机任意位置，建议仍放在 `D:\图片AI`：
+   `git clone -b imageai https://github.com/3583212751syy-dev/shuangwaiwai.git D:\图片AI`
+2. 仓库只含代码、脚本、工作流、文档和 ComfyUI-GGUF 插件，不含大文件与凭据。以下目录由安装脚本生成或在目标机另行下载，不参与版本管理：
+   - `models/`、`tools/`、`downloads/`：安装时自动下载，下载地址与 SHA256 校验值见 `downloads.json`
+   - `data/`：存放登录账号、密钥、进程锁，首次安装时由 `scripts\set-account.ps1` 生成
+   - `node_modules/`、`cache/`、`logs/`、`temp/`、`projects/`：运行时生成
+3. 运行安装：双击“安装到D盘.cmd”，或执行 `powershell -ExecutionPolicy Bypass -File scripts\install.ps1`。脚本会拉取便携 Node、ComfyUI 便携包、Ollama、cloudflared、7zr 以及全部模型（合计约 30GB），请保持网络通畅与足够磁盘空间。
+4. 已有模型可复用：把旧机器的 `models`、`tools`、`downloads` 三个目录直接复制到新位置的同名目录，安装脚本会跳过已存在且校验通过的文件。
+5. 环境要求：Windows 10/11 64 位、磁盘剩余空间 ≥40GB、NVIDIA 显卡（显存 ≥12GB）。纯 CPU 环境下本项目出图会因内存不足失败，不推荐。
+6. 安装完成后按上一节第 2–5 步设置账号并启动。
+
 ## 使用
 
 上传同一产品的 1–3 张照片，填写已确认的产品信息。尺寸图需要提供真实尺寸。主图默认无文字，其他图使用墨西哥西班牙语。每张图片可单独生成、修改提示词、审阅和下载，也可导出 ZIP。API 模式需要自行设置密钥，费用不包含在 ChatGPT 订阅内。
