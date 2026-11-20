@@ -1,0 +1,23 @@
+﻿# ---- 依赖 ----
+node_modules/
+.npm/
+*.log
+
+# ---- 大体积资源（不入库，目标机重新下载）----
+models/
+tools/
+downloads/
+cache/
+
+# ---- 运行时数据与凭据 ----
+data/
+logs/
+temp/
+projects/
+*.part
+*.part.done
+
+# ---- 系统 ----
+Thumbs.db
+desktop.ini
+.DS_Store
