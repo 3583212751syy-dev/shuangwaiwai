@@ -403,6 +403,88 @@ def read_ref(wait=1.0):
     return None
 
 
+def goto_by_name_box(target):
+    """Change only an identified editable name box, then verify the selected address."""
+    if not CELLREF.fullmatch(target):
+        return False
+    names, _, controls = scan_hwnd(SHEET_HWND)
+    if controls is None:
+        return False
+    candidates = []
+    for index, name in names:
+        element = controls.GetElement(index)
+        try:
+            if element.CurrentControlType != 50004:
+                continue
+            pattern = element.GetCurrentPattern(10002).QueryInterface(IUIAutomationValuePattern)
+            value = (pattern.CurrentValue or '').strip()
+            if pattern.CurrentIsReadOnly:
+                continue
+            if CELLREF.fullmatch(name) or (name in ('名称框', '单元格位置', 'Name box') and CELLREF.fullmatch(value)):
+                candidates.append((element, pattern))
+        except Exception:
+            continue
+    if len(candidates) != 1:
+        return False
+    ensure_foreground()
+    element, pattern = candidates[0]
+    try:
+        element.SetFocus()
+        pattern.SetValue(target)
+        key(0x0D)
+        time.sleep(0.35)
+        return read_ref(wait=0.15) == target
+    except Exception as ex:
+        log(f'名称框定位失败: {ex}')
+        return False
+
+
+def focus_grid_for_cell(target):
+    """Prove the grid receives keys by moving right and back without editing."""
+    if read_ref(wait=0.1) != target:
+        return False
+    _, _, controls = scan_hwnd(SHEET_HWND)
+    if controls is None:
+        return False
+    for index in range(controls.Length):
+        element = controls.GetElement(index)
+        try:
+            if element.CurrentControlType not in (50026, 50028, 50030) or not element.CurrentIsKeyboardFocusable:
+                continue
+            element.SetFocus()
+        except Exception:
+            continue
+        ensure_foreground()
+        key(0x27)
+        time.sleep(0.2)
+        after = read_ref(wait=0.1)
+        if not after or after == target:
+            continue
+        key(0x25)
+        time.sleep(0.2)
+        if read_ref(wait=0.1) == target:
+            return True
+        return False
+    return False
+
+
+def find_701_by_name_box(max_row=120):
+    """Fallback when sheet search is unavailable. Navigation only; never type into cells."""
+    matches = []
+    for row in range(2, max_row + 1):
+        address = f'B{row}'
+        if not goto_by_name_box(address):
+            raise RuntimeError('名称框不可操作，无法验证 701 行；未写入')
+        value = read_formula_value()
+        if value is None:
+            raise RuntimeError(f'{address} 内容不可读，701 扫描未完成；未写入')
+        if value == '701':
+            matches.append(address)
+    if len(matches) != 1:
+        raise RuntimeError(f'B2:B{max_row} 中找到 {len(matches)} 个 701，无法唯一定位；未写入')
+    return matches[0] if goto_by_name_box(matches[0]) else None
+
+
 def sheet_find(text, expect=None, tries=3):
     """表内 Ctrl+F 查找 -> 名称框回读; expect 给定期望列前缀, 不满足则重试"""
     last = None
@@ -410,12 +492,31 @@ def sheet_find(text, expect=None, tries=3):
         ensure_foreground()
         user32.keybd_event(0x11, 0, 0, 0); key(0x46); user32.keybd_event(0x11, 0, 2, 0)
         time.sleep(1.3)
-        type_chars(text)
+        # Ctrl+F may leave focus on the grid. Never type until a search field is observed.
+        names, _, controls = scan_hwnd(SHEET_HWND)
+        fields = []
+        if controls is not None:
+            for index, name in names:
+                element = controls.GetElement(index)
+                try:
+                    if element.CurrentControlType == 50004 and name.strip() in ('查找', '搜索', '查找内容', '查找内容或公式', 'Find', 'Search'):
+                        fields.append(element)
+                except Exception:
+                    continue
+        if len(fields) != 1:
+            key(0x1B)
+            return None
+        try:
+            fields[0].SetFocus()
+            fields[0].GetCurrentPattern(10002).QueryInterface(IUIAutomationValuePattern).SetValue(text)
+        except Exception:
+            key(0x1B)
+            return None
         time.sleep(0.7)
         key(0x0D); time.sleep(1.2)
         key(0x1B); time.sleep(1.2)
         last = read_ref()
-        if last and (expect is None or last.startswith(expect)):
+        if last and (expect is None or _col(last) == expect):
             return last
         log(f"查找 {text} 第{k+1}次回读={last}, 重试")
     return last
@@ -456,6 +557,8 @@ def goto_cell(target):
     """Ctrl+F 后键盘焦点常停在查找面板, 方向键无效。
     逐个对表格里可聚焦的网格容器 SetFocus(), 找出真正能接收方向键的那个,
     再用方向键对齐到 target。全程以名称框为准, 未确认绝不输入。"""
+    if goto_by_name_box(target):
+        return True
     ensure_foreground()
     _, _, s = scan_hwnd(SHEET_HWND)
     if s is None:
@@ -596,7 +699,7 @@ def formula_controls():
     for i, nm in names[p + 1:p + 8]:
         e = s.GetElement(i)
         try:
-            if e.CurrentControlType in (50004, 50020, 50030):
+            if e.CurrentControlType == 50004 and nm.strip() in ('公式栏', '单元格内容', '编辑单元格内容', 'Formula bar'):
                 out.append(e)
         except Exception:
             continue
@@ -613,6 +716,8 @@ def verify_cell(target):
 
 def try_once(code, target):
     """依次试: 剪贴板粘贴 -> 公式栏控件 SetValue -> 逐字符; 每步用真值判定"""
+    if not goto_cell(target) or not focus_grid_for_cell(target):
+        raise RuntimeError(f'{target} 已定位但未找到可接收输入的网格；未发送填写按键')
     # A. 剪贴板 Ctrl+V
     if set_clipboard(code):
         key(0x2E); time.sleep(0.35)
@@ -636,6 +741,8 @@ def try_once(code, target):
             except Exception:
                 continue
     # C. 逐字符回退
+    if not goto_cell(target) or not focus_grid_for_cell(target):
+        raise RuntimeError(f'{target} 焦点未验证，停止输入')
     key(0x2E); time.sleep(0.3)
     type_chars(code); time.sleep(0.3)
     key(0x0D); time.sleep(1.3)
@@ -657,7 +764,10 @@ def write_code(code, prev_code=None, last_date=None, today=None):
     today = today or time.strftime("%Y-%m-%d")
     activate_sheet_tab()
     ref = sheet_find("701", expect="B")
-    if not ref or not ref.startswith("B"):
+    if not ref or _col(ref) != 'B' or read_formula_value() != '701':
+        log('表内查找未确认 701，改用名称框只读扫描 B2:B120')
+        ref = find_701_by_name_box()
+    if not ref or _col(ref) != 'B':
         raise RuntimeError(
             f"表内查找 701 失败/未落到B列(名称框={ref}); 请确认 701 单元格内容是否完好")
 

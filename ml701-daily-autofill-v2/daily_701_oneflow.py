@@ -49,6 +49,7 @@ from datetime import date, timedelta
 
 from runtime_config import BASE, STATE_DIR, state_file
 from validation import validate_code, validate_data, reusable_pending
+from navigation import find_return_page, extract_return_code
 BASE = str(BASE)
 TMP = str(STATE_DIR)
 os.makedirs(TMP, exist_ok=True)
@@ -413,60 +414,30 @@ def log_code_today(today):
 
 
 def read_code_from_ml(today):
-    """紫鸟当前活动页零导航直读：树完整门槛 + 值格式 + 新鲜度校验。
-
-    禁止 Ctrl+T / 改地址栏找页面 / 试 URL / 遍历全部标签 / 为找页面刷新。
-    """
+    """Find the authorization module through observed, named sales tabs and navigation."""
     H = d.find_ml_hwnd()
     if not H:
-        raise RuntimeError("未找到紫鸟 G-701 窗口；如实报未取到码，不猜码")
-    names = d.ml_names()
-    STATE["ml_tree"] = len(names)
-    if len(names) < 120:
-        time.sleep(2.0)
-        names = d.ml_names()
-        STATE["ml_tree"] = len(names)
-    if len(names) < 120:
-        raise RuntimeError(f"紫鸟树缩水({len(names)}<120)，只重建树、不刷页面；未采信任何码")
-
-    def scan():
-        out = None
-        for idx, ct, nm, e in d.ml_names():
-            if "Código de autorización para hoy" in (nm or ""):
-                out = idx
-                break
-        if out is None:
-            return None
-        els = d.ml_names()
-        for j in range(out + 1, min(out + 7, len(els))):
-            m = re.search(r"\b([0-9A-F]{8})\b", els[j][2] or "")
-            if m:
-                return m.group(1)
-        return None
-
-    code = scan()
-    if not code:
-        # 只按名称精确激活店铺首页标签一次（绝不遍历全部标签）
-        activate_once(H, "店铺首页标签")
-        time.sleep(2.0)
-        code = scan()
-    if not code:
-        raise RuntimeError("当前活动页读不到当日授权码（未导航、未刷新）；如实报错")
-
+        raise RuntimeError("未找到紫鸟 G-701 店铺窗口；未取码、未填写")
+    activate_once(H, "退货码页面导航")
+    code = find_return_page(d.ml_names, w.activate_ctrl, time.sleep, log)
+    STATE["ml_tree"] = len(d.ml_names())
     prev = last_seen_code(today)
     if prev and code == prev:
-        # 页面没刷新 = 昨日残留。数据新鲜度校验例外：只对当前活动页按一次 F5
-        log(f"[取码] {code} 与上次采信码相同，按一次 F5 校验新鲜度")
-        activate_once(H, "F5 新鲜度校验")
+        # Refresh only a page already confirmed to contain the authorization module.
+        log("[取码] 与上次采信码相同，仅刷新当前已确认的授权码页面一次")
+        activate_once(H, "授权码页面刷新")
+        if u.GetForegroundWindow() != H:
+            raise RuntimeError("紫鸟窗口已失去焦点，取消刷新，避免影响用户当前窗口")
         u.keybd_event(0x74, 0, 0, 0); u.keybd_event(0x74, 0, 2, 0)
-        time.sleep(4.0)
-        code2 = scan()
-        if not code2 or code2 == prev:
-            raise RuntimeError(f"刷新后仍为旧码 {prev}，拒绝采信，不写入、不补凭证")
-        code = code2
-    log(f"[取码] 零导航直读当日码 {code}，紫鸟树 {STATE['ml_tree']} 节点")
-    return code
-
+        for _ in range(8):
+            time.sleep(1)
+            new_code = extract_return_code(d.ml_names())
+            if new_code and new_code != prev:
+                code = new_code
+                break
+        else:
+            raise RuntimeError("授权码页面刷新后仍未确认新码；未填写")
+    return validate_code(code)
 
 def install_ads_stability():
     """把广告费采集的两个历史抖动点收敛到统一主线（原文件不动，可随时回退）：
@@ -801,6 +772,11 @@ def open_docs_self(H):
                 log("[自打开] 表格控件已就绪")
                 return H2, st
         break
+    if search_doc_by_name(H, "退货登记码"):
+        try:
+            H = ensure_doc(H, "退货登记码")
+        except RuntimeError as ex:
+            log(f"[文档搜索] {ex}")
     H2, st = pick_table_window(H)
     return H2, st
 
@@ -826,6 +802,36 @@ def doc_title(H):
             if "· 钉钉文档" in p:
                 return p.split("·")[0].strip(), h
     return "", H
+
+
+def search_doc_by_name(H, name):
+    """Use only explicitly labelled document search fields; never search chats or send messages."""
+    labels = {"搜索文档", "搜索文件", "搜索文档和文件", "搜索文档名称", "Search documents", "Search files"}
+    candidates = []
+    for h in [H] + [x for x in ding_cef_windows(H) if x != H]:
+        names, _, controls = w.scan_hwnd(h)
+        if controls is None:
+            continue
+        for index, text in names:
+            element = controls.GetElement(index)
+            try:
+                if element.CurrentControlType == 50004 and _plain(text).strip() in labels:
+                    pattern = element.GetCurrentPattern(10002).QueryInterface(w.IUIAutomationValuePattern)
+                    if not pattern.CurrentIsReadOnly:
+                        candidates.append((h, element, pattern))
+            except Exception:
+                continue
+    if len(candidates) != 1:
+        log("[文档搜索] 未发现唯一的文档专用搜索框，不使用聊天或全局搜索")
+        return False
+    h, element, pattern = candidates[0]
+    w.focus_hwnd(h)
+    element.SetFocus()
+    pattern.SetValue(name)
+    w.key(0x0D)
+    time.sleep(2)
+    log(f"[文档搜索] 已搜索精确文档名称 {name!r}，等待重新扫描结果")
+    return True
 
 
 def ensure_doc(H, name):
@@ -854,10 +860,17 @@ def ensure_doc(H, name):
             cands.sort(key=lambda x: 0 if _ctype(s, x[0]) == 50020 else 1)
             target = (h, s.GetElement(cands[0][0]))
             break
+    if target is None and search_doc_by_name(H, name):
+        for h in [H] + [x for x in ding_cef_windows(H) if x != H]:
+            names, _, controls = w.scan_hwnd(h)
+            if controls is None:
+                continue
+            matches = [(index, text) for index, text in names if _plain(text).strip() == name]
+            if len(matches) == 1:
+                target = (h, controls.GetElement(matches[0][0]))
+                break
     if target is None:
-        raise RuntimeError(
-            f"控件树里没有「{name}」精确名称条目（当前标题={title!r}）；"
-            "未写入任何单元格，不猜页面、不要求用户打开页面")
+        raise RuntimeError(f"没有找到文档 {name!r} 的唯一入口；固定列及文档专用搜索均未确认，未填写")
 
     how = w.activate_ctrl(target[1])
     log(f"[文档] 按精确名称激活「{name}」({how}) hwnd={target[0]}")
@@ -1114,4 +1127,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
 

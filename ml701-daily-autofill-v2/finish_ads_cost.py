@@ -59,6 +59,8 @@ def press(vk, cur):
 
 
 def goto(target):
+    if w.goto_by_name_box(target):
+        return True
     for step in range(40):
         out = a.scan()
         cur = a.get_ref(out)
@@ -80,13 +82,8 @@ def write_cell(target, value):
     for attempt in range(3):
         if not goto(target):
             continue
-        out = a.scan()
-        for e in containers(out):
-            try:
-                e.SetFocus()
-            except Exception:
-                continue
-            break
+        if not w.focus_grid_for_cell(target):
+            return False, '已定位单元格但网格输入焦点未验证，未粘贴'
         time.sleep(0.2)
         if not a.paste_value(value):
             continue
