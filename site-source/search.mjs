@@ -48,11 +48,11 @@ export function productResults(rows,embedding,dinoEmbedding=null){
 // Absolute visual evidence can flag a candidate, never certify product identity.
 // These conservative heuristics are not calibrated probabilities.
 export function candidateVerdict(hit){
- if(!hit)return {text:'û�пɼ����ĺ�ѡ',ok:false,ratio:0,reason:'�����ͼ�⼰����״̬'};
- if(hit.userConfirmed)return {text:'�˹�ȷ��ͬ��',ok:true,tentative:false,ratio:0,top:hit.productScore,reason:'��ͬ��ѯͼƬSHA-256���ѱ����˹�ȷ��'};
+ if(!hit)return {text:'没有可比较的候选',ok:false,ratio:0,reason:'请先上传图片及确认索引状态'};
+ if(hit.userConfirmed)return {text:'人工确认同款',ok:true,tentative:false,ratio:0,top:hit.productScore,reason:'与同一查询图片SHA-256已被人工确认'};
  const tentative=hit.visual>=.84&&hit.dinoVisual!==null&&hit.dinoVisual>=.70;
- return {text:tentative?'����ͬ����˶ԣ�':'��ѡ���˶�',ok:tentative,tentative:true,ratio:0,
-  top:hit.productScore,reason:'����ֽ����ڼ�����������ͬ����ʣ���˶Խṹ���ӿڡ��ͺź͹��'};
+ return {text:tentative?'疑似同款（需人工核对）':'候选（待核对）',ok:tentative,tentative:true,ratio:0,
+  top:hit.productScore,reason:'相似度只用于排序，不能证明同款；请人工核对结构、接口、型号和规格'};
 }
 export function searchLibrary(a,library,{forceAll=false,topK=8,querySha256=null}={}){
  const all=library.filter(READY);let results=productResults(all,a?.embedding,a?.dinoEmbedding);

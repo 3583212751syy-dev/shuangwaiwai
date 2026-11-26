@@ -104,19 +104,19 @@ async function patch(body,initial=row(id)){
  return {response,BUCKET,handler};
 }
 test('API stores DINO and returns it again after a fresh GET',async()=>{
- const ai={...row(id).ai,status:'��ȷ��',dinoModel:'onnx-community/dinov2-small',dinoPooling:'all-tokens-mean-v1'};
+ const ai={...row(id).ai,status:'已识别',dinoModel:'onnx-community/dinov2-small',dinoPooling:'all-tokens-mean-v1'};
  const {response,BUCKET,handler}=await patch({ai},row(id,.9,null));assert.equal(response.status,200);
  const rows=await (await handler.fetch(new Request('https://test.local/api/images'),{BUCKET})).json();
  assert.deepEqual(rows[0].ai.dinoEmbedding,ai.dinoEmbedding);assert.equal(rows[0].ai.dinoPooling,ai.dinoPooling);
 });
 test('CLIP refresh and label edits preserve saved DINO',async()=>{
- const {response}=await patch({ai:{model,embedding:vec(512),status:'��ȷ��'}});
+ const {response}=await patch({ai:{model,embedding:vec(512),status:'已识别'}});
  assert.equal((await response.json()).ai.dinoEmbedding.length,384);
  const r=await patch({name:'renamed'});assert.equal((await r.response.json()).ai.dinoEmbedding.length,384);
 });
 test('API rejects invalid DINO instead of persisting a corrupt index',async()=>{
  for(const dinoEmbedding of [[1],Array(384).fill(0),[2,...Array(383).fill(0)]]){
-  const {response}=await patch({ai:{model,embedding:vec(512),status:'��ȷ��',dinoEmbedding}});assert.equal(response.status,400);
+  const {response}=await patch({ai:{model,embedding:vec(512),status:'已识别',dinoEmbedding}});assert.equal(response.status,400);
  }
 });
 test('API preserves stable feedback identity',async()=>{
