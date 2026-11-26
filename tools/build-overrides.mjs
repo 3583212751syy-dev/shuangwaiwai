@@ -1,10 +1,12 @@
-// 生成线上覆盖表：761 组人工标签（按来源行号）+ 2430 条 DINOv2 向量（int8 量化）。
+// 生成线上覆盖表：761 组人工标签（按来源行号）+ 2430 条 DINOv3 向量（int8 量化）。
 // 线上底库存在云端桶里、类目和向量都是旧的，用这张表在前端覆盖，避免去重写 2430 条云端元数据。
 import {readFileSync, writeFileSync} from 'node:fs';
 const repo = 'D:/GPT/2026-11-21/new-chat-2/work/git-handoff/projects/product-image-compare';
 const groups = JSON.parse(readFileSync(repo + '/work/groups.json', 'utf8'));
 const labels = JSON.parse(readFileSync(repo + '/work/labels-manual.json', 'utf8')).labels;
-const dino = JSON.parse(readFileSync(repo + '/work/embeddings-dinov2.json', 'utf8'));
+const dinoRaw = JSON.parse(readFileSync(repo + '/work/embeddings-dinov3.json', 'utf8'));
+// DINOv3-CLS 池化向量（评测 R@1=0.5599 优于 dinov2 mean 0.4415）
+const dino = {};for(const[f,v]of Object.entries(dinoRaw))dino[f]=v.c;
 
 // 行号 -> [名称, 类目, 确认状态]；名字里带「待复核」的组保留后缀和「待确认」状态
 const byRow = {};
@@ -18,7 +20,7 @@ groups.forEach((g, i) => {
   labelled++;
 });
 
-// DINOv2：按向量 L2 归一后量化为 int8，保留方向即可（检索只用余弦）
+// DINOv3：按向量 L2 归一后量化为 int8，保留方向即可（检索只用余弦）
 const files = [], chunks = [];
 let totalBytes = 0;
 for (const f of Object.keys(dino).sort()) {

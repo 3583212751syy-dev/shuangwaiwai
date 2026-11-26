@@ -104,7 +104,7 @@ async function patch(body,initial=row(id)){
  return {response,BUCKET,handler};
 }
 test('API stores DINO and returns it again after a fresh GET',async()=>{
- const ai={...row(id).ai,status:'已识别',dinoModel:'onnx-community/dinov2-small',dinoPooling:'all-tokens-mean-v1'};
+ const ai={...row(id).ai,status:'已识别',dinoModel:'onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX',dinoPooling:'cls-v1'};
  const {response,BUCKET,handler}=await patch({ai},row(id,.9,null));assert.equal(response.status,200);
  const rows=await (await handler.fetch(new Request('https://test.local/api/images'),{BUCKET})).json();
  assert.deepEqual(rows[0].ai.dinoEmbedding,ai.dinoEmbedding);assert.equal(rows[0].ai.dinoPooling,ai.dinoPooling);

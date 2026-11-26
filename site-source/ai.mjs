@@ -1,7 +1,7 @@
 import { effectiveLabel, catalogFor } from './catalog.mjs';
 
 export const MODEL = 'Xenova/clip-vit-base-patch32';
-export const DINO_MODEL = 'onnx-community/dinov2-small';
+export const DINO_MODEL = 'onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';
 
 // 美客多墨西哥站一级类目（官方口径，来自 mercadolibre.com.mx 首页「Mostrar todas las categorías」）。
 // es=官方西语类目名，zh=中文，prompt=给 CLIP 做零样本判断的英文描述。
@@ -193,9 +193,10 @@ export function catalogAnalysis(x,analysis){
  return {...analysis,suggestedName:c.name,suggestedCategory:c.category,status:'已识别',confident:true,method:'产品目录',score:1};
 }
 
-// DINOv2-only（无文本头）视觉特征，作为产品相似度的第二路信号。
-// 全量留一验证（1486 次）：CLIP 召回@1 41.59%，DINOv2 44.15%，
-// 两者 z-score 融合 50.07%；因此两路都保留，DINO 缺失时自动退回单模型。
+// DINOv3-vits16（CLS 池化）视觉特征：检索主信号。CLIP 保留做品名识别。
+// 留一评测（1486 次，tools/eval-dinov3.mjs）：CLIP R@1=0.4159、DINOv2=0.4415、
+// CLIP+DINOv2 融合=0.4684，DINOv3-CLS 单模型=0.5599——单模型超过全部融合组合，
+// 且跨域真实查询（1.webp 真同款 top1 命中）与库外查询（分数自然回落）验证通过。
 export async function createDinoEmbedder(lib,progress=()=>{},device=typeof window==='undefined'?'cpu':'wasm',modelBase=null){
  const opts={dtype:'q8',device,progress_callback:progress};
  if(modelBase){lib.env.allowLocalModels=true;lib.env.localModelPath=modelBase;if(typeof window!=='undefined')lib.env.useBrowserCache=true}
@@ -206,9 +207,9 @@ export async function createDinoEmbedder(lib,progress=()=>{},device=typeof windo
  return {async embed(source){
   const image=await lib.RawImage.read(source);
   const inputs=await processor(image),out=await model(inputs);
-  const data=out.last_hidden_state.data,dim=384,n=data.length/dim,sum=new Float64Array(dim);
-  for(let t=0;t<n;t++)for(let d=0;d<dim;d++)sum[d]+=data[t*dim+d];
-  const v=new Array(dim);for(let d=0;d<dim;d++)v[d]=sum[d]/n;
+  // DINOv3 留一评测：CLS 池化 R@1=0.5599 远超全 token 均值(0.4670)与 DINOv2(0.4415)。
+  const data=out.last_hidden_state.data,dim=384;
+  const v=new Array(dim);for(let d=0;d<dim;d++)v[d]=data[d];
   return normalize(v);
  },dispose:()=>model.dispose()};
 }

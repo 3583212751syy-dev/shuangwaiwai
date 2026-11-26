@@ -3,8 +3,8 @@ import {effectiveLabel} from './catalog.mjs';
 
 export const validVector=(v,dim)=>Array.isArray(v)&&v.length===dim&&v.every(Number.isFinite)&&v.some(x=>x!==0);
 export const READY=x=>x.ai?.model===MODEL&&validVector(x.ai?.embedding,512);
-const DINO_MODEL='onnx-community/dinov2-small';
-const DINO_POOLING='all-tokens-mean-v1';
+const DINO_MODEL='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';
+const DINO_POOLING='cls-v1';
 export const DINO_READY=x=>validVector(x.ai?.dinoEmbedding,384)&&
  (!x.ai.dinoModel||x.ai.dinoModel===DINO_MODEL)&&
  (!x.ai.dinoPooling||x.ai.dinoPooling===DINO_POOLING);

@@ -55,8 +55,8 @@ export default {async fetch(req,env){
    const preservedDino=Object.fromEntries(['dinoEmbedding','dinoModel','dinoPooling'].filter(k=>m.ai?.[k]!==undefined).map(k=>[k,m.ai[k]]));
    if(a.dinoEmbedding!==undefined){
     if(!Array.isArray(a.dinoEmbedding)||a.dinoEmbedding.length!==384||a.dinoEmbedding.some(x=>!Number.isFinite(x)||Math.abs(x)>1.01)||!a.dinoEmbedding.some(x=>x!==0)||
-       (a.dinoModel&&a.dinoModel!=='onnx-community/dinov2-small')||(a.dinoPooling&&a.dinoPooling!=='all-tokens-mean-v1'))return json({error:'DINO 数据格式不正确'},400);
-    Object.assign(preservedDino,{dinoEmbedding:a.dinoEmbedding,dinoModel:'onnx-community/dinov2-small',dinoPooling:'all-tokens-mean-v1'});
+       (a.dinoModel&&a.dinoModel!=='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX')||(a.dinoPooling&&a.dinoPooling!=='cls-v1'))return json({error:'DINO 数据格式不正确'},400);
+    Object.assign(preservedDino,{dinoEmbedding:a.dinoEmbedding,dinoModel:'onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX',dinoPooling:'cls-v1'});
    }
    m.ai={...preservedDino,model:a.model,version:'3.8.1',status:a.status,suggestedName:String(a.suggestedName||'').slice(0,100),suggestedCategory:String(a.suggestedCategory||'待确认').slice(0,50),score:Math.min(1,Math.max(0,Number(a.score)||0)),embedding:a.embedding,at:new Date().toISOString()};
    if(typeof a.method==='string')m.ai.method=a.method.slice(0,40);

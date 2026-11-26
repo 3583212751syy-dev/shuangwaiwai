@@ -104,9 +104,9 @@ async function applyOverrides(list){
  // 覆盖表没覆盖到的（新上传、老数据）也把旧中文类目折算成美客多官方口径
   if(LEGACY_CATEGORY[x.category])x.category=LEGACY_CATEGORY[x.category];
   const vec=dino[x.filename];
-  if(vec&&x.ai&&!DINO_READY(x)){x.ai.dinoEmbedding=vec;x.ai.dinoModel='onnx-community/dinov2-small';x.ai.dinoPooling='all-tokens-mean-v1';withDino++}
+  if(vec&&x.ai&&!DINO_READY(x)){x.ai.dinoEmbedding=vec;x.ai.dinoModel='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';x.ai.dinoPooling='cls-v1';withDino++}
  }
- if(relabelled||withDino)console.log('底库覆盖表已应用：标签 '+relabelled+' 条、DINOv2 向量 '+withDino+' 条');
+ if(relabelled||withDino)console.log('底库覆盖表已应用：标签 '+relabelled+' 条、DINOv3 向量 '+withDino+' 条');
  return list;
 }
 async function refresh(){library=await applyOverrides(await api('/api/images'));initFilters();renderLibrary()}
@@ -150,7 +150,7 @@ async function ready(report){
  loading=(async()=>{
   const base=await localModelBase();
   report(base?'正在从本机加载识图模型…':'首次加载识图模型，约 155 MB，请保持页面打开…');
-  const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+  const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2');
   recognizer=await createRecognizer(lib,p=>{if(p.status==='progress')report('正在加载识图模型 '+Math.round(p.progress||0)+'%')},'wasm',base);
   return recognizer;
  })().catch(e=>{loading=null;throw Error('识图模型加载失败，请检查网络后重试。'+e.message)});
@@ -161,7 +161,7 @@ async function readyDino(report){
  if(dinoEmbedder)return dinoEmbedder;if(dinoLoading)return dinoLoading;
  dinoLoading=(async()=>{
   const base=await localModelBase();if(!base)return null;
-  const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+  const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2');
   dinoEmbedder=await createDinoEmbedder(lib,p=>{if(p.status==='progress')report('正在加载第二视觉模型 '+Math.round(p.progress||0)+'%')},'wasm',base);
   return dinoEmbedder;
  })().catch(e=>{dinoLoading=null;console.warn('DINOv2 加载失败，退回单模型：'+e.message);return null});
@@ -171,7 +171,7 @@ async function rawAnalyze(source,report){
  const analysis=await (await ready(report)).analyze(source);
  try{
   const dino=await readyDino(report);
-  if(dino){analysis.dinoEmbedding=await dino.embed(source);analysis.dinoModel='onnx-community/dinov2-small';analysis.dinoPooling='all-tokens-mean-v1'}
+  if(dino){analysis.dinoEmbedding=await dino.embed(source);analysis.dinoModel='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';analysis.dinoPooling='cls-v1'}
  }catch(e){console.warn('DINOv2 特征失败，本次只用 CLIP：'+e.message)}
  return analysis;
 }

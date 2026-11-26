@@ -14,7 +14,8 @@ const siteSrc=path.join(repo,'site-source');
 const selection=JSON.parse(await readFile(path.join(repo,'work','selection.json'),'utf8'));
 const groups=JSON.parse(await readFile(path.join(repo,'work','groups.json'),'utf8'));
 const emb=JSON.parse(await readFile(path.join(repo,'work','embeddings.json'),'utf8'));
-const dino=JSON.parse(await readFile(path.join(repo,'work','embeddings-dinov2.json'),'utf8'));
+const dinoRaw=JSON.parse(await readFile(path.join(repo,'work','embeddings-dinov3.json'),'utf8'));
+const dino={};for(const[f,v]of Object.entries(dinoRaw))dino[f]=v.c; // DINOv3-CLS
 const manual=JSON.parse(await readFile(path.join(repo,'work','labels-manual.json'),'utf8')).labels||{};
 const keep=selection.filter(x=>x.decision==='keep');
 
@@ -76,8 +77,8 @@ for(const f of await readdir(modelSrc))await copyFile(path.join(modelSrc,f),path
 // 模型在子目录，递归复制
 async function copyDir(src,dst){await mkdir(dst,{recursive:true});for(const e of await readdir(src,{withFileTypes:true})){const s=path.join(src,e.name),d=path.join(dst,e.name);if(e.isDirectory())await copyDir(s,d);else await copyFile(s,d)}}
 await copyDir(modelSrc,path.join(out,'model-cache'));
-// 第二视觉模型：DINOv2-small 量化 24MB，与 CLIP 本地模型一起随站点发布。
-await copyDir(path.join(work,'model-alt','onnx-community','dinov2-small'),path.join(out,'model-cache','onnx-community','dinov2-small'));
+// 第二视觉模型：DINOv3-vits16 q8 21MB（CLS 池化，检索主信号），与 CLIP 一起随站点发布。
+await copyDir(path.join(work,'model-alt','onnx-community','dinov3-vits16-pretrain-lvd1689m-ONNX'),path.join(out,'model-cache','onnx-community','dinov3-vits16-pretrain-lvd1689m-ONNX'));
 await copyFile(path.join(siteSrc,'build.mjs'),path.join(out,'build.mjs')); // 参考
 // 使用 site-source 刚重建的 worker，避免误用旧目录里的过期产物。
 const distWorker=path.join(siteSrc,'dist','server','index.js');
