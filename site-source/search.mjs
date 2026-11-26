@@ -1,72 +1,69 @@
 import {cosine,MODEL} from './ai.mjs';
 import {effectiveLabel} from './catalog.mjs';
 
-export const READY=x=>x.ai?.model===MODEL&&x.ai?.embedding?.length===512;
+export const validVector=(v,dim)=>Array.isArray(v)&&v.length===dim&&v.every(Number.isFinite)&&v.some(x=>x!==0);
+export const READY=x=>x.ai?.model===MODEL&&validVector(x.ai?.embedding,512);
+const DINO_MODEL='onnx-community/dinov2-small';
+const DINO_POOLING='all-tokens-mean-v1';
+export const DINO_READY=x=>validVector(x.ai?.dinoEmbedding,384)&&
+ (!x.ai.dinoModel||x.ai.dinoModel===DINO_MODEL)&&
+ (!x.ai.dinoPooling||x.ai.dinoPooling===DINO_POOLING);
 
-// 产品相似度优先：来源表格「一行 = 同一个产品的不同角度」，所以按组聚合。
-// 产品分数 = 组内最高单张相似度(0.5) + 多角度命中聚集度(0.3) + 组内平均相似度(0.2)。
-// 多角度同时命中，是「同一产品」的强信号，远胜单张偶然高分的跨域误匹配。
-// 视觉单张 cosine 只作为展示与辅助，不再用文本标签硬筛候选（CLIP 文本标签错误率高）。
-// 双模型产品相似度：CLIP 512d 与 DINOv2 384d 各算一份"组内多角度聚集度"，
-// 再按当次查询的组内分数做 z-score 归一后等权融合。1486 次留一验证：
-// CLIP 召回@1 41.59% / @5 63.32%，DINOv2 44.15% / 64.00%，融合 50.07% / 69.92%。
-function scoreGroup(visuals){
- const top=Math.max(...visuals);
- const avg=visuals.reduce((a,b)=>a+b,0)/visuals.length;
- const hits=visuals.filter(s=>s>=0.55).length;
- const strong=visuals.filter(s=>s>=0.65).length;
- return {top,avg,hits,strong,product:top*0.6+(strong/visuals.length)*0.25+avg*0.15};
-}
-function zscores(rows,key){
- const mean=rows.reduce((a,b)=>a+b[key],0)/rows.length;
- const sd=Math.sqrt(rows.reduce((a,b)=>a+(b[key]-mean)**2,0)/rows.length)||1;
- return rows.map(x=>(x[key]-mean)/sd);
-}
+// Rank fusion keeps differently scaled model scores separate. Missing DINO only
+// removes that candidate's second vote; it never disables the rest of the index.
 export function productResults(rows,embedding,dinoEmbedding=null){
- const groups=new Map();
+ if(!validVector(embedding,512))return [];
+ const queryDino=validVector(dinoEmbedding,384),groups=new Map();
  for(const x of rows){
-  if(!x.ai?.embedding)continue;
-  const visual=cosine(embedding,x.ai.embedding);
-  const dino=Array.isArray(dinoEmbedding)&&dinoEmbedding.length===384&&Array.isArray(x.ai.dinoEmbedding)&&x.ai.dinoEmbedding.length===384
-   ?cosine(dinoEmbedding,x.ai.dinoEmbedding):null;
-  const l=effectiveLabel(x),key=l.group||x.id,old=groups.get(key);
-  if(old){old.visuals.push(visual);if(dino!==null)old.dinos.push(dino);if(visual>old.visual){old.visual=visual;old.image=x}old.views.push(x)}
-  else groups.set(key,{image:x,visual,visuals:[visual],dinos:dino===null?[]:[dino],views:[x],label:l});
+  if(!READY(x))continue;
+  const clip=cosine(embedding,x.ai.embedding);
+  const dino=queryDino&&DINO_READY(x)?cosine(dinoEmbedding,x.ai.dinoEmbedding):null;
+  const label=effectiveLabel(x),key=label.group||x.id;
+  if(!groups.has(key))groups.set(key,{image:x,label,views:[],visual:-Infinity,dinoVisual:null,clipValues:[],dinoValues:[]});
+  const g=groups.get(key);g.views.push(x);g.clipValues.push(clip);
+  if(clip>g.visual){g.visual=clip;g.image=x}
+  if(dino!==null){g.dinoValues.push(dino);g.dinoVisual=Math.max(g.dinoVisual??-Infinity,dino)}
  }
- const useDino=groups.size>1&&[...groups.values()].every(g=>g.dinos.length===g.visuals.length);
  const out=[...groups.values()].map(g=>{
-  const clip=scoreGroup(g.visuals),dino=useDino?scoreGroup(g.dinos):null;
-  return {image:g.image,views:g.views,label:g.label,visual:clip.top,average:clip.avg,
-          hits:clip.hits,strong:clip.strong,n:g.visuals.length,
-          clipProduct:clip.product,dinoProduct:dino?.product??null,
-          productScore:clip.product,score:clip.product};
+  const avg=g.clipValues.reduce((a,b)=>a+b,0)/g.clipValues.length;
+  return {...g,average:avg,n:g.views.length,hits:g.clipValues.filter(x=>x>=.55).length,
+   strong:g.clipValues.filter(x=>x>=.65).length,clipProduct:g.visual,
+   dinoProduct:g.dinoVisual,dinoCoverage:g.dinoValues.length/g.views.length};
  });
- if(useDino){
-  const zc=zscores(out,'clipProduct'),zd=zscores(out,'dinoProduct');
-  out.forEach((x,i)=>{x.productScore=0.5*zc[i]+0.5*zd[i];x.score=x.productScore});
+ const ranked=(key)=>[...out].filter(x=>x[key]!==null).sort((a,b)=>b[key]-a[key]||String(a.image.id).localeCompare(String(b.image.id)));
+ const clips=ranked('clipProduct'),dinos=ranked('dinoProduct');
+ // Equal scores share ranks; order of library records must not create evidence.
+ const assign=(list,key,field)=>{let rank=0,prior;list.forEach((x,i)=>{if(i===0||x[key]!==prior)rank=i+1;x[field]=rank;prior=x[key]})};
+ assign(clips,'clipProduct','clipRank');assign(dinos,'dinoProduct','dinoRank');
+ for(const x of out){
+  x.fused=x.dinoRank!=null;
+  // Missing DINO falls back to the CLIP rank for ordering, not new evidence.
+  x.productScore=(1/(60+x.clipRank)+(dinos.length?1/(60+(x.dinoRank??x.clipRank)):0))*60;
+  x.score=x.productScore;
+  delete x.clipValues;delete x.dinoValues;
  }
- return out.sort((a,b)=>b.productScore-a.productScore);
+ return out.sort((a,b)=>b.productScore-a.productScore||b.visual-a.visual||String(a.image.id).localeCompare(String(b.image.id)));
 }
 
- // 检索：全库按产品相似度（多角度聚集度）排序。
- // 不使用 CLIP 文本标签加权——实测 17 个"切割片套装"组里只有 1 组是真切割片，
- // 文本标签错误率极高，加权会把黑色砂纸/风扇误提到同款前面。产品身份只由向量聚集度决定。
- export function searchLibrary(a,library,{forceAll=false,topK=8}={}){
- const all=library.filter(READY);
- const results=productResults(all,a.embedding,a.dinoEmbedding);
- const best=results[0],next=results[1];
- // 产品相似度可信：首位有明显领先，且至少有2个角度强命中(>=0.65)
- const fused=Array.isArray(a.dinoEmbedding)&&best?.dinoProduct!=null;
- // 融合分数是 z-score（量纲不同于单模型 0~1），首位领先 1 个标准差即视为有同款信号。
- const confident=best&&((fused&&(!next||best.productScore-next.productScore>=1.0))||
-                       (!fused&&best.strong>=2&&(!next||best.productScore-next.productScore>=0.015)));
- return {
-  stage:forceAll?'all':'product',
-  fused:!!(Array.isArray(a.dinoEmbedding)&&results[0]?.dinoProduct!=null),
-  total:all.length,
-  scoped:all.length,
-  results:results.slice(0,topK),
-  confidence:confident?'high':'low',
-  matchedGroup:a.matchedGroup||null
- };
+// Absolute visual evidence can flag a candidate, never certify product identity.
+// These conservative heuristics are not calibrated probabilities.
+export function candidateVerdict(hit){
+ if(!hit)return {text:'û�пɼ����ĺ�ѡ',ok:false,ratio:0,reason:'�����ͼ�⼰����״̬'};
+ if(hit.userConfirmed)return {text:'�˹�ȷ��ͬ��',ok:true,tentative:false,ratio:0,top:hit.productScore,reason:'��ͬ��ѯͼƬSHA-256���ѱ����˹�ȷ��'};
+ const tentative=hit.visual>=.84&&hit.dinoVisual!==null&&hit.dinoVisual>=.70;
+ return {text:tentative?'����ͬ����˶ԣ�':'��ѡ���˶�',ok:tentative,tentative:true,ratio:0,
+  top:hit.productScore,reason:'����ֽ����ڼ�����������ͬ����ʣ���˶Խṹ���ӿڡ��ͺź͹��'};
 }
+export function searchLibrary(a,library,{forceAll=false,topK=8,querySha256=null}={}){
+ const all=library.filter(READY);let results=productResults(all,a?.embedding,a?.dinoEmbedding);
+ if(/^[a-f0-9]{64}$/.test(querySha256||'')){
+  results=results.filter(hit=>{
+   const events=hit.views.flatMap(v=>v.confirmations||[]).filter(e=>e.querySha256===querySha256&&e.groupId===(hit.label.group||hit.image.id)&&Number.isFinite(Date.parse(e.at)));
+   events.sort((x,y)=>Date.parse(y.at)-Date.parse(x.at));
+   const latest=events[0];hit.userConfirmed=latest?.decision==='same';return latest?.decision!=='different';
+  }).sort((x,y)=>Number(!!y.userConfirmed)-Number(!!x.userConfirmed)||y.productScore-x.productScore);
+ }
+ return {stage:forceAll?'all':'product',fused:results.some(x=>x.fused),total:all.length,scoped:all.length,
+  results:results.slice(0,Math.max(1,Math.min(64,topK))),confidence:'low',matchedGroup:a?.matchedGroup||null};
+}
+
