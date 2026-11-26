@@ -1,0 +1,14 @@
+data/
+originals/
+model-cache/
+node_modules/
+*.xlsx
+*.onnx
+.env*
+work/
+dist/
+site-source/vendor/
+site-source/.openai/
+site-source/dist/
+__pycache__/
+*.pyc

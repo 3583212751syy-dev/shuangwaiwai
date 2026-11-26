@@ -1,0 +1,4587 @@
+{
+  "date": "2026-11-24",
+  "source": "mercadolibre.com.mx 首页类目导航（官方一级类目）",
+  "total": 761,
+  "stats": {
+    "Deportes y Fitness": 2,
+    "Herramientas": 450,
+    "Electrónica, Audio y Video": 126,
+    "Accesorios para Vehículos": 69,
+    "Industrias y Oficinas": 5,
+    "Hogar, Muebles y Jardín": 63,
+    "Ropa, Bolsas y Calzado": 13,
+    "Otras Categorías": 28,
+    "Mascotas": 1,
+    "Instrumentos Musicales": 1,
+    "Construcción": 2,
+    "Arte, Papelería y Mercería": 1
+  },
+  "changes": [
+    {
+      "idx": "0",
+      "from": "家居用品",
+      "to": "Deportes y Fitness",
+      "name": "运动胶带/足球绷带(Football Tape)"
+    },
+    {
+      "idx": "1",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属滚轴/光轴"
+    },
+    {
+      "idx": "2",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢圆管/拉杆"
+    },
+    {
+      "idx": "3",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆棒/轴"
+    },
+    {
+      "idx": "4",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定座/支架"
+    },
+    {
+      "idx": "5",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色绝缘胶带"
+    },
+    {
+      "idx": "6",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料/橡胶圆管"
+    },
+    {
+      "idx": "7",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "强光手电筒"
+    },
+    {
+      "idx": "8",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/密封件"
+    },
+    {
+      "idx": "9",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源适配器/电子模块"
+    },
+    {
+      "idx": "10",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料固定卡扣"
+    },
+    {
+      "idx": "11",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "橡胶脚套/护垫"
+    },
+    {
+      "idx": "12",
+      "from": "五金工具",
+      "to": "Industrias y Oficinas",
+      "name": "离心风机/鼓风机"
+    },
+    {
+      "idx": "13",
+      "from": "五金工具",
+      "to": "Industrias y Oficinas",
+      "name": "离心风机/鼓风机"
+    },
+    {
+      "idx": "14",
+      "from": "五金工具",
+      "to": "Industrias y Oficinas",
+      "name": "离心风机/鼓风机"
+    },
+    {
+      "idx": "15",
+      "from": "五金工具",
+      "to": "Industrias y Oficinas",
+      "name": "离心风机/鼓风机"
+    },
+    {
+      "idx": "16",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "尼龙扎带/理线带"
+    },
+    {
+      "idx": "17",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属卡箍/连接件"
+    },
+    {
+      "idx": "18",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "塑料收纳盒/配件"
+    },
+    {
+      "idx": "19",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "绿色绝缘胶带"
+    },
+    {
+      "idx": "20",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "深绿胶带卷"
+    },
+    {
+      "idx": "21",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色尼龙扎带"
+    },
+    {
+      "idx": "22",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "接线端子/连接器"
+    },
+    {
+      "idx": "23",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "小型继电器"
+    },
+    {
+      "idx": "24",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "接线端子排"
+    },
+    {
+      "idx": "25",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚套/脚垫"
+    },
+    {
+      "idx": "26",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色尼龙扎带(大卷)"
+    },
+    {
+      "idx": "27",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属轴承/滚轮"
+    },
+    {
+      "idx": "28",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头/件"
+    },
+    {
+      "idx": "29",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/模块"
+    },
+    {
+      "idx": "30",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属管夹/卡箍"
+    },
+    {
+      "idx": "31",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "塑料外壳/盖子"
+    },
+    {
+      "idx": "32",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属工具/扳手"
+    },
+    {
+      "idx": "33",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属打磨头套装"
+    },
+    {
+      "idx": "34",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属配件套装"
+    },
+    {
+      "idx": "35",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车传感器/接头"
+    },
+    {
+      "idx": "36",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属棒/焊条"
+    },
+    {
+      "idx": "37",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型打磨头/钻头套装"
+    },
+    {
+      "idx": "38",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车门锁/拉手"
+    },
+    {
+      "idx": "39",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属笔/划线针"
+    },
+    {
+      "idx": "40",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "塑料面板/盖板"
+    },
+    {
+      "idx": "41",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源线/连接线"
+    },
+    {
+      "idx": "42",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "铝板/金属板"
+    },
+    {
+      "idx": "43",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢管/方管"
+    },
+    {
+      "idx": "44",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩钢瓦/金属条"
+    },
+    {
+      "idx": "45",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆管/套管"
+    },
+    {
+      "idx": "46",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件套装"
+    },
+    {
+      "idx": "47",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车传感器/接头"
+    },
+    {
+      "idx": "48",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "陶瓷绝缘片/绝缘垫"
+    },
+    {
+      "idx": "49",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色包装小五金件"
+    },
+    {
+      "idx": "50",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料环/垫片"
+    },
+    {
+      "idx": "51",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/扎带扣"
+    },
+    {
+      "idx": "52",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色尼龙扎带"
+    },
+    {
+      "idx": "53",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色尼龙扎带"
+    },
+    {
+      "idx": "54",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子元件/传感器"
+    },
+    {
+      "idx": "55",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆棒/铜棒"
+    },
+    {
+      "idx": "56",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/铜垫圈"
+    },
+    {
+      "idx": "57",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属螺丝/紧固件"
+    },
+    {
+      "idx": "58",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "深灰拉链收纳包"
+    },
+    {
+      "idx": "59",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装小五金"
+    },
+    {
+      "idx": "60",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色胶头滴管/工具"
+    },
+    {
+      "idx": "61",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定座/支架"
+    },
+    {
+      "idx": "62",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源适配器/充电器"
+    },
+    {
+      "idx": "63",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属配件/接头"
+    },
+    {
+      "idx": "64",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄色塑料卡扣/扎带工具"
+    },
+    {
+      "idx": "65",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带线金属探头/工具"
+    },
+    {
+      "idx": "66",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色圆形滤芯/海绵"
+    },
+    {
+      "idx": "67",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色密封圈/垫片"
+    },
+    {
+      "idx": "68",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "灯管/玻璃管件"
+    },
+    {
+      "idx": "69",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢圆管"
+    },
+    {
+      "idx": "70",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属细杆/焊丝"
+    },
+    {
+      "idx": "71",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "弹簧/螺旋件"
+    },
+    {
+      "idx": "72",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装小五金件"
+    },
+    {
+      "idx": "73",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属网片/滤网"
+    },
+    {
+      "idx": "74",
+      "from": "五金工具",
+      "to": "Otras Categorías",
+      "name": "透明盒装白色小件"
+    },
+    {
+      "idx": "75",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色圆盘砂纸"
+    },
+    {
+      "idx": "76",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子开关/传感器"
+    },
+    {
+      "idx": "77",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆管/铜管"
+    },
+    {
+      "idx": "78",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属细棒/焊条"
+    },
+    {
+      "idx": "79",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "80",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚套"
+    },
+    {
+      "idx": "81",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线黑色元件/线圈"
+    },
+    {
+      "idx": "82",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属网/过滤网片"
+    },
+    {
+      "idx": "83",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色包装小工具"
+    },
+    {
+      "idx": "84",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色/红色O型密封圈"
+    },
+    {
+      "idx": "85",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶帽/脚套"
+    },
+    {
+      "idx": "86",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色小电子元件"
+    },
+    {
+      "idx": "87",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料壳/支架"
+    },
+    {
+      "idx": "88",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装塑料管件"
+    },
+    {
+      "idx": "89",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料条/卡条"
+    },
+    {
+      "idx": "90",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装小五金"
+    },
+    {
+      "idx": "91",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色软管/波纹管"
+    },
+    {
+      "idx": "92",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色塑料工具/配件"
+    },
+    {
+      "idx": "93",
+      "from": "五金工具",
+      "to": "Otras Categorías",
+      "name": "蓝色/红色包装小件"
+    },
+    {
+      "idx": "94",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色塑料接头/喷嘴"
+    },
+    {
+      "idx": "95",
+      "from": "五金工具",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色塑料轮子/滚轮"
+    },
+    {
+      "idx": "96",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车继电器/电磁开关"
+    },
+    {
+      "idx": "97",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色旋钮/电位器"
+    },
+    {
+      "idx": "98",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装金属件"
+    },
+    {
+      "idx": "99",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/按钮"
+    },
+    {
+      "idx": "100",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "镭射防伪贴纸/标签"
+    },
+    {
+      "idx": "101",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色尼龙扎带"
+    },
+    {
+      "idx": "102",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色小电子元件"
+    },
+    {
+      "idx": "103",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线电子接头/传感器"
+    },
+    {
+      "idx": "104",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料软管"
+    },
+    {
+      "idx": "105",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "蓝色接头/汽车配件"
+    },
+    {
+      "idx": "106",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "彩色接头/连接器"
+    },
+    {
+      "idx": "107",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶脚套/胶帽"
+    },
+    {
+      "idx": "108",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色圆形砂纸/打磨盘"
+    },
+    {
+      "idx": "109",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "格纹布/红黑格子布"
+    },
+    {
+      "idx": "110",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "绿色圆珠笔/标记笔"
+    },
+    {
+      "idx": "111",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "112",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属管接头/三通"
+    },
+    {
+      "idx": "113",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色胶带/电工胶带"
+    },
+    {
+      "idx": "114",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色橡皮筋/扎带"
+    },
+    {
+      "idx": "115",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装塑料件"
+    },
+    {
+      "idx": "116",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色圆形Item标签"
+    },
+    {
+      "idx": "117",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色柄螺纹工具/丝锥扳手"
+    },
+    {
+      "idx": "118",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子模块/开关"
+    },
+    {
+      "idx": "119",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子模块/电路板"
+    },
+    {
+      "idx": "120",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "红色绝缘胶带/电工胶带"
+    },
+    {
+      "idx": "121",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橙黄色胶套/橡胶件"
+    },
+    {
+      "idx": "122",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木柄小工具/棉签棒"
+    },
+    {
+      "idx": "123",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色橡胶手套/防护套"
+    },
+    {
+      "idx": "124",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属弹簧/螺旋件"
+    },
+    {
+      "idx": "125",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "粉色/红色塑料件"
+    },
+    {
+      "idx": "126",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色接线端子排"
+    },
+    {
+      "idx": "127",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色小电子元件"
+    },
+    {
+      "idx": "128",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "深色小五金件"
+    },
+    {
+      "idx": "129",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈"
+    },
+    {
+      "idx": "130",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橙色塑料接头/快速接头"
+    },
+    {
+      "idx": "131",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶套/护垫"
+    },
+    {
+      "idx": "132",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装金属件"
+    },
+    {
+      "idx": "133",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "长柄金属工具/刮刀"
+    },
+    {
+      "idx": "134",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料件/卡扣"
+    },
+    {
+      "idx": "135",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属细管/套管"
+    },
+    {
+      "idx": "136",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小零件/垫片"
+    },
+    {
+      "idx": "137",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色电子接头/线束"
+    },
+    {
+      "idx": "138",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装塑料管件"
+    },
+    {
+      "idx": "139",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "彩色带线电子元件"
+    },
+    {
+      "idx": "140",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属杆/撬棒"
+    },
+    {
+      "idx": "141",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "粉红色塑料盒/垫片"
+    },
+    {
+      "idx": "142",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小弹簧/紧固件"
+    },
+    {
+      "idx": "143",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色/黑色小五金件"
+    },
+    {
+      "idx": "144",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属切刀/刀片"
+    },
+    {
+      "idx": "145",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属螺丝/螺栓套装"
+    },
+    {
+      "idx": "146",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料壳/盖子"
+    },
+    {
+      "idx": "147",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "6/9/12号金属钻头套装"
+    },
+    {
+      "idx": "148",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色编织软管"
+    },
+    {
+      "idx": "149",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料手柄/握把"
+    },
+    {
+      "idx": "150",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属轴承/滚轮"
+    },
+    {
+      "idx": "151",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "152",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小喷嘴/接头"
+    },
+    {
+      "idx": "153",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线插头/连接器"
+    },
+    {
+      "idx": "154",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小配件/接头"
+    },
+    {
+      "idx": "155",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色工具刀/美工刀"
+    },
+    {
+      "idx": "156",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小零件/紧固件"
+    },
+    {
+      "idx": "157",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属锯片/圆锯片"
+    },
+    {
+      "idx": "158",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/螺母"
+    },
+    {
+      "idx": "159",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子模块/电路板"
+    },
+    {
+      "idx": "160",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属连接件/卡扣"
+    },
+    {
+      "idx": "161",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "162",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈套装"
+    },
+    {
+      "idx": "163",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小工具/扳手"
+    },
+    {
+      "idx": "164",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属配件/接头"
+    },
+    {
+      "idx": "165",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属网片/滤网"
+    },
+    {
+      "idx": "166",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属滚轴/光轴"
+    },
+    {
+      "idx": "167",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢圆管/拉杆"
+    },
+    {
+      "idx": "168",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料卡扣/固定夹"
+    },
+    {
+      "idx": "169",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小配件/接头"
+    },
+    {
+      "idx": "170",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料三角支架/垫片"
+    },
+    {
+      "idx": "171",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料片/薄膜"
+    },
+    {
+      "idx": "172",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄色塑料撬片/工具"
+    },
+    {
+      "idx": "173",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头"
+    },
+    {
+      "idx": "174",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁阀/执行器"
+    },
+    {
+      "idx": "175",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子开关"
+    },
+    {
+      "idx": "176",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚垫"
+    },
+    {
+      "idx": "177",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料壳/盖"
+    },
+    {
+      "idx": "178",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "粉色橡胶塞/脚套"
+    },
+    {
+      "idx": "179",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色圆形垫片/盖板"
+    },
+    {
+      "idx": "180",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆/数据线"
+    },
+    {
+      "idx": "181",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "棕色包装小五金"
+    },
+    {
+      "idx": "182",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料扎带/绑带"
+    },
+    {
+      "idx": "183",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属杆/焊条"
+    },
+    {
+      "idx": "184",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "工作灯/小灯"
+    },
+    {
+      "idx": "185",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色扎带/装订圈"
+    },
+    {
+      "idx": "186",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管件"
+    },
+    {
+      "idx": "187",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色塑料面板/盖板"
+    },
+    {
+      "idx": "188",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "灰色面板/盖板"
+    },
+    {
+      "idx": "189",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/按钮套装"
+    },
+    {
+      "idx": "190",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/扎带扣"
+    },
+    {
+      "idx": "191",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料扎带束"
+    },
+    {
+      "idx": "192",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料接头/管件"
+    },
+    {
+      "idx": "193",
+      "from": "五金工具",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色印刷胶辊/滚筒"
+    },
+    {
+      "idx": "194",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属网罩/滤网"
+    },
+    {
+      "idx": "195",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属接头/阀件"
+    },
+    {
+      "idx": "196",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电源适配器"
+    },
+    {
+      "idx": "197",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线风扇/电机"
+    },
+    {
+      "idx": "198",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色包装电子元件"
+    },
+    {
+      "idx": "199",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头"
+    },
+    {
+      "idx": "200",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/模块"
+    },
+    {
+      "idx": "201",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色手写笔/触控笔"
+    },
+    {
+      "idx": "202",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料盒/盖板"
+    },
+    {
+      "idx": "203",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带线接头/阀"
+    },
+    {
+      "idx": "204",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线圆形风扇/电机"
+    },
+    {
+      "idx": "205",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料叶轮/风扇"
+    },
+    {
+      "idx": "206",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "207",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明胶带卷"
+    },
+    {
+      "idx": "208",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属弯钩/工具"
+    },
+    {
+      "idx": "209",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色长盒装工具"
+    },
+    {
+      "idx": "210",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/O型圈"
+    },
+    {
+      "idx": "211",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶套/护垫"
+    },
+    {
+      "idx": "212",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属接头/螺母"
+    },
+    {
+      "idx": "213",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属阀/接头"
+    },
+    {
+      "idx": "214",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属工具/扳手"
+    },
+    {
+      "idx": "215",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "216",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料面板/盖板"
+    },
+    {
+      "idx": "217",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "镭射防伪贴纸/标签"
+    },
+    {
+      "idx": "218",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "镭射防伪贴纸/标签"
+    },
+    {
+      "idx": "219",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属叶轮/风扇叶"
+    },
+    {
+      "idx": "220",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色塑料工具/刮板"
+    },
+    {
+      "idx": "221",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "长柄金属杆/工具"
+    },
+    {
+      "idx": "222",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "包装电子元件"
+    },
+    {
+      "idx": "223",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黄色胶带/绝缘胶带"
+    },
+    {
+      "idx": "224",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属笔/划线针"
+    },
+    {
+      "idx": "225",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属钥匙/配件"
+    },
+    {
+      "idx": "226",
+      "from": "家居用品",
+      "to": "Otras Categorías",
+      "name": "白色包装小件"
+    },
+    {
+      "idx": "227",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈"
+    },
+    {
+      "idx": "228",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/旋钮"
+    },
+    {
+      "idx": "229",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "灰色圆盘砂纸/打磨盘"
+    },
+    {
+      "idx": "230",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚套"
+    },
+    {
+      "idx": "231",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚垫/脚套"
+    },
+    {
+      "idx": "232",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车传感器/接头"
+    },
+    {
+      "idx": "233",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子元件/开关"
+    },
+    {
+      "idx": "234",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子模块"
+    },
+    {
+      "idx": "235",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子模块/连接器"
+    },
+    {
+      "idx": "236",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电子模块/电路板"
+    },
+    {
+      "idx": "237",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "蓝色电子模块/控制器"
+    },
+    {
+      "idx": "238",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属泵体/机械件"
+    },
+    {
+      "idx": "239",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料件/接头"
+    },
+    {
+      "idx": "240",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/接头"
+    },
+    {
+      "idx": "241",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "242",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料固定夹"
+    },
+    {
+      "idx": "243",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属轴承/滚轮"
+    },
+    {
+      "idx": "244",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "绿色线缆/数据线"
+    },
+    {
+      "idx": "245",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色带线传感器"
+    },
+    {
+      "idx": "246",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "绿色线缆/数据线"
+    },
+    {
+      "idx": "247",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料三角支架"
+    },
+    {
+      "idx": "248",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/圆盘"
+    },
+    {
+      "idx": "249",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属角码/支架"
+    },
+    {
+      "idx": "250",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木柄工具/毛刷"
+    },
+    {
+      "idx": "251",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源适配器/电子模块"
+    },
+    {
+      "idx": "252",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属小零件"
+    },
+    {
+      "idx": "253",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属螺丝/紧固件"
+    },
+    {
+      "idx": "254",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "粉色塑料扎带/绑带"
+    },
+    {
+      "idx": "255",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "橙色塑料扎带/绑带"
+    },
+    {
+      "idx": "256",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属配件/接头"
+    },
+    {
+      "idx": "257",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色长盒装工具"
+    },
+    {
+      "idx": "258",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木柄工具/圆棒"
+    },
+    {
+      "idx": "259",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带柄金属工具/凿子"
+    },
+    {
+      "idx": "260",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源适配器/充电器"
+    },
+    {
+      "idx": "261",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "灰色胶带卷"
+    },
+    {
+      "idx": "262",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子元件"
+    },
+    {
+      "idx": "263",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车传感器/接头"
+    },
+    {
+      "idx": "264",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/接头"
+    },
+    {
+      "idx": "265",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属搭扣/锁扣"
+    },
+    {
+      "idx": "266",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属弹簧/螺旋件"
+    },
+    {
+      "idx": "267",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/按钮"
+    },
+    {
+      "idx": "268",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色塑料面板/盖板"
+    },
+    {
+      "idx": "269",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属工具/扳手"
+    },
+    {
+      "idx": "270",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆/数据线"
+    },
+    {
+      "idx": "271",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子开关/传感器"
+    },
+    {
+      "idx": "272",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料卡扣/固定件"
+    },
+    {
+      "idx": "273",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色接线端子/模块"
+    },
+    {
+      "idx": "274",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属钥匙/小工具"
+    },
+    {
+      "idx": "275",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色包装电子模块"
+    },
+    {
+      "idx": "276",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属螺丝/紧固件"
+    },
+    {
+      "idx": "277",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/电路板"
+    },
+    {
+      "idx": "278",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈"
+    },
+    {
+      "idx": "279",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/接头"
+    },
+    {
+      "idx": "280",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色散热片/铝型材"
+    },
+    {
+      "idx": "281",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管件/接头"
+    },
+    {
+      "idx": "282",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚垫"
+    },
+    {
+      "idx": "283",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/线圈"
+    },
+    {
+      "idx": "284",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶圈/脚套"
+    },
+    {
+      "idx": "285",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属叶轮/涡轮"
+    },
+    {
+      "idx": "286",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红色按钮开关"
+    },
+    {
+      "idx": "287",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "蓝色包装电子件"
+    },
+    {
+      "idx": "288",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橡胶衬套/轴承"
+    },
+    {
+      "idx": "289",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橙色胶带/美纹纸"
+    },
+    {
+      "idx": "290",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属球/钢珠"
+    },
+    {
+      "idx": "291",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "包装工具套装"
+    },
+    {
+      "idx": "292",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明袋装塑料件"
+    },
+    {
+      "idx": "293",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "接线端子/连接器"
+    },
+    {
+      "idx": "294",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红绿塑料夹/工具"
+    },
+    {
+      "idx": "295",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木柄刷/砂纸架"
+    },
+    {
+      "idx": "296",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣"
+    },
+    {
+      "idx": "297",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/按钮面板"
+    },
+    {
+      "idx": "298",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明长杆/塑料管"
+    },
+    {
+      "idx": "299",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属弹簧/螺旋件"
+    },
+    {
+      "idx": "300",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈套装"
+    },
+    {
+      "idx": "301",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色螺旋线缆"
+    },
+    {
+      "idx": "302",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小配件/接头"
+    },
+    {
+      "idx": "303",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "汽车阀/接头"
+    },
+    {
+      "idx": "304",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料管接头/三通"
+    },
+    {
+      "idx": "305",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电池/电子元件"
+    },
+    {
+      "idx": "306",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "包装小工具"
+    },
+    {
+      "idx": "307",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色小电子元件"
+    },
+    {
+      "idx": "308",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属连接件/卡扣"
+    },
+    {
+      "idx": "309",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料面板/盖板"
+    },
+    {
+      "idx": "310",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料管/软管"
+    },
+    {
+      "idx": "311",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "312",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色塑料接头/管件"
+    },
+    {
+      "idx": "313",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线电子接头/传感器"
+    },
+    {
+      "idx": "314",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "315",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色圆形按钮/开关"
+    },
+    {
+      "idx": "316",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带线阀门/气阀"
+    },
+    {
+      "idx": "317",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子模块"
+    },
+    {
+      "idx": "318",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆束/数据线"
+    },
+    {
+      "idx": "319",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "320",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色小刷子/打磨头"
+    },
+    {
+      "idx": "321",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆/数据线"
+    },
+    {
+      "idx": "322",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管/软管"
+    },
+    {
+      "idx": "323",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头"
+    },
+    {
+      "idx": "324",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电源适配器"
+    },
+    {
+      "idx": "325",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "326",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料扎带/绑带"
+    },
+    {
+      "idx": "327",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色接头/阀件"
+    },
+    {
+      "idx": "328",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "绿色胶带/绝缘胶带"
+    },
+    {
+      "idx": "329",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属配件/阀件"
+    },
+    {
+      "idx": "330",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆管/套管"
+    },
+    {
+      "idx": "331",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "332",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/滚针"
+    },
+    {
+      "idx": "333",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料刮片/工具"
+    },
+    {
+      "idx": "334",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料卡扣/纽扣"
+    },
+    {
+      "idx": "335",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属旋钮/配件"
+    },
+    {
+      "idx": "336",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "弹簧/螺旋件"
+    },
+    {
+      "idx": "337",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料卡扣/扎带"
+    },
+    {
+      "idx": "338",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料保护套"
+    },
+    {
+      "idx": "339",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头/配件"
+    },
+    {
+      "idx": "340",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子电路板/模块"
+    },
+    {
+      "idx": "341",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料盒/盖板"
+    },
+    {
+      "idx": "342",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属搭扣/夹具"
+    },
+    {
+      "idx": "343",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线电子接头"
+    },
+    {
+      "idx": "344",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈"
+    },
+    {
+      "idx": "345",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属卡扣/接头"
+    },
+    {
+      "idx": "346",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车开关/按钮"
+    },
+    {
+      "idx": "347",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "蓝色文件夹/收纳"
+    },
+    {
+      "idx": "348",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线圆形风扇/电机"
+    },
+    {
+      "idx": "349",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶套/护垫"
+    },
+    {
+      "idx": "350",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属角码/支架"
+    },
+    {
+      "idx": "351",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属弯片/支架"
+    },
+    {
+      "idx": "352",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆/数据线"
+    },
+    {
+      "idx": "353",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色包装扎带/工具"
+    },
+    {
+      "idx": "354",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/连接器"
+    },
+    {
+      "idx": "355",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "356",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线电子开关/接头"
+    },
+    {
+      "idx": "357",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "多色电线/线缆束"
+    },
+    {
+      "idx": "358",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色贴纸/标签 sheet"
+    },
+    {
+      "idx": "359",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色贴纸/标签 sheet"
+    },
+    {
+      "idx": "360",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料管/软管"
+    },
+    {
+      "idx": "361",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料卡扣/固定件"
+    },
+    {
+      "idx": "362",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属网片/滤网"
+    },
+    {
+      "idx": "363",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "364",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色塑料片/垫片"
+    },
+    {
+      "idx": "365",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁阀/执行器"
+    },
+    {
+      "idx": "366",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型打磨头套装"
+    },
+    {
+      "idx": "367",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管/软管"
+    },
+    {
+      "idx": "368",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电源适配器"
+    },
+    {
+      "idx": "369",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "工作灯/手电筒"
+    },
+    {
+      "idx": "370",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "接线端子/连接器"
+    },
+    {
+      "idx": "371",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "工作灯/手电筒"
+    },
+    {
+      "idx": "372",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "弹簧/螺旋件"
+    },
+    {
+      "idx": "373",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料固定卡扣"
+    },
+    {
+      "idx": "374",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁阀/接头"
+    },
+    {
+      "idx": "375",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料卡片/垫片"
+    },
+    {
+      "idx": "376",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "红色胶带/电工胶带"
+    },
+    {
+      "idx": "377",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属轴承/滚轮"
+    },
+    {
+      "idx": "378",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色尼龙扎带卷"
+    },
+    {
+      "idx": "379",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶垫/脚套"
+    },
+    {
+      "idx": "380",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属接头/阀件"
+    },
+    {
+      "idx": "381",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子开关"
+    },
+    {
+      "idx": "382",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色包装小工具"
+    },
+    {
+      "idx": "383",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红色包装电子件"
+    },
+    {
+      "idx": "384",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属弯管/管件"
+    },
+    {
+      "idx": "385",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色拉链收纳包"
+    },
+    {
+      "idx": "386",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄柄螺丝刀套装"
+    },
+    {
+      "idx": "387",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线电子接头"
+    },
+    {
+      "idx": "388",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属圆环/垫圈"
+    },
+    {
+      "idx": "389",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "390",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木柄刷/工具套装"
+    },
+    {
+      "idx": "391",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电源适配器"
+    },
+    {
+      "idx": "392",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "棕色橡胶圈/O型圈"
+    },
+    {
+      "idx": "393",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "394",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管件/接头"
+    },
+    {
+      "idx": "395",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定座/支架"
+    },
+    {
+      "idx": "396",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色砂纸卷/打磨砂带"
+    },
+    {
+      "idx": "397",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属链条/链轮"
+    },
+    {
+      "idx": "398",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶脚垫"
+    },
+    {
+      "idx": "399",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色圆砂纸片"
+    },
+    {
+      "idx": "400",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶套/护垫"
+    },
+    {
+      "idx": "401",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "402",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/模块"
+    },
+    {
+      "idx": "403",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色包装小工具"
+    },
+    {
+      "idx": "404",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属剪刀/工具"
+    },
+    {
+      "idx": "405",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红色包装电子件"
+    },
+    {
+      "idx": "406",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小轴/紧固件"
+    },
+    {
+      "idx": "407",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电子模块/开关"
+    },
+    {
+      "idx": "408",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橡胶传动带/皮带"
+    },
+    {
+      "idx": "409",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/垫圈卷"
+    },
+    {
+      "idx": "410",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "轮胎/橡胶轮"
+    },
+    {
+      "idx": "411",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "卡尺/测量工具"
+    },
+    {
+      "idx": "412",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色塑料扎带/圈"
+    },
+    {
+      "idx": "413",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属螺栓/螺丝"
+    },
+    {
+      "idx": "414",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "汽车阀/接头"
+    },
+    {
+      "idx": "415",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫片/螺母"
+    },
+    {
+      "idx": "416",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料工具/刮刀"
+    },
+    {
+      "idx": "417",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带线工具/配件"
+    },
+    {
+      "idx": "418",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属环/接头"
+    },
+    {
+      "idx": "419",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橡胶塞/胶帽套装"
+    },
+    {
+      "idx": "420",
+      "from": "五金工具",
+      "to": "Electrónica, Audio y Video",
+      "name": "灯管支架/卡座"
+    },
+    {
+      "idx": "421",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/撬棒"
+    },
+    {
+      "idx": "422",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线电源适配器"
+    },
+    {
+      "idx": "423",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶圈/垫片"
+    },
+    {
+      "idx": "424",
+      "from": "五金工具",
+      "to": "Otras Categorías",
+      "name": "纸盒装金属件"
+    },
+    {
+      "idx": "425",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色小五金/配件"
+    },
+    {
+      "idx": "426",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色塑料面板/盖板"
+    },
+    {
+      "idx": "427",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "红色拉链收纳包"
+    },
+    {
+      "idx": "428",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "包装小工具"
+    },
+    {
+      "idx": "429",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料管件/接头"
+    },
+    {
+      "idx": "430",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子电路板/模块"
+    },
+    {
+      "idx": "431",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色橡胶圈/垫片"
+    },
+    {
+      "idx": "432",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色纸盒/工具盒（待复核）"
+    },
+    {
+      "idx": "433",
+      "from": "五金工具",
+      "to": "Otras Categorías",
+      "name": "彩色小配件/密封件套装（待复核）"
+    },
+    {
+      "idx": "434",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁阀"
+    },
+    {
+      "idx": "435",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色线缆/数据线"
+    },
+    {
+      "idx": "436",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "小件条码包装（待复核）"
+    },
+    {
+      "idx": "437",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电子元件/连接器（待复核）"
+    },
+    {
+      "idx": "438",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色打磨盘/链锯锉刀套装（待复核）"
+    },
+    {
+      "idx": "439",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色手柄钢丝刷/打磨头"
+    },
+    {
+      "idx": "440",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "白色塑料固定卡扣"
+    },
+    {
+      "idx": "441",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料固定卡扣"
+    },
+    {
+      "idx": "442",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "绿色塑料接头/卡座（待复核）"
+    },
+    {
+      "idx": "443",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "绿色塑料接线端子"
+    },
+    {
+      "idx": "444",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "绿色塑料接线端子"
+    },
+    {
+      "idx": "445",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料卡扣/固定环"
+    },
+    {
+      "idx": "446",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "棕色砂纸条/打磨条套装"
+    },
+    {
+      "idx": "447",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑白海绵/砂纸垫片"
+    },
+    {
+      "idx": "448",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "塑料连接件/卡扣（待复核）"
+    },
+    {
+      "idx": "449",
+      "from": "汽配",
+      "to": "Electrónica, Audio y Video",
+      "name": "汽车LED玻璃管灯泡/示宽灯（多只装）"
+    },
+    {
+      "idx": "450",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色旋钮/圆盖（待复核）"
+    },
+    {
+      "idx": "451",
+      "from": "五金工具",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色吸盘/脚垫"
+    },
+    {
+      "idx": "452",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色固定环/法兰支架"
+    },
+    {
+      "idx": "453",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色卷材/薄膜卷（待复核）"
+    },
+    {
+      "idx": "454",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色胶带"
+    },
+    {
+      "idx": "455",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色胶带"
+    },
+    {
+      "idx": "456",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "蓝色小盒包装（待复核）"
+    },
+    {
+      "idx": "457",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "蓝色卡片装小配件（待复核）"
+    },
+    {
+      "idx": "458",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色密封环/垫圈卷"
+    },
+    {
+      "idx": "459",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电源适配器"
+    },
+    {
+      "idx": "460",
+      "from": "宠物用品",
+      "to": "Mascotas",
+      "name": "宠物胸背带/夹棉背心（待复核）"
+    },
+    {
+      "idx": "461",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明胶带"
+    },
+    {
+      "idx": "462",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "螺丝刀/镊子套装"
+    },
+    {
+      "idx": "463",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色金属燃烧管"
+    },
+    {
+      "idx": "464",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "银色胶带/薄膜卷"
+    },
+    {
+      "idx": "465",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "粉色装饰膜"
+    },
+    {
+      "idx": "466",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型钻头/内六角扳手套装"
+    },
+    {
+      "idx": "467",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "蜘蛛网装饰垫"
+    },
+    {
+      "idx": "468",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "银色铝箔胶带"
+    },
+    {
+      "idx": "469",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "牛皮纸盒/包装盒"
+    },
+    {
+      "idx": "470",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属吸盘/吸盘支架"
+    },
+    {
+      "idx": "471",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色花纹切割片/打磨片(4片装)"
+    },
+    {
+      "idx": "472",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属垫圈/轴承套装"
+    },
+    {
+      "idx": "473",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "牛皮纸盒/包装盒"
+    },
+    {
+      "idx": "474",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车旋钮开关"
+    },
+    {
+      "idx": "475",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "彩色小工具/钥匙扣展示卡"
+    },
+    {
+      "idx": "476",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色塑料盒+黑色绑带"
+    },
+    {
+      "idx": "477",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色绑带/固定夹"
+    },
+    {
+      "idx": "478",
+      "from": "家居用品",
+      "to": "Deportes y Fitness",
+      "name": "乒乓球（K40+，黄色盒装）"
+    },
+    {
+      "idx": "479",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色网袋/网套"
+    },
+    {
+      "idx": "480",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色带孔圆盘/转盘（待复核）"
+    },
+    {
+      "idx": "481",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色O型圈/橡皮筋套装"
+    },
+    {
+      "idx": "482",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色头部细长金属探针/杆（待复核）"
+    },
+    {
+      "idx": "483",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型打磨头与绕线轴套装（待复核）"
+    },
+    {
+      "idx": "484",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色塑料小卡扣/橡皮筋"
+    },
+    {
+      "idx": "485",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色O型圈/小配件组合（待复核）"
+    },
+    {
+      "idx": "486",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "蓝色袋装小配件（待复核）"
+    },
+    {
+      "idx": "487",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橙白盒装金属环/垫片（待复核）"
+    },
+    {
+      "idx": "488",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "橙色文件袋/工具包（待复核）"
+    },
+    {
+      "idx": "489",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "红色塑料圆盖/杯"
+    },
+    {
+      "idx": "490",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "橙色头透明塑料滴管/小容器（待复核）"
+    },
+    {
+      "idx": "491",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色长杆/支撑杆（待复核）"
+    },
+    {
+      "idx": "492",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属开口环/钥匙圈套装"
+    },
+    {
+      "idx": "493",
+      "from": "五金工具",
+      "to": "Otras Categorías",
+      "name": "彩色小配件/吸盘组合（待复核）"
+    },
+    {
+      "idx": "494",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料圆盘/盖板"
+    },
+    {
+      "idx": "495",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色盒状电气装置带线（待复核）"
+    },
+    {
+      "idx": "496",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "绿色胶带"
+    },
+    {
+      "idx": "497",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "T型内六角扳手"
+    },
+    {
+      "idx": "498",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "T型内六角扳手套装"
+    },
+    {
+      "idx": "499",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红柄双头撬棒/轮胎撬棍（待复核）"
+    },
+    {
+      "idx": "500",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "白色小包装盒（内容不可见）"
+    },
+    {
+      "idx": "501",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色线圈本/垫纸"
+    },
+    {
+      "idx": "502",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料外壳/滤网组件（待复核）"
+    },
+    {
+      "idx": "503",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色网状套管"
+    },
+    {
+      "idx": "504",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色长条工具/刮刀（待复核）"
+    },
+    {
+      "idx": "505",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色皮带/绑带（带扣）"
+    },
+    {
+      "idx": "506",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "接线端子/连接器套装（待复核）"
+    },
+    {
+      "idx": "507",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "灰黑塑料卡扣/垫片"
+    },
+    {
+      "idx": "508",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色继电器套装"
+    },
+    {
+      "idx": "509",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "金属汽车开关面板（待复核）"
+    },
+    {
+      "idx": "510",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "米色垫板/带孔盖板（待复核）"
+    },
+    {
+      "idx": "511",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定座/四孔支架"
+    },
+    {
+      "idx": "512",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "彩色接线端子/线夹"
+    },
+    {
+      "idx": "513",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "白色包装盒/卡片（待复核）"
+    },
+    {
+      "idx": "514",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色圆砂纸片"
+    },
+    {
+      "idx": "515",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色方形布料/皮革样片"
+    },
+    {
+      "idx": "516",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色开关/插座面板"
+    },
+    {
+      "idx": "517",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属杆带黑色圆头（待复核）"
+    },
+    {
+      "idx": "518",
+      "from": "家居用品",
+      "to": "Otras Categorías",
+      "name": "粉色包装袋/纸袋（待复核）"
+    },
+    {
+      "idx": "519",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色T型接头带线（待复核）"
+    },
+    {
+      "idx": "520",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "透明塑料盒/收纳盒"
+    },
+    {
+      "idx": "521",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色长条工作灯/设备（待复核）"
+    },
+    {
+      "idx": "522",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "红色礼品袋"
+    },
+    {
+      "idx": "523",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色绝缘胶带"
+    },
+    {
+      "idx": "524",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶手柄/握套"
+    },
+    {
+      "idx": "525",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属小零件/配件盒"
+    },
+    {
+      "idx": "526",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色USB数据线"
+    },
+    {
+      "idx": "527",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红色线缆/数据线"
+    },
+    {
+      "idx": "528",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型喷火枪/喉箍套装"
+    },
+    {
+      "idx": "529",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色星星贴纸"
+    },
+    {
+      "idx": "530",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金字塔铆钉/撞钉套装"
+    },
+    {
+      "idx": "531",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "塑料波纹软管"
+    },
+    {
+      "idx": "532",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属刮片/刀片（8片装）"
+    },
+    {
+      "idx": "533",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "快速钻夹头"
+    },
+    {
+      "idx": "534",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "钢丝绳压接铝套管"
+    },
+    {
+      "idx": "535",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "铝用铣刀/钻头三件套"
+    },
+    {
+      "idx": "536",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "智能开关模块/无线开关"
+    },
+    {
+      "idx": "537",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "贴片LED灯条/灯串"
+    },
+    {
+      "idx": "538",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定座/接头组件"
+    },
+    {
+      "idx": "539",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁阀/执行器"
+    },
+    {
+      "idx": "540",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "银色镜面胶带（40mm×5m）"
+    },
+    {
+      "idx": "541",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色过滤海绵/垫片（待复核）"
+    },
+    {
+      "idx": "542",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "手捏气喇叭"
+    },
+    {
+      "idx": "543",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带座微型轴承/滚轮组件"
+    },
+    {
+      "idx": "544",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "音响/音频连接线束"
+    },
+    {
+      "idx": "545",
+      "from": "五金工具",
+      "to": "Instrumentos Musicales",
+      "name": "细钢丝/琴弦线套装（0-4号）"
+    },
+    {
+      "idx": "546",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "鳄鱼夹测试线"
+    },
+    {
+      "idx": "547",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属细棒/焊条"
+    },
+    {
+      "idx": "548",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车后视镜镜片"
+    },
+    {
+      "idx": "549",
+      "from": "五金工具",
+      "to": "Construcción",
+      "name": "浴室龙头/下水器配件"
+    },
+    {
+      "idx": "550",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色标识吊牌"
+    },
+    {
+      "idx": "551",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料圆管"
+    },
+    {
+      "idx": "552",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色纸质/塑料封条（待复核）"
+    },
+    {
+      "idx": "553",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头/喷嘴"
+    },
+    {
+      "idx": "554",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "球头内六角批头套装"
+    },
+    {
+      "idx": "555",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "带灯放大镜"
+    },
+    {
+      "idx": "556",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "美甲水钻贴纸"
+    },
+    {
+      "idx": "557",
+      "from": "家居用品",
+      "to": "Arte, Papelería y Mercería",
+      "name": "彩色星星塑料珠/手工材料"
+    },
+    {
+      "idx": "558",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "花形铆钉/装饰扣"
+    },
+    {
+      "idx": "559",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小型钢丝刷/管道刷"
+    },
+    {
+      "idx": "560",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属U型支架/固定片"
+    },
+    {
+      "idx": "561",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明快速接头"
+    },
+    {
+      "idx": "562",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红黑连接线束"
+    },
+    {
+      "idx": "563",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "灰色网布收纳袋（待复核）"
+    },
+    {
+      "idx": "564",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "带柄钢丝管道刷"
+    },
+    {
+      "idx": "565",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝头钢丝管道刷"
+    },
+    {
+      "idx": "566",
+      "from": "五金工具",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "金色浴室水龙头"
+    },
+    {
+      "idx": "567",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色软管"
+    },
+    {
+      "idx": "568",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "水钻贴纸/美甲贴"
+    },
+    {
+      "idx": "569",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "圆点数字贴纸"
+    },
+    {
+      "idx": "570",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色星星橡皮筋"
+    },
+    {
+      "idx": "571",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色O型密封圈"
+    },
+    {
+      "idx": "572",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄铜螺栓/螺母套装"
+    },
+    {
+      "idx": "573",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色碳纤维纹胶带"
+    },
+    {
+      "idx": "574",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢圆形通风口/面盖"
+    },
+    {
+      "idx": "575",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "红柄不锈钢刮刀/切面刀"
+    },
+    {
+      "idx": "576",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢钢珠（2.5mm）"
+    },
+    {
+      "idx": "577",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属开口环/钥匙圈"
+    },
+    {
+      "idx": "578",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料固定夹/支架"
+    },
+    {
+      "idx": "579",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢球阀（2只装）"
+    },
+    {
+      "idx": "580",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "小型水泵/喷泉泵（待复核）"
+    },
+    {
+      "idx": "581",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料拉手/手柄"
+    },
+    {
+      "idx": "582",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "三档旋转开关"
+    },
+    {
+      "idx": "583",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "摩托车刹车泵/手柄总成"
+    },
+    {
+      "idx": "584",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红色接线端子分格盒"
+    },
+    {
+      "idx": "585",
+      "from": "五金工具",
+      "to": "Construcción",
+      "name": "防臭地漏"
+    },
+    {
+      "idx": "586",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车轮毂/轮胎圈（待复核）"
+    },
+    {
+      "idx": "587",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车刹车油管/软管总成"
+    },
+    {
+      "idx": "588",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料接头/盖"
+    },
+    {
+      "idx": "589",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橡胶塞/堵头套装"
+    },
+    {
+      "idx": "590",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "银色水钻贴片"
+    },
+    {
+      "idx": "591",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "伸缩手指教鞭"
+    },
+    {
+      "idx": "592",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "碳纤维纹布/贴片（待复核）"
+    },
+    {
+      "idx": "593",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色植绒线束胶带"
+    },
+    {
+      "idx": "594",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "红白双色电线卷"
+    },
+    {
+      "idx": "595",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "锁具配件/弹簧拉杆（待复核）"
+    },
+    {
+      "idx": "596",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车火花塞/点火线套装"
+    },
+    {
+      "idx": "597",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "图案装饰胶带"
+    },
+    {
+      "idx": "598",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "漏电断路器/空气开关"
+    },
+    {
+      "idx": "599",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "三相断路器/接触器"
+    },
+    {
+      "idx": "600",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "半透明塑料收纳盒/壁挂盒"
+    },
+    {
+      "idx": "601",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色塑料管件/接头套装（待复核）"
+    },
+    {
+      "idx": "602",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车后视镜镜片"
+    },
+    {
+      "idx": "603",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢合页/铰链"
+    },
+    {
+      "idx": "604",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车遮阳板/遮光板（待复核）"
+    },
+    {
+      "idx": "605",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "万圣节仿真伤疤贴/面具"
+    },
+    {
+      "idx": "606",
+      "from": "家居用品",
+      "to": "Accesorios para Vehículos",
+      "name": "车载磁吸手机支架"
+    },
+    {
+      "idx": "607",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "继电器/电源模块电路板"
+    },
+    {
+      "idx": "608",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢编织软管/接头套装"
+    },
+    {
+      "idx": "609",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "车载空气净化器"
+    },
+    {
+      "idx": "610",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "带线黑色橡胶接头（待复核）"
+    },
+    {
+      "idx": "611",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色快速接头/插头"
+    },
+    {
+      "idx": "612",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "微型法兰轴承"
+    },
+    {
+      "idx": "613",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定支架/L型码"
+    },
+    {
+      "idx": "614",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车油底壳/底盘护板"
+    },
+    {
+      "idx": "615",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色刮刀/铲刀套装（待复核）"
+    },
+    {
+      "idx": "616",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "电动打奶泡器"
+    },
+    {
+      "idx": "617",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属伸缩管/支撑杆（待复核）"
+    },
+    {
+      "idx": "618",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "开瓶器/旋转刀片套装（待复核）"
+    },
+    {
+      "idx": "619",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色图钉/大头针"
+    },
+    {
+      "idx": "620",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车电磁离合器/皮带轮（待复核）"
+    },
+    {
+      "idx": "621",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料夹/金属环套装"
+    },
+    {
+      "idx": "622",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "千分尺/螺旋测微器"
+    },
+    {
+      "idx": "623",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色塑料勺子"
+    },
+    {
+      "idx": "624",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "米白色橡胶密封圈/垫圈（待复核）"
+    },
+    {
+      "idx": "625",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料固定卡扣"
+    },
+    {
+      "idx": "626",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑色橡胶垫圈套装（带拆卸钩）"
+    },
+    {
+      "idx": "627",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料扎带/细条（待复核）"
+    },
+    {
+      "idx": "628",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "3.5mm音频连接线"
+    },
+    {
+      "idx": "629",
+      "from": "待分类",
+      "to": "Herramientas",
+      "name": "黄铜接头金属件（待复核）"
+    },
+    {
+      "idx": "630",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "棕色铆钉装饰链/挂饰（待复核）"
+    },
+    {
+      "idx": "631",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料锥形卡扣/胀钉"
+    },
+    {
+      "idx": "632",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小袋装五金零件（待复核）"
+    },
+    {
+      "idx": "633",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑色长条胶垫/塑料片（待复核）"
+    },
+    {
+      "idx": "634",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属探针/吸嘴工具"
+    },
+    {
+      "idx": "635",
+      "from": "五金工具",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色金属翻盖收纳盒"
+    },
+    {
+      "idx": "636",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色塑料管接头/弯头套装"
+    },
+    {
+      "idx": "637",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黄铜电源转接头（待复核）"
+    },
+    {
+      "idx": "638",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "橙色塑料组件/配件（待复核）"
+    },
+    {
+      "idx": "639",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色多孔塑料板（待复核）"
+    },
+    {
+      "idx": "640",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属接头/阀体（待复核）"
+    },
+    {
+      "idx": "641",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "打磨抛光工具套装"
+    },
+    {
+      "idx": "642",
+      "from": "电子电气",
+      "to": "Otras Categorías",
+      "name": "金属小圆柱件（待复核）"
+    },
+    {
+      "idx": "643",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "彩色塑料小环/珠子（待复核）"
+    },
+    {
+      "idx": "644",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "弹簧电源转接线（带插头）"
+    },
+    {
+      "idx": "645",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "银色金属环/垫圈（多件，待复核）"
+    },
+    {
+      "idx": "646",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "粉色海绵块+金属条（待复核）"
+    },
+    {
+      "idx": "647",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料卡扣（多件装）"
+    },
+    {
+      "idx": "648",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "橙色塑料波纹软管"
+    },
+    {
+      "idx": "649",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色橡胶吸盘/真空吸盘工具"
+    },
+    {
+      "idx": "650",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "透明塑料小件（待复核）"
+    },
+    {
+      "idx": "651",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "小型断路器/电气开关"
+    },
+    {
+      "idx": "652",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色电源插座/转换插头"
+    },
+    {
+      "idx": "653",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "银色金属小件（待复核）"
+    },
+    {
+      "idx": "654",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色塑料卡扣/扎带（多件）"
+    },
+    {
+      "idx": "655",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "螺旋管道清洁刷（带软轴）"
+    },
+    {
+      "idx": "656",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑白小接头/盖帽套装（待复核）"
+    },
+    {
+      "idx": "657",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色手压泵/阀体（待复核）"
+    },
+    {
+      "idx": "658",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料软管/气管（带接头）"
+    },
+    {
+      "idx": "659",
+      "from": "五金工具",
+      "to": "Industrias y Oficinas",
+      "name": "黑色橡胶劳保手套"
+    },
+    {
+      "idx": "660",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶防尘套（L/R一对）"
+    },
+    {
+      "idx": "661",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属长杆/圆棒"
+    },
+    {
+      "idx": "662",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属伸缩杆/拉杆（两支装）"
+    },
+    {
+      "idx": "663",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "电磨配件套装（待复核）"
+    },
+    {
+      "idx": "664",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "工作灯/电缆组件（待复核）"
+    },
+    {
+      "idx": "665",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色圆点装饰贴纸"
+    },
+    {
+      "idx": "666",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "手写标签零件袋（待复核）"
+    },
+    {
+      "idx": "667",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "彩色马赛克装饰贴片（待复核）"
+    },
+    {
+      "idx": "668",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色带金属孔眼织物/护具（待复核）"
+    },
+    {
+      "idx": "669",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色汽车配件（待复核）"
+    },
+    {
+      "idx": "670",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色塑料电气接头/传感器（待复核）"
+    },
+    {
+      "idx": "671",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄铜螺纹接头/螺母套装"
+    },
+    {
+      "idx": "672",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色圆片切割片/打磨片"
+    },
+    {
+      "idx": "673",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电源连接线/带插头电缆"
+    },
+    {
+      "idx": "674",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色碳纤维纹装饰条（待复核）"
+    },
+    {
+      "idx": "675",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑金花纹胶带/布基胶带"
+    },
+    {
+      "idx": "676",
+      "from": "电子电气",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色电源适配器/车载充电器（带线）"
+    },
+    {
+      "idx": "677",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑色尼龙织带/绑带（待复核）"
+    },
+    {
+      "idx": "678",
+      "from": "汽配",
+      "to": "Otras Categorías",
+      "name": "黄色吸塑包装小配件（待复核）"
+    },
+    {
+      "idx": "679",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑绿塑料卡扣（多件）"
+    },
+    {
+      "idx": "680",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料支架/卡扣（待复核）"
+    },
+    {
+      "idx": "681",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "内六角扳手套装"
+    },
+    {
+      "idx": "682",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源插头/插头配件（两个）"
+    },
+    {
+      "idx": "683",
+      "from": "待分类",
+      "to": "Herramientas",
+      "name": "小瓶胶水/膏体（待复核）"
+    },
+    {
+      "idx": "684",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "银色圆形金属片/纽扣（待复核）"
+    },
+    {
+      "idx": "685",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "LED工作灯（待复核）"
+    },
+    {
+      "idx": "686",
+      "from": "电子电气",
+      "to": "Herramientas",
+      "name": "黑色电线线束/接头（待复核）"
+    },
+    {
+      "idx": "687",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "白色三孔电源插座面板"
+    },
+    {
+      "idx": "688",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "木棒/木条（待复核）"
+    },
+    {
+      "idx": "689",
+      "from": "五金工具",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色泡沫滚筒/海绵滚轮（待复核）"
+    },
+    {
+      "idx": "690",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "蓝色接线端子/连接器（多件）"
+    },
+    {
+      "idx": "691",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "乳白色塑料圆棒/套管（待复核）"
+    },
+    {
+      "idx": "692",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料软管/套管（待复核）"
+    },
+    {
+      "idx": "693",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料管/套管（待复核）"
+    },
+    {
+      "idx": "694",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料长管（待复核）"
+    },
+    {
+      "idx": "695",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢钢丝绳/软管（3米）"
+    },
+    {
+      "idx": "696",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "不锈钢钢丝绳/钢丝（带标签）"
+    },
+    {
+      "idx": "697",
+      "from": "待分类",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "粉色丝带/蝴蝶结装饰（待复核）"
+    },
+    {
+      "idx": "698",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "绿色应急疏散指示标识贴"
+    },
+    {
+      "idx": "699",
+      "from": "汽配",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "黑色海绵收纳盒/垫（带小工具，待复核）"
+    },
+    {
+      "idx": "700",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "黑色圆柱件+彩色塑料件（待复核）"
+    },
+    {
+      "idx": "701",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带线连接器/继电器组件（待复核）"
+    },
+    {
+      "idx": "702",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "金色亮片/装饰闪粉（带彩色小饰片）"
+    },
+    {
+      "idx": "703",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电源适配器（带电源线）"
+    },
+    {
+      "idx": "704",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "汽车塑料卡扣/固定件套装（待复核）"
+    },
+    {
+      "idx": "705",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电源适配器（带线）"
+    },
+    {
+      "idx": "706",
+      "from": "待分类",
+      "to": "Herramientas",
+      "name": "透明塑料条/片（待复核）"
+    },
+    {
+      "idx": "707",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色椭圆形塑料件/底座（待复核）"
+    },
+    {
+      "idx": "708",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "金属旋转传感器/电位器（待复核）"
+    },
+    {
+      "idx": "709",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "金色圆片带导线（待复核）"
+    },
+    {
+      "idx": "710",
+      "from": "待分类",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "棕色皮质套/袋（待复核）"
+    },
+    {
+      "idx": "711",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "黑色扁平件/垫（待复核）"
+    },
+    {
+      "idx": "712",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "透明塑料小件（待复核）"
+    },
+    {
+      "idx": "713",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "淡黄色块状物（蜡/皂，待复核）"
+    },
+    {
+      "idx": "714",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色汽车电子开关/传感器（待复核）"
+    },
+    {
+      "idx": "715",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色小滚轮/套筒（多件）"
+    },
+    {
+      "idx": "716",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电气控制开关（待复核）"
+    },
+    {
+      "idx": "717",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色金属接头/螺丝配件（待复核）"
+    },
+    {
+      "idx": "718",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "白色长袖衬衫"
+    },
+    {
+      "idx": "719",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "白色衬衫"
+    },
+    {
+      "idx": "720",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "白色短袖衬衫"
+    },
+    {
+      "idx": "721",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "白色衬衫"
+    },
+    {
+      "idx": "722",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "白色衬衫"
+    },
+    {
+      "idx": "723",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色布包/衣物"
+    },
+    {
+      "idx": "724",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色布包/衣物"
+    },
+    {
+      "idx": "725",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色布包/衣物"
+    },
+    {
+      "idx": "726",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色布包/衣物"
+    },
+    {
+      "idx": "727",
+      "from": "家居用品",
+      "to": "Ropa, Bolsas y Calzado",
+      "name": "黑色布包/衣物"
+    },
+    {
+      "idx": "728",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑色橡胶轮胎/密封环"
+    },
+    {
+      "idx": "729",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料软管（蓝色接头）"
+    },
+    {
+      "idx": "730",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "红色蜂窝研磨片/砂纸片"
+    },
+    {
+      "idx": "731",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料卡扣"
+    },
+    {
+      "idx": "732",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料管"
+    },
+    {
+      "idx": "733",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "透明塑料软管"
+    },
+    {
+      "idx": "734",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶轮胎"
+    },
+    {
+      "idx": "735",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属固定条/连接片套装"
+    },
+    {
+      "idx": "736",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "T型手柄五金工具套装"
+    },
+    {
+      "idx": "737",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "电源/数据连接线套装"
+    },
+    {
+      "idx": "738",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金属珠链钥匙扣"
+    },
+    {
+      "idx": "739",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "金属接头/固定件"
+    },
+    {
+      "idx": "740",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "彩色O型密封圈套装"
+    },
+    {
+      "idx": "741",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "黑色塑料接头/固定扣"
+    },
+    {
+      "idx": "742",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料盖/堵头"
+    },
+    {
+      "idx": "743",
+      "from": "待分类",
+      "to": "Otras Categorías",
+      "name": "盒装彩色小圆片配件（待复核）"
+    },
+    {
+      "idx": "744",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电气插座/接插件"
+    },
+    {
+      "idx": "745",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "黑色电源适配器/控制器"
+    },
+    {
+      "idx": "746",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "橡胶衬套及配件套装"
+    },
+    {
+      "idx": "747",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色塑料卡扣（多件装）"
+    },
+    {
+      "idx": "748",
+      "from": "电子电气",
+      "to": "Electrónica, Audio y Video",
+      "name": "带开关电线/接线端子套装"
+    },
+    {
+      "idx": "749",
+      "from": "家居用品",
+      "to": "Herramientas",
+      "name": "蓝色织带/布料"
+    },
+    {
+      "idx": "750",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "小弹簧/螺丝配件"
+    },
+    {
+      "idx": "751",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄铜螺丝螺母配件"
+    },
+    {
+      "idx": "752",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "蓝色密封圈/胶带环"
+    },
+    {
+      "idx": "753",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "白色格纹装饰膜"
+    },
+    {
+      "idx": "754",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黑色螺旋弹簧组件"
+    },
+    {
+      "idx": "755",
+      "from": "汽配",
+      "to": "Herramientas",
+      "name": "橡胶滚轮/轴承"
+    },
+    {
+      "idx": "756",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "黄铜固定片"
+    },
+    {
+      "idx": "757",
+      "from": "汽配",
+      "to": "Accesorios para Vehículos",
+      "name": "黑色橡胶垫/脚垫"
+    },
+    {
+      "idx": "758",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "金色金属网状球（待复核）"
+    },
+    {
+      "idx": "759",
+      "from": "家居用品",
+      "to": "Hogar, Muebles y Jardín",
+      "name": "金属锅铲/勺+黑色杯垫套装"
+    },
+    {
+      "idx": "760",
+      "from": "五金工具",
+      "to": "Herramientas",
+      "name": "白色束线带/塑料扎带"
+    }
+  ]
+}

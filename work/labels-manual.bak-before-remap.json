@@ -1,0 +1,3508 @@
+{
+  "_meta": {
+    "method": "逐组目检 group-sheets 放大切片；key=groups.json 数组下标；同一来源行=同一产品多角度；CLIP 绿色小字仅参考不采信",
+    "status": "completed_all_groups",
+    "note": "key=组序号idx(groups.json数组下标)；每页48组；name/category/evidence",
+    "verified_baseline": {
+      "query": "C:/Users/Administrator/Desktop/1.webp",
+      "true_group_idx": "473",
+      "true_group": "第473行 · 切割片套装",
+      "true_file": "image1540.jpeg"
+    },
+    "count": 761,
+    "updatedAt": "2026-11-24T04:19:03.154Z",
+    "indexFix": [
+      "473->471",
+      "516->514",
+      "533->531",
+      "674->672",
+      "761->759"
+    ]
+  },
+  "labels": {
+    "0": {
+      "name": "运动胶带/足球绷带(Football Tape)",
+      "category": "家居用品",
+      "evidence": "原图包装印 Football Tape/足球胶带，非脚垫（缩略图误判已纠正）"
+    },
+    "1": {
+      "name": "金属滚轴/光轴",
+      "category": "五金工具",
+      "evidence": "金属圆棒一端金铜色"
+    },
+    "2": {
+      "name": "不锈钢圆管/拉杆",
+      "category": "五金工具",
+      "evidence": "多根金属长管"
+    },
+    "3": {
+      "name": "金属圆棒/轴",
+      "category": "五金工具",
+      "evidence": "木色包装内金属棒"
+    },
+    "4": {
+      "name": "金属固定座/支架",
+      "category": "五金工具",
+      "evidence": "纸盒装金属座"
+    },
+    "5": {
+      "name": "黑色绝缘胶带",
+      "category": "电子电气",
+      "evidence": "黑色胶带卷+红盒"
+    },
+    "6": {
+      "name": "黑色塑料/橡胶圆管",
+      "category": "五金工具",
+      "evidence": "两根黑色长杆"
+    },
+    "7": {
+      "name": "强光手电筒",
+      "category": "电子电气",
+      "evidence": "黑色圆柱手电"
+    },
+    "8": {
+      "name": "金属垫片/密封件",
+      "category": "五金工具",
+      "evidence": "透明袋装金属小件"
+    },
+    "9": {
+      "name": "电源适配器/电子模块",
+      "category": "电子电气",
+      "evidence": "白盒+黑色电子件"
+    },
+    "10": {
+      "name": "塑料固定卡扣",
+      "category": "五金工具",
+      "evidence": "透明袋装小卡扣"
+    },
+    "11": {
+      "name": "橡胶脚套/护垫",
+      "category": "五金工具",
+      "evidence": "黑色橡胶件三只"
+    },
+    "12": {
+      "name": "离心风机/鼓风机",
+      "category": "五金工具",
+      "evidence": "方形框内圆形叶轮"
+    },
+    "13": {
+      "name": "离心风机/鼓风机",
+      "category": "五金工具",
+      "evidence": "透明盒装圆形叶轮"
+    },
+    "14": {
+      "name": "离心风机/鼓风机",
+      "category": "五金工具",
+      "evidence": "image33 方形框圆形叶轮"
+    },
+    "15": {
+      "name": "离心风机/鼓风机",
+      "category": "五金工具",
+      "evidence": "image36 塑盒装黑色叶轮"
+    },
+    "16": {
+      "name": "尼龙扎带/理线带",
+      "category": "五金工具",
+      "evidence": "黑色齿条状扎带"
+    },
+    "17": {
+      "name": "金属卡箍/连接件",
+      "category": "五金工具",
+      "evidence": "透明袋装金属扣件"
+    },
+    "18": {
+      "name": "塑料收纳盒/配件",
+      "category": "家居用品",
+      "evidence": "纸盒装白色塑料件"
+    },
+    "19": {
+      "name": "绿色绝缘胶带",
+      "category": "电子电气",
+      "evidence": "绿色胶带卷"
+    },
+    "20": {
+      "name": "深绿胶带卷",
+      "category": "电子电气",
+      "evidence": "深绿色圆柱胶带"
+    },
+    "21": {
+      "name": "红色尼龙扎带",
+      "category": "五金工具",
+      "evidence": "整扎红色扎带"
+    },
+    "22": {
+      "name": "接线端子/连接器",
+      "category": "电子电气",
+      "evidence": "蓝红接线端子排"
+    },
+    "23": {
+      "name": "小型继电器",
+      "category": "电子电气",
+      "evidence": "蓝色继电器多只"
+    },
+    "24": {
+      "name": "接线端子排",
+      "category": "电子电气",
+      "evidence": "蓝色端子排多只"
+    },
+    "25": {
+      "name": "黑色橡胶脚套/脚垫",
+      "category": "五金工具",
+      "evidence": "黑色圆帽状橡胶件"
+    },
+    "26": {
+      "name": "红色尼龙扎带(大卷)",
+      "category": "五金工具",
+      "evidence": "红色扎带盘卷"
+    },
+    "27": {
+      "name": "金属轴承/滚轮",
+      "category": "五金工具",
+      "evidence": "纸盒装金属滚件"
+    },
+    "28": {
+      "name": "黑色塑料接头/件",
+      "category": "五金工具",
+      "evidence": "透明袋装黑色件"
+    },
+    "29": {
+      "name": "电子元件/模块",
+      "category": "电子电气",
+      "evidence": "透明袋装电子件"
+    },
+    "30": {
+      "name": "金属管夹/卡箍",
+      "category": "五金工具",
+      "evidence": "带红标签金属件"
+    },
+    "31": {
+      "name": "塑料外壳/盖子",
+      "category": "家居用品",
+      "evidence": "黄色标签袋装"
+    },
+    "32": {
+      "name": "金属工具/扳手",
+      "category": "五金工具",
+      "evidence": "黄色塑料盒装"
+    },
+    "33": {
+      "name": "金属打磨头套装",
+      "category": "五金工具",
+      "evidence": "image100 塑料盒装带柄金属磨头"
+    },
+    "34": {
+      "name": "金属配件套装",
+      "category": "五金工具",
+      "evidence": "纸盒装金属件"
+    },
+    "35": {
+      "name": "汽车传感器/接头",
+      "category": "汽配",
+      "evidence": "多只带线接头"
+    },
+    "36": {
+      "name": "金属棒/焊条",
+      "category": "五金工具",
+      "evidence": "长条金属棒"
+    },
+    "37": {
+      "name": "小型打磨头/钻头套装",
+      "category": "五金工具",
+      "evidence": "盒装细小工具头"
+    },
+    "38": {
+      "name": "汽车门锁/拉手",
+      "category": "汽配",
+      "evidence": "银色金属件"
+    },
+    "39": {
+      "name": "金属笔/划线针",
+      "category": "五金工具",
+      "evidence": "黑色金属笔状"
+    },
+    "40": {
+      "name": "塑料面板/盖板",
+      "category": "家居用品",
+      "evidence": "白色方形板"
+    },
+    "41": {
+      "name": "电源线/连接线",
+      "category": "电子电气",
+      "evidence": "带接头线缆"
+    },
+    "42": {
+      "name": "铝板/金属板",
+      "category": "五金工具",
+      "evidence": "银色金属方板"
+    },
+    "43": {
+      "name": "不锈钢管/方管",
+      "category": "五金工具",
+      "evidence": "多根银色长管"
+    },
+    "44": {
+      "name": "彩钢瓦/金属条",
+      "category": "五金工具",
+      "evidence": "彩色长金属条"
+    },
+    "45": {
+      "name": "金属圆管/套管",
+      "category": "五金工具",
+      "evidence": "银色长圆管"
+    },
+    "46": {
+      "name": "电子元件套装",
+      "category": "电子电气",
+      "evidence": "纸盒装黑色元件"
+    },
+    "47": {
+      "name": "汽车传感器/接头",
+      "category": "汽配",
+      "evidence": "带线黑色小件"
+    },
+    "48": {
+      "name": "陶瓷绝缘片/绝缘垫",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-up"
+    },
+    "49": {
+      "name": "红色包装小五金件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "50": {
+      "name": "白色塑料环/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "51": {
+      "name": "黑色塑料卡扣/扎带扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "52": {
+      "name": "红色尼龙扎带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "53": {
+      "name": "红色尼龙扎带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "54": {
+      "name": "带线电子元件/传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-up"
+    },
+    "55": {
+      "name": "金属圆棒/铜棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "56": {
+      "name": "金属垫片/铜垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "57": {
+      "name": "金属螺丝/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "58": {
+      "name": "深灰拉链收纳包",
+      "category": "家居用品",
+      "evidence": "联系表目检 v2-up"
+    },
+    "59": {
+      "name": "透明袋装小五金",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "60": {
+      "name": "黑色胶头滴管/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "61": {
+      "name": "金属固定座/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "62": {
+      "name": "电源适配器/充电器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-up"
+    },
+    "63": {
+      "name": "金属配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "64": {
+      "name": "黄色塑料卡扣/扎带工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "65": {
+      "name": "带线金属探头/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "66": {
+      "name": "黑色圆形滤芯/海绵",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "67": {
+      "name": "白色密封圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "68": {
+      "name": "灯管/玻璃管件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-up"
+    },
+    "69": {
+      "name": "不锈钢圆管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "70": {
+      "name": "金属细杆/焊丝",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "71": {
+      "name": "弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-up"
+    },
+    "72": {
+      "name": "透明袋装小五金件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "73": {
+      "name": "金属网片/滤网",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "74": {
+      "name": "透明盒装白色小件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "75": {
+      "name": "黑色圆盘砂纸",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "76": {
+      "name": "带线电子开关/传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-down"
+    },
+    "77": {
+      "name": "金属圆管/铜管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "78": {
+      "name": "金属细棒/焊条",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "79": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "80": {
+      "name": "黑色橡胶脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "81": {
+      "name": "带线黑色元件/线圈",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-down"
+    },
+    "82": {
+      "name": "金属网/过滤网片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "83": {
+      "name": "彩色包装小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "84": {
+      "name": "绿色/红色O型密封圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "85": {
+      "name": "黑色橡胶帽/脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "86": {
+      "name": "黑色小电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v2-down"
+    },
+    "87": {
+      "name": "黑色塑料壳/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "88": {
+      "name": "透明袋装塑料管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "89": {
+      "name": "白色塑料条/卡条",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "90": {
+      "name": "透明袋装小五金",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "91": {
+      "name": "黑色软管/波纹管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "92": {
+      "name": "红色塑料工具/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "93": {
+      "name": "蓝色/红色包装小件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "94": {
+      "name": "绿色塑料接头/喷嘴",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "95": {
+      "name": "黑色塑料轮子/滚轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v2-down"
+    },
+    "96": {
+      "name": "汽车继电器/电磁开关",
+      "category": "汽配",
+      "evidence": "联系表目检 v3-up"
+    },
+    "97": {
+      "name": "黑色旋钮/电位器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "98": {
+      "name": "透明袋装金属件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "99": {
+      "name": "汽车开关/按钮",
+      "category": "汽配",
+      "evidence": "联系表目检 v3-up"
+    },
+    "100": {
+      "name": "镭射防伪贴纸/标签",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-up"
+    },
+    "101": {
+      "name": "彩色尼龙扎带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "102": {
+      "name": "黑色小电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "103": {
+      "name": "带线电子接头/传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "104": {
+      "name": "透明塑料软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "105": {
+      "name": "蓝色接头/汽车配件",
+      "category": "汽配",
+      "evidence": "联系表目检 v3-up"
+    },
+    "106": {
+      "name": "彩色接头/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "107": {
+      "name": "黑色橡胶脚套/胶帽",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "108": {
+      "name": "黑色圆形砂纸/打磨盘",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "109": {
+      "name": "格纹布/红黑格子布",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-up"
+    },
+    "110": {
+      "name": "绿色圆珠笔/标记笔",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-up"
+    },
+    "111": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "112": {
+      "name": "金属管接头/三通",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "113": {
+      "name": "黑色胶带/电工胶带",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "114": {
+      "name": "彩色橡皮筋/扎带",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-up"
+    },
+    "115": {
+      "name": "透明袋装塑料件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "116": {
+      "name": "黑色圆形Item标签",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-up"
+    },
+    "117": {
+      "name": "蓝色柄螺纹工具/丝锥扳手",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-up"
+    },
+    "118": {
+      "name": "带线电子模块/开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "119": {
+      "name": "电子模块/电路板",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-up"
+    },
+    "120": {
+      "name": "红色绝缘胶带/电工胶带",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-down"
+    },
+    "121": {
+      "name": "橙黄色胶套/橡胶件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "122": {
+      "name": "木柄小工具/棉签棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "123": {
+      "name": "黑色橡胶手套/防护套",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-down"
+    },
+    "124": {
+      "name": "金属弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "125": {
+      "name": "粉色/红色塑料件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "126": {
+      "name": "白色接线端子排",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-down"
+    },
+    "127": {
+      "name": "黑色小电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-down"
+    },
+    "128": {
+      "name": "深色小五金件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "129": {
+      "name": "金属垫片/垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "130": {
+      "name": "橙色塑料接头/快速接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "131": {
+      "name": "黑色橡胶套/护垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "132": {
+      "name": "透明袋装金属件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "133": {
+      "name": "长柄金属工具/刮刀",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "134": {
+      "name": "黑色塑料件/卡扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "135": {
+      "name": "金属细管/套管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "136": {
+      "name": "金属小零件/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "137": {
+      "name": "黑色电子接头/线束",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-down"
+    },
+    "138": {
+      "name": "透明袋装塑料管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "139": {
+      "name": "彩色带线电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v3-down"
+    },
+    "140": {
+      "name": "黑色金属杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "141": {
+      "name": "粉红色塑料盒/垫片",
+      "category": "家居用品",
+      "evidence": "联系表目检 v3-down"
+    },
+    "142": {
+      "name": "金属小弹簧/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "143": {
+      "name": "绿色/黑色小五金件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v3-down"
+    },
+    "144": {
+      "name": "金属切刀/刀片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "145": {
+      "name": "金属螺丝/螺栓套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "146": {
+      "name": "黑色塑料壳/盖子",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "147": {
+      "name": "6/9/12号金属钻头套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "148": {
+      "name": "黑色编织软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "149": {
+      "name": "黑色塑料手柄/握把",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "150": {
+      "name": "金属轴承/滚轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "151": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "152": {
+      "name": "金属小喷嘴/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "153": {
+      "name": "带线插头/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v4-up"
+    },
+    "154": {
+      "name": "金属小配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "155": {
+      "name": "红色工具刀/美工刀",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "156": {
+      "name": "金属小零件/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "157": {
+      "name": "金属锯片/圆锯片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "158": {
+      "name": "金属垫片/螺母",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "159": {
+      "name": "电子模块/电路板",
+      "category": "电子电气",
+      "evidence": "联系表目检 v4-up"
+    },
+    "160": {
+      "name": "金属连接件/卡扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "161": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "162": {
+      "name": "金属垫片/垫圈套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "163": {
+      "name": "金属小工具/扳手",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "164": {
+      "name": "金属配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "165": {
+      "name": "金属网片/滤网",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "166": {
+      "name": "金属滚轴/光轴",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "167": {
+      "name": "不锈钢圆管/拉杆",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-up"
+    },
+    "168": {
+      "name": "塑料卡扣/固定夹",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "169": {
+      "name": "金属小配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "170": {
+      "name": "塑料三角支架/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "171": {
+      "name": "透明塑料片/薄膜",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "172": {
+      "name": "黄色塑料撬片/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "173": {
+      "name": "黑色塑料接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "174": {
+      "name": "汽车电磁阀/执行器",
+      "category": "汽配",
+      "evidence": "联系表目检 v4-down"
+    },
+    "175": {
+      "name": "带线电子开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v4-down"
+    },
+    "176": {
+      "name": "黑色橡胶脚垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "177": {
+      "name": "黑色塑料壳/盖",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "178": {
+      "name": "粉色橡胶塞/脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "179": {
+      "name": "白色圆形垫片/盖板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "180": {
+      "name": "黑色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v4-down"
+    },
+    "181": {
+      "name": "棕色包装小五金",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "182": {
+      "name": "黑色塑料扎带/绑带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "183": {
+      "name": "金属杆/焊条",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "184": {
+      "name": "工作灯/小灯",
+      "category": "电子电气",
+      "evidence": "联系表目检 v4-down"
+    },
+    "185": {
+      "name": "彩色扎带/装订圈",
+      "category": "家居用品",
+      "evidence": "联系表目检 v4-down"
+    },
+    "186": {
+      "name": "白色塑料管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "187": {
+      "name": "白色塑料面板/盖板",
+      "category": "家居用品",
+      "evidence": "联系表目检 v4-down"
+    },
+    "188": {
+      "name": "灰色面板/盖板",
+      "category": "家居用品",
+      "evidence": "联系表目检 v4-down"
+    },
+    "189": {
+      "name": "汽车开关/按钮套装",
+      "category": "汽配",
+      "evidence": "联系表目检 v4-down"
+    },
+    "190": {
+      "name": "黑色塑料卡扣/扎带扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "191": {
+      "name": "黑色塑料扎带束",
+      "category": "五金工具",
+      "evidence": "联系表目检 v4-down"
+    },
+    "192": {
+      "name": "白色塑料接头/管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "193": {
+      "name": "黑色印刷胶辊/滚筒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "194": {
+      "name": "金属网罩/滤网",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "195": {
+      "name": "金属接头/阀件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "196": {
+      "name": "带线电源适配器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "197": {
+      "name": "带线风扇/电机",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "198": {
+      "name": "白色包装电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "199": {
+      "name": "黑色塑料接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "200": {
+      "name": "电子元件/模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "201": {
+      "name": "黑色手写笔/触控笔",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "202": {
+      "name": "黑色塑料盒/盖板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "203": {
+      "name": "带线接头/阀",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "204": {
+      "name": "带线圆形风扇/电机",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-up"
+    },
+    "205": {
+      "name": "黑色塑料叶轮/风扇",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "206": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "207": {
+      "name": "透明胶带卷",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "208": {
+      "name": "黑色金属弯钩/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "209": {
+      "name": "黑色长盒装工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "210": {
+      "name": "黑色橡胶圈/O型圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "211": {
+      "name": "黑色橡胶套/护垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "212": {
+      "name": "金属接头/螺母",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "213": {
+      "name": "金属阀/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "214": {
+      "name": "黑色金属工具/扳手",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "215": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-up"
+    },
+    "216": {
+      "name": "黑色塑料面板/盖板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "217": {
+      "name": "镭射防伪贴纸/标签",
+      "category": "家居用品",
+      "evidence": "联系表目检 v5-down"
+    },
+    "218": {
+      "name": "镭射防伪贴纸/标签",
+      "category": "家居用品",
+      "evidence": "联系表目检 v5-down"
+    },
+    "219": {
+      "name": "金属叶轮/风扇叶",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "220": {
+      "name": "蓝色塑料工具/刮板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "221": {
+      "name": "长柄金属杆/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "222": {
+      "name": "包装电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "223": {
+      "name": "黄色胶带/绝缘胶带",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "224": {
+      "name": "黑色金属笔/划线针",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "225": {
+      "name": "金属钥匙/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "226": {
+      "name": "白色包装小件",
+      "category": "家居用品",
+      "evidence": "联系表目检 v5-down"
+    },
+    "227": {
+      "name": "金属垫片/垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "228": {
+      "name": "汽车开关/旋钮",
+      "category": "汽配",
+      "evidence": "联系表目检 v5-down"
+    },
+    "229": {
+      "name": "灰色圆盘砂纸/打磨盘",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "230": {
+      "name": "黑色橡胶脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "231": {
+      "name": "黑色橡胶脚垫/脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "232": {
+      "name": "汽车传感器/接头",
+      "category": "汽配",
+      "evidence": "联系表目检 v5-down"
+    },
+    "233": {
+      "name": "带线电子元件/开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "234": {
+      "name": "带线电子模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "235": {
+      "name": "电子模块/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "236": {
+      "name": "黑色电子模块/电路板",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "237": {
+      "name": "蓝色电子模块/控制器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v5-down"
+    },
+    "238": {
+      "name": "金属泵体/机械件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "239": {
+      "name": "黑色塑料件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v5-down"
+    },
+    "240": {
+      "name": "黑色塑料卡扣/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "241": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "242": {
+      "name": "黑色塑料固定夹",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "243": {
+      "name": "金属轴承/滚轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "244": {
+      "name": "绿色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "245": {
+      "name": "黑色带线传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "246": {
+      "name": "绿色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "247": {
+      "name": "黑色塑料三角支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "248": {
+      "name": "金属垫片/圆盘",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "249": {
+      "name": "金属角码/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "250": {
+      "name": "木柄工具/毛刷",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "251": {
+      "name": "电源适配器/电子模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "252": {
+      "name": "黑色金属小零件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "253": {
+      "name": "金属螺丝/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "254": {
+      "name": "粉色塑料扎带/绑带",
+      "category": "家居用品",
+      "evidence": "联系表目检 v6-up"
+    },
+    "255": {
+      "name": "橙色塑料扎带/绑带",
+      "category": "家居用品",
+      "evidence": "联系表目检 v6-up"
+    },
+    "256": {
+      "name": "金属配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "257": {
+      "name": "黑色长盒装工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "258": {
+      "name": "木柄工具/圆棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "259": {
+      "name": "带柄金属工具/凿子",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "260": {
+      "name": "电源适配器/充电器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "261": {
+      "name": "灰色胶带卷",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-up"
+    },
+    "262": {
+      "name": "带线电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-up"
+    },
+    "263": {
+      "name": "汽车传感器/接头",
+      "category": "汽配",
+      "evidence": "联系表目检 v6-up"
+    },
+    "264": {
+      "name": "黑色塑料卡扣/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "265": {
+      "name": "金属搭扣/锁扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "266": {
+      "name": "金属弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "267": {
+      "name": "汽车开关/按钮",
+      "category": "汽配",
+      "evidence": "联系表目检 v6-down"
+    },
+    "268": {
+      "name": "白色塑料面板/盖板",
+      "category": "家居用品",
+      "evidence": "联系表目检 v6-down"
+    },
+    "269": {
+      "name": "金属工具/扳手",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "270": {
+      "name": "黑色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "271": {
+      "name": "带线电子开关/传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "272": {
+      "name": "塑料卡扣/固定件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "273": {
+      "name": "黑色接线端子/模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "274": {
+      "name": "金属钥匙/小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "275": {
+      "name": "白色包装电子模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "276": {
+      "name": "金属螺丝/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "277": {
+      "name": "电子元件/电路板",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "278": {
+      "name": "金属垫片/垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "279": {
+      "name": "黑色塑料卡扣/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "280": {
+      "name": "白色散热片/铝型材",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "281": {
+      "name": "白色塑料管件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "282": {
+      "name": "黑色橡胶脚垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "283": {
+      "name": "黑色塑料卡扣/线圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "284": {
+      "name": "黑色橡胶圈/脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "285": {
+      "name": "金属叶轮/涡轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v6-down"
+    },
+    "286": {
+      "name": "红色按钮开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "287": {
+      "name": "蓝色包装电子件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v6-down"
+    },
+    "288": {
+      "name": "橡胶衬套/轴承",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "289": {
+      "name": "橙色胶带/美纹纸",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "290": {
+      "name": "金属球/钢珠",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "291": {
+      "name": "包装工具套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "292": {
+      "name": "透明袋装塑料件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "293": {
+      "name": "接线端子/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-up"
+    },
+    "294": {
+      "name": "红绿塑料夹/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "295": {
+      "name": "木柄刷/砂纸架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "296": {
+      "name": "黑色塑料卡扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "297": {
+      "name": "汽车开关/按钮面板",
+      "category": "汽配",
+      "evidence": "联系表目检 v7-up"
+    },
+    "298": {
+      "name": "透明长杆/塑料管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "299": {
+      "name": "金属弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "300": {
+      "name": "金属垫片/垫圈套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "301": {
+      "name": "黑色螺旋线缆",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-up"
+    },
+    "302": {
+      "name": "金属小配件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "303": {
+      "name": "汽车阀/接头",
+      "category": "汽配",
+      "evidence": "联系表目检 v7-up"
+    },
+    "304": {
+      "name": "塑料管接头/三通",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "305": {
+      "name": "电池/电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-up"
+    },
+    "306": {
+      "name": "包装小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "307": {
+      "name": "黑色小电子元件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-up"
+    },
+    "308": {
+      "name": "金属连接件/卡扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "309": {
+      "name": "黑色塑料面板/盖板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "310": {
+      "name": "透明塑料管/软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "311": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-up"
+    },
+    "312": {
+      "name": "蓝色塑料接头/管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "313": {
+      "name": "带线电子接头/传感器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "314": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "315": {
+      "name": "黑色圆形按钮/开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "316": {
+      "name": "带线阀门/气阀",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "317": {
+      "name": "带线电子模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "318": {
+      "name": "黑色线缆束/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "319": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "320": {
+      "name": "黑色小刷子/打磨头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "321": {
+      "name": "黑色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "322": {
+      "name": "白色塑料管/软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "323": {
+      "name": "黑色塑料接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "324": {
+      "name": "带线电源适配器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "325": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "326": {
+      "name": "白色塑料扎带/绑带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "327": {
+      "name": "绿色接头/阀件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "328": {
+      "name": "绿色胶带/绝缘胶带",
+      "category": "电子电气",
+      "evidence": "联系表目检 v7-down"
+    },
+    "329": {
+      "name": "金属配件/阀件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "330": {
+      "name": "金属圆管/套管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "331": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "332": {
+      "name": "金属小轴/滚针",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "333": {
+      "name": "黑色塑料刮片/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "334": {
+      "name": "黑色塑料卡扣/纽扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "335": {
+      "name": "金属旋钮/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v7-down"
+    },
+    "336": {
+      "name": "弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "337": {
+      "name": "黑色塑料卡扣/扎带",
+      "category": "汽配",
+      "evidence": "联系表目检 v8-up"
+    },
+    "338": {
+      "name": "黑色塑料保护套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "339": {
+      "name": "黑色塑料接头/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "340": {
+      "name": "电子电路板/模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "341": {
+      "name": "黑色塑料盒/盖板",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "342": {
+      "name": "金属搭扣/夹具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "343": {
+      "name": "带线电子接头",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "344": {
+      "name": "金属垫片/垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "345": {
+      "name": "金属卡扣/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "346": {
+      "name": "汽车开关/按钮",
+      "category": "汽配",
+      "evidence": "联系表目检 v8-up"
+    },
+    "347": {
+      "name": "蓝色文件夹/收纳",
+      "category": "家居用品",
+      "evidence": "联系表目检 v8-up"
+    },
+    "348": {
+      "name": "带线圆形风扇/电机",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "349": {
+      "name": "黑色橡胶套/护垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "350": {
+      "name": "金属角码/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "351": {
+      "name": "金属弯片/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "352": {
+      "name": "黑色线缆/数据线",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "353": {
+      "name": "蓝色包装扎带/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "354": {
+      "name": "电子元件/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "355": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-up"
+    },
+    "356": {
+      "name": "带线电子开关/接头",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "357": {
+      "name": "多色电线/线缆束",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-up"
+    },
+    "358": {
+      "name": "彩色贴纸/标签 sheet",
+      "category": "家居用品",
+      "evidence": "联系表目检 v8-up"
+    },
+    "359": {
+      "name": "彩色贴纸/标签 sheet",
+      "category": "家居用品",
+      "evidence": "联系表目检 v8-up"
+    },
+    "360": {
+      "name": "透明塑料管/软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "361": {
+      "name": "塑料卡扣/固定件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "362": {
+      "name": "金属网片/滤网",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "363": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "364": {
+      "name": "彩色塑料片/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "365": {
+      "name": "汽车电磁阀/执行器",
+      "category": "汽配",
+      "evidence": "联系表目检 v8-down"
+    },
+    "366": {
+      "name": "小型打磨头套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "367": {
+      "name": "白色塑料管/软管",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "368": {
+      "name": "带线电源适配器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "369": {
+      "name": "工作灯/手电筒",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "370": {
+      "name": "接线端子/连接器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "371": {
+      "name": "工作灯/手电筒",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "372": {
+      "name": "弹簧/螺旋件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "373": {
+      "name": "塑料固定卡扣",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "374": {
+      "name": "汽车电磁阀/接头",
+      "category": "汽配",
+      "evidence": "联系表目检 v8-down"
+    },
+    "375": {
+      "name": "塑料卡片/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "376": {
+      "name": "红色胶带/电工胶带",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "377": {
+      "name": "金属轴承/滚轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "378": {
+      "name": "红色尼龙扎带卷",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "379": {
+      "name": "黑色橡胶垫/脚套",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "380": {
+      "name": "金属接头/阀件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "381": {
+      "name": "带线电子开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "382": {
+      "name": "彩色包装小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v8-down"
+    },
+    "383": {
+      "name": "红色包装电子件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v8-down"
+    },
+    "384": {
+      "name": "金属弯管/管件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "385": {
+      "name": "黑色拉链收纳包",
+      "category": "家居用品",
+      "evidence": "联系表目检 v9-up"
+    },
+    "386": {
+      "name": "黄柄螺丝刀套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "387": {
+      "name": "带线电子接头",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-up"
+    },
+    "388": {
+      "name": "金属圆环/垫圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "389": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "390": {
+      "name": "木柄刷/工具套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "391": {
+      "name": "带线电源适配器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-up"
+    },
+    "392": {
+      "name": "棕色橡胶圈/O型圈",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "393": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "394": {
+      "name": "白色塑料管件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "395": {
+      "name": "金属固定座/支架",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "396": {
+      "name": "黑色砂纸卷/打磨砂带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "397": {
+      "name": "金属链条/链轮",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "398": {
+      "name": "黑色橡胶脚垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "399": {
+      "name": "绿色圆砂纸片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "400": {
+      "name": "黑色橡胶套/护垫",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "401": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "402": {
+      "name": "电子元件/模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-up"
+    },
+    "403": {
+      "name": "彩色包装小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "404": {
+      "name": "金属剪刀/工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "405": {
+      "name": "红色包装电子件",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-up"
+    },
+    "406": {
+      "name": "金属小轴/紧固件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-up"
+    },
+    "407": {
+      "name": "带线电子模块/开关",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-up"
+    },
+    "408": {
+      "name": "橡胶传动带/皮带",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "409": {
+      "name": "金属垫片/垫圈卷",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "410": {
+      "name": "轮胎/橡胶轮",
+      "category": "汽配",
+      "evidence": "联系表目检 v9-down"
+    },
+    "411": {
+      "name": "卡尺/测量工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "412": {
+      "name": "彩色塑料扎带/圈",
+      "category": "家居用品",
+      "evidence": "联系表目检 v9-down"
+    },
+    "413": {
+      "name": "金属螺栓/螺丝",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "414": {
+      "name": "汽车阀/接头",
+      "category": "汽配",
+      "evidence": "联系表目检 v9-down"
+    },
+    "415": {
+      "name": "金属垫片/螺母",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "416": {
+      "name": "黑色塑料工具/刮刀",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "417": {
+      "name": "带线工具/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "418": {
+      "name": "金属环/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "419": {
+      "name": "橡胶塞/胶帽套装",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "420": {
+      "name": "灯管支架/卡座",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "421": {
+      "name": "金属长杆/撬棒",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "422": {
+      "name": "带线电源适配器",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-down"
+    },
+    "423": {
+      "name": "黑色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "424": {
+      "name": "纸盒装金属件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "425": {
+      "name": "彩色小五金/配件",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "426": {
+      "name": "白色塑料面板/盖板",
+      "category": "家居用品",
+      "evidence": "联系表目检 v9-down"
+    },
+    "427": {
+      "name": "红色拉链收纳包",
+      "category": "家居用品",
+      "evidence": "联系表目检 v9-down"
+    },
+    "428": {
+      "name": "包装小工具",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "429": {
+      "name": "白色塑料管件/接头",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "430": {
+      "name": "电子电路板/模块",
+      "category": "电子电气",
+      "evidence": "联系表目检 v9-down"
+    },
+    "431": {
+      "name": "蓝色橡胶圈/垫片",
+      "category": "五金工具",
+      "evidence": "联系表目检 v9-down"
+    },
+    "432": {
+      "name": "蓝色纸盒/工具盒（待复核）",
+      "category": "五金工具"
+    },
+    "433": {
+      "name": "彩色小配件/密封件套装（待复核）",
+      "category": "五金工具"
+    },
+    "434": {
+      "name": "汽车电磁阀",
+      "category": "汽配"
+    },
+    "435": {
+      "name": "黑色线缆/数据线",
+      "category": "电子电气"
+    },
+    "436": {
+      "name": "小件条码包装（待复核）",
+      "category": "待分类"
+    },
+    "437": {
+      "name": "电子元件/连接器（待复核）",
+      "category": "电子电气"
+    },
+    "438": {
+      "name": "红色打磨盘/链锯锉刀套装（待复核）",
+      "category": "五金工具"
+    },
+    "439": {
+      "name": "蓝色手柄钢丝刷/打磨头",
+      "category": "五金工具"
+    },
+    "440": {
+      "name": "白色塑料固定卡扣",
+      "category": "汽配"
+    },
+    "441": {
+      "name": "黑色塑料固定卡扣",
+      "category": "汽配"
+    },
+    "442": {
+      "name": "绿色塑料接头/卡座（待复核）",
+      "category": "电子电气"
+    },
+    "443": {
+      "name": "绿色塑料接线端子",
+      "category": "电子电气"
+    },
+    "444": {
+      "name": "绿色塑料接线端子",
+      "category": "电子电气"
+    },
+    "445": {
+      "name": "黑色塑料卡扣/固定环",
+      "category": "汽配"
+    },
+    "446": {
+      "name": "棕色砂纸条/打磨条套装",
+      "category": "五金工具"
+    },
+    "447": {
+      "name": "黑白海绵/砂纸垫片",
+      "category": "五金工具"
+    },
+    "448": {
+      "name": "塑料连接件/卡扣（待复核）",
+      "category": "汽配"
+    },
+    "449": {
+      "name": "汽车LED玻璃管灯泡/示宽灯（多只装）",
+      "category": "汽配",
+      "evidence": "原图 image1458/1460：透明玻璃管内LED贴片+金属卡口底座，非保险丝非铜接头；代理称玻璃管保险丝经原图复核已纠正"
+    },
+    "450": {
+      "name": "黑色旋钮/圆盖（待复核）",
+      "category": "五金工具"
+    },
+    "451": {
+      "name": "黑色吸盘/脚垫",
+      "category": "五金工具"
+    },
+    "452": {
+      "name": "黑色固定环/法兰支架",
+      "category": "五金工具"
+    },
+    "453": {
+      "name": "白色卷材/薄膜卷（待复核）",
+      "category": "五金工具"
+    },
+    "454": {
+      "name": "绿色胶带",
+      "category": "五金工具"
+    },
+    "455": {
+      "name": "蓝色胶带",
+      "category": "五金工具"
+    },
+    "456": {
+      "name": "蓝色小盒包装（待复核）",
+      "category": "待分类"
+    },
+    "457": {
+      "name": "蓝色卡片装小配件（待复核）",
+      "category": "待分类"
+    },
+    "458": {
+      "name": "白色密封环/垫圈卷",
+      "category": "五金工具"
+    },
+    "459": {
+      "name": "黑色电源适配器",
+      "category": "电子电气"
+    },
+    "460": {
+      "name": "宠物胸背带/夹棉背心（待复核）",
+      "category": "宠物用品",
+      "evidence": "原图 image1496：黑色夹棉布套带提手、卡扣和金属钩，形似宠物胸背；不确定具体用途"
+    },
+    "461": {
+      "name": "透明胶带",
+      "category": "五金工具"
+    },
+    "462": {
+      "name": "螺丝刀/镊子套装",
+      "category": "五金工具"
+    },
+    "463": {
+      "name": "黑色金属燃烧管",
+      "category": "五金工具"
+    },
+    "464": {
+      "name": "银色胶带/薄膜卷",
+      "category": "五金工具"
+    },
+    "465": {
+      "name": "粉色装饰膜",
+      "category": "家居用品"
+    },
+    "466": {
+      "name": "小型钻头/内六角扳手套装",
+      "category": "五金工具"
+    },
+    "467": {
+      "name": "蜘蛛网装饰垫",
+      "category": "家居用品"
+    },
+    "468": {
+      "name": "银色铝箔胶带",
+      "category": "五金工具"
+    },
+    "469": {
+      "name": "牛皮纸盒/包装盒",
+      "category": "待分类"
+    },
+    "470": {
+      "name": "金属吸盘/吸盘支架",
+      "category": "五金工具"
+    },
+    "471": {
+      "name": "彩色花纹切割片/打磨片(4片装)",
+      "category": "五金工具",
+      "evidence": "image1540 四片彩色扇形花纹圆片，与1.webp同款 ★验证基准 [来源行号473→组索引471 校正]"
+    },
+    "472": {
+      "name": "金属垫圈/轴承套装",
+      "category": "五金工具"
+    },
+    "473": {
+      "name": "牛皮纸盒/包装盒",
+      "category": "待分类"
+    },
+    "474": {
+      "name": "汽车旋钮开关",
+      "category": "汽配"
+    },
+    "475": {
+      "name": "彩色小工具/钥匙扣展示卡",
+      "category": "家居用品"
+    },
+    "476": {
+      "name": "白色塑料盒+黑色绑带",
+      "category": "家居用品"
+    },
+    "477": {
+      "name": "黑色绑带/固定夹",
+      "category": "五金工具"
+    },
+    "478": {
+      "name": "乒乓球（K40+，黄色盒装）",
+      "category": "家居用品",
+      "evidence": "原图 image1566：包装印 K40+ / 10只装，白球带KORUNA商标"
+    },
+    "479": {
+      "name": "白色网袋/网套",
+      "category": "家居用品"
+    },
+    "480": {
+      "name": "黑色带孔圆盘/转盘（待复核）",
+      "category": "五金工具"
+    },
+    "481": {
+      "name": "彩色O型圈/橡皮筋套装",
+      "category": "五金工具"
+    },
+    "482": {
+      "name": "彩色头部细长金属探针/杆（待复核）",
+      "category": "五金工具"
+    },
+    "483": {
+      "name": "小型打磨头与绕线轴套装（待复核）",
+      "category": "五金工具"
+    },
+    "484": {
+      "name": "彩色塑料小卡扣/橡皮筋",
+      "category": "五金工具"
+    },
+    "485": {
+      "name": "彩色O型圈/小配件组合（待复核）",
+      "category": "五金工具"
+    },
+    "486": {
+      "name": "蓝色袋装小配件（待复核）",
+      "category": "待分类"
+    },
+    "487": {
+      "name": "橙白盒装金属环/垫片（待复核）",
+      "category": "五金工具"
+    },
+    "488": {
+      "name": "橙色文件袋/工具包（待复核）",
+      "category": "家居用品"
+    },
+    "489": {
+      "name": "红色塑料圆盖/杯",
+      "category": "家居用品"
+    },
+    "490": {
+      "name": "橙色头透明塑料滴管/小容器（待复核）",
+      "category": "待分类"
+    },
+    "491": {
+      "name": "黑色长杆/支撑杆（待复核）",
+      "category": "五金工具"
+    },
+    "492": {
+      "name": "金属开口环/钥匙圈套装",
+      "category": "五金工具"
+    },
+    "493": {
+      "name": "彩色小配件/吸盘组合（待复核）",
+      "category": "五金工具"
+    },
+    "494": {
+      "name": "白色塑料圆盘/盖板",
+      "category": "五金工具"
+    },
+    "495": {
+      "name": "黑色盒状电气装置带线（待复核）",
+      "category": "电子电气"
+    },
+    "496": {
+      "name": "绿色胶带",
+      "category": "五金工具"
+    },
+    "497": {
+      "name": "T型内六角扳手",
+      "category": "五金工具"
+    },
+    "498": {
+      "name": "T型内六角扳手套装",
+      "category": "五金工具"
+    },
+    "499": {
+      "name": "红柄双头撬棒/轮胎撬棍（待复核）",
+      "category": "五金工具"
+    },
+    "500": {
+      "name": "白色小包装盒（内容不可见）",
+      "category": "待分类"
+    },
+    "501": {
+      "name": "白色线圈本/垫纸",
+      "category": "家居用品"
+    },
+    "502": {
+      "name": "黑色塑料外壳/滤网组件（待复核）",
+      "category": "五金工具"
+    },
+    "503": {
+      "name": "白色网状套管",
+      "category": "五金工具"
+    },
+    "504": {
+      "name": "红色长条工具/刮刀（待复核）",
+      "category": "五金工具"
+    },
+    "505": {
+      "name": "黑色皮带/绑带（带扣）",
+      "category": "五金工具"
+    },
+    "506": {
+      "name": "接线端子/连接器套装（待复核）",
+      "category": "电子电气"
+    },
+    "507": {
+      "name": "灰黑塑料卡扣/垫片",
+      "category": "五金工具"
+    },
+    "508": {
+      "name": "黑色继电器套装",
+      "category": "电子电气"
+    },
+    "509": {
+      "name": "金属汽车开关面板（待复核）",
+      "category": "汽配"
+    },
+    "510": {
+      "name": "米色垫板/带孔盖板（待复核）",
+      "category": "五金工具"
+    },
+    "511": {
+      "name": "金属固定座/四孔支架",
+      "category": "五金工具"
+    },
+    "512": {
+      "name": "彩色接线端子/线夹",
+      "category": "电子电气"
+    },
+    "513": {
+      "name": "白色包装盒/卡片（待复核）",
+      "category": "待分类"
+    },
+    "514": {
+      "name": "彩色圆砂纸片",
+      "category": "五金工具",
+      "evidence": "image1675 蓝绿紫彩色圆盘砂纸 [来源行号516→组索引514 校正]"
+    },
+    "515": {
+      "name": "彩色方形布料/皮革样片",
+      "category": "家居用品"
+    },
+    "516": {
+      "name": "白色开关/插座面板",
+      "category": "电子电气"
+    },
+    "517": {
+      "name": "金属杆带黑色圆头（待复核）",
+      "category": "五金工具"
+    },
+    "518": {
+      "name": "粉色包装袋/纸袋（待复核）",
+      "category": "家居用品"
+    },
+    "519": {
+      "name": "黑色T型接头带线（待复核）",
+      "category": "电子电气"
+    },
+    "520": {
+      "name": "透明塑料盒/收纳盒",
+      "category": "家居用品"
+    },
+    "521": {
+      "name": "黑色长条工作灯/设备（待复核）",
+      "category": "电子电气"
+    },
+    "522": {
+      "name": "红色礼品袋",
+      "category": "家居用品"
+    },
+    "523": {
+      "name": "黑色绝缘胶带",
+      "category": "五金工具"
+    },
+    "524": {
+      "name": "黑色橡胶手柄/握套",
+      "category": "五金工具"
+    },
+    "525": {
+      "name": "金属小零件/配件盒",
+      "category": "五金工具"
+    },
+    "526": {
+      "name": "黑色USB数据线",
+      "category": "电子电气"
+    },
+    "527": {
+      "name": "红色线缆/数据线",
+      "category": "电子电气"
+    },
+    "528": {
+      "name": "小型喷火枪/喉箍套装",
+      "category": "五金工具"
+    },
+    "529": {
+      "name": "彩色星星贴纸",
+      "category": "家居用品"
+    },
+    "530": {
+      "name": "金字塔铆钉/撞钉套装",
+      "category": "五金工具"
+    },
+    "531": {
+      "name": "塑料波纹软管",
+      "category": "五金工具",
+      "evidence": "[来源行533 原图佐证: image1724 白色波纹管]"
+    },
+    "532": {
+      "name": "金属刮片/刀片（8片装）",
+      "category": "五金工具"
+    },
+    "533": {
+      "name": "快速钻夹头",
+      "category": "五金工具"
+    },
+    "534": {
+      "name": "钢丝绳压接铝套管",
+      "category": "五金工具"
+    },
+    "535": {
+      "name": "铝用铣刀/钻头三件套",
+      "category": "五金工具"
+    },
+    "536": {
+      "name": "智能开关模块/无线开关",
+      "category": "电子电气"
+    },
+    "537": {
+      "name": "贴片LED灯条/灯串",
+      "category": "电子电气"
+    },
+    "538": {
+      "name": "金属固定座/接头组件",
+      "category": "五金工具"
+    },
+    "539": {
+      "name": "汽车电磁阀/执行器",
+      "category": "汽配"
+    },
+    "540": {
+      "name": "银色镜面胶带（40mm×5m）",
+      "category": "家居用品"
+    },
+    "541": {
+      "name": "黑色过滤海绵/垫片（待复核）",
+      "category": "五金工具"
+    },
+    "542": {
+      "name": "手捏气喇叭",
+      "category": "五金工具"
+    },
+    "543": {
+      "name": "带座微型轴承/滚轮组件",
+      "category": "五金工具"
+    },
+    "544": {
+      "name": "音响/音频连接线束",
+      "category": "电子电气"
+    },
+    "545": {
+      "name": "细钢丝/琴弦线套装（0-4号）",
+      "category": "五金工具"
+    },
+    "546": {
+      "name": "鳄鱼夹测试线",
+      "category": "电子电气"
+    },
+    "547": {
+      "name": "金属细棒/焊条",
+      "category": "五金工具"
+    },
+    "548": {
+      "name": "汽车后视镜镜片",
+      "category": "汽配"
+    },
+    "549": {
+      "name": "浴室龙头/下水器配件",
+      "category": "五金工具"
+    },
+    "550": {
+      "name": "彩色标识吊牌",
+      "category": "家居用品"
+    },
+    "551": {
+      "name": "白色塑料圆管",
+      "category": "五金工具"
+    },
+    "552": {
+      "name": "白色纸质/塑料封条（待复核）",
+      "category": "家居用品"
+    },
+    "553": {
+      "name": "黑色塑料接头/喷嘴",
+      "category": "五金工具"
+    },
+    "554": {
+      "name": "球头内六角批头套装",
+      "category": "五金工具"
+    },
+    "555": {
+      "name": "带灯放大镜",
+      "category": "家居用品"
+    },
+    "556": {
+      "name": "美甲水钻贴纸",
+      "category": "家居用品"
+    },
+    "557": {
+      "name": "彩色星星塑料珠/手工材料",
+      "category": "家居用品"
+    },
+    "558": {
+      "name": "花形铆钉/装饰扣",
+      "category": "五金工具"
+    },
+    "559": {
+      "name": "小型钢丝刷/管道刷",
+      "category": "五金工具"
+    },
+    "560": {
+      "name": "金属U型支架/固定片",
+      "category": "五金工具"
+    },
+    "561": {
+      "name": "透明快速接头",
+      "category": "五金工具"
+    },
+    "562": {
+      "name": "红黑连接线束",
+      "category": "电子电气"
+    },
+    "563": {
+      "name": "灰色网布收纳袋（待复核）",
+      "category": "家居用品"
+    },
+    "564": {
+      "name": "带柄钢丝管道刷",
+      "category": "五金工具"
+    },
+    "565": {
+      "name": "蓝头钢丝管道刷",
+      "category": "五金工具"
+    },
+    "566": {
+      "name": "金色浴室水龙头",
+      "category": "五金工具"
+    },
+    "567": {
+      "name": "黑色软管",
+      "category": "五金工具"
+    },
+    "568": {
+      "name": "水钻贴纸/美甲贴",
+      "category": "家居用品"
+    },
+    "569": {
+      "name": "圆点数字贴纸",
+      "category": "家居用品"
+    },
+    "570": {
+      "name": "彩色星星橡皮筋",
+      "category": "家居用品"
+    },
+    "571": {
+      "name": "白色O型密封圈",
+      "category": "五金工具"
+    },
+    "572": {
+      "name": "黄铜螺栓/螺母套装",
+      "category": "五金工具"
+    },
+    "573": {
+      "name": "黑色碳纤维纹胶带",
+      "category": "五金工具"
+    },
+    "574": {
+      "name": "不锈钢圆形通风口/面盖",
+      "category": "五金工具"
+    },
+    "575": {
+      "name": "红柄不锈钢刮刀/切面刀",
+      "category": "家居用品"
+    },
+    "576": {
+      "name": "不锈钢钢珠（2.5mm）",
+      "category": "五金工具"
+    },
+    "577": {
+      "name": "金属开口环/钥匙圈",
+      "category": "五金工具"
+    },
+    "578": {
+      "name": "黑色塑料固定夹/支架",
+      "category": "五金工具"
+    },
+    "579": {
+      "name": "不锈钢球阀（2只装）",
+      "category": "五金工具"
+    },
+    "580": {
+      "name": "小型水泵/喷泉泵（待复核）",
+      "category": "电子电气"
+    },
+    "581": {
+      "name": "黑色塑料拉手/手柄",
+      "category": "五金工具"
+    },
+    "582": {
+      "name": "三档旋转开关",
+      "category": "电子电气"
+    },
+    "583": {
+      "name": "摩托车刹车泵/手柄总成",
+      "category": "汽配"
+    },
+    "584": {
+      "name": "红色接线端子分格盒",
+      "category": "电子电气"
+    },
+    "585": {
+      "name": "防臭地漏",
+      "category": "五金工具"
+    },
+    "586": {
+      "name": "汽车轮毂/轮胎圈（待复核）",
+      "category": "汽配"
+    },
+    "587": {
+      "name": "汽车刹车油管/软管总成",
+      "category": "汽配"
+    },
+    "588": {
+      "name": "黑色塑料接头/盖",
+      "category": "五金工具"
+    },
+    "589": {
+      "name": "橡胶塞/堵头套装",
+      "category": "五金工具"
+    },
+    "590": {
+      "name": "银色水钻贴片",
+      "category": "家居用品"
+    },
+    "591": {
+      "name": "伸缩手指教鞭",
+      "category": "家居用品"
+    },
+    "592": {
+      "name": "碳纤维纹布/贴片（待复核）",
+      "category": "家居用品"
+    },
+    "593": {
+      "name": "黑色植绒线束胶带",
+      "category": "电子电气"
+    },
+    "594": {
+      "name": "红白双色电线卷",
+      "category": "电子电气"
+    },
+    "595": {
+      "name": "锁具配件/弹簧拉杆（待复核）",
+      "category": "五金工具"
+    },
+    "596": {
+      "name": "汽车火花塞/点火线套装",
+      "category": "汽配"
+    },
+    "597": {
+      "name": "图案装饰胶带",
+      "category": "家居用品"
+    },
+    "598": {
+      "name": "漏电断路器/空气开关",
+      "category": "电子电气"
+    },
+    "599": {
+      "name": "三相断路器/接触器",
+      "category": "电子电气"
+    },
+    "600": {
+      "name": "半透明塑料收纳盒/壁挂盒",
+      "category": "家居用品"
+    },
+    "601": {
+      "name": "黑色塑料管件/接头套装（待复核）",
+      "category": "五金工具"
+    },
+    "602": {
+      "name": "汽车后视镜镜片",
+      "category": "汽配"
+    },
+    "603": {
+      "name": "不锈钢合页/铰链",
+      "category": "五金工具"
+    },
+    "604": {
+      "name": "汽车遮阳板/遮光板（待复核）",
+      "category": "汽配"
+    },
+    "605": {
+      "name": "万圣节仿真伤疤贴/面具",
+      "category": "家居用品"
+    },
+    "606": {
+      "name": "车载磁吸手机支架",
+      "category": "家居用品"
+    },
+    "607": {
+      "name": "继电器/电源模块电路板",
+      "category": "电子电气"
+    },
+    "608": {
+      "name": "不锈钢编织软管/接头套装",
+      "category": "五金工具"
+    },
+    "609": {
+      "name": "车载空气净化器",
+      "category": "汽配"
+    },
+    "610": {
+      "name": "带线黑色橡胶接头（待复核）",
+      "category": "电子电气"
+    },
+    "611": {
+      "name": "黑色快速接头/插头",
+      "category": "五金工具"
+    },
+    "612": {
+      "name": "微型法兰轴承",
+      "category": "五金工具"
+    },
+    "613": {
+      "name": "金属固定支架/L型码",
+      "category": "五金工具"
+    },
+    "614": {
+      "name": "汽车油底壳/底盘护板",
+      "category": "汽配"
+    },
+    "615": {
+      "name": "黑色刮刀/铲刀套装（待复核）",
+      "category": "五金工具"
+    },
+    "616": {
+      "name": "电动打奶泡器",
+      "category": "家居用品"
+    },
+    "617": {
+      "name": "金属伸缩管/支撑杆（待复核）",
+      "category": "五金工具"
+    },
+    "618": {
+      "name": "开瓶器/旋转刀片套装（待复核）",
+      "category": "家居用品"
+    },
+    "619": {
+      "name": "彩色图钉/大头针",
+      "category": "家居用品"
+    },
+    "620": {
+      "name": "汽车电磁离合器/皮带轮（待复核）",
+      "category": "汽配"
+    },
+    "621": {
+      "name": "白色塑料夹/金属环套装",
+      "category": "五金工具"
+    },
+    "622": {
+      "name": "千分尺/螺旋测微器",
+      "category": "五金工具"
+    },
+    "623": {
+      "name": "黑色塑料勺子",
+      "category": "家居用品"
+    },
+    "624": {
+      "name": "米白色橡胶密封圈/垫圈（待复核）",
+      "category": "五金工具"
+    },
+    "625": {
+      "name": "黑色塑料固定卡扣",
+      "category": "汽配"
+    },
+    "626": {
+      "name": "黑色橡胶垫圈套装（带拆卸钩）",
+      "category": "汽配"
+    },
+    "627": {
+      "name": "透明塑料扎带/细条（待复核）",
+      "category": "五金工具"
+    },
+    "628": {
+      "name": "3.5mm音频连接线",
+      "category": "电子电气"
+    },
+    "629": {
+      "name": "黄铜接头金属件（待复核）",
+      "category": "待分类"
+    },
+    "630": {
+      "name": "棕色铆钉装饰链/挂饰（待复核）",
+      "category": "家居用品"
+    },
+    "631": {
+      "name": "黑色塑料锥形卡扣/胀钉",
+      "category": "汽配"
+    },
+    "632": {
+      "name": "小袋装五金零件（待复核）",
+      "category": "五金工具"
+    },
+    "633": {
+      "name": "黑色长条胶垫/塑料片（待复核）",
+      "category": "汽配"
+    },
+    "634": {
+      "name": "金属探针/吸嘴工具",
+      "category": "五金工具"
+    },
+    "635": {
+      "name": "黑色金属翻盖收纳盒",
+      "category": "五金工具"
+    },
+    "636": {
+      "name": "蓝色塑料管接头/弯头套装",
+      "category": "五金工具"
+    },
+    "637": {
+      "name": "黄铜电源转接头（待复核）",
+      "category": "电子电气"
+    },
+    "638": {
+      "name": "橙色塑料组件/配件（待复核）",
+      "category": "汽配"
+    },
+    "639": {
+      "name": "黑色多孔塑料板（待复核）",
+      "category": "汽配"
+    },
+    "640": {
+      "name": "金属接头/阀体（待复核）",
+      "category": "五金工具"
+    },
+    "641": {
+      "name": "打磨抛光工具套装",
+      "category": "五金工具"
+    },
+    "642": {
+      "name": "金属小圆柱件（待复核）",
+      "category": "电子电气"
+    },
+    "643": {
+      "name": "彩色塑料小环/珠子（待复核）",
+      "category": "待分类"
+    },
+    "644": {
+      "name": "弹簧电源转接线（带插头）",
+      "category": "电子电气"
+    },
+    "645": {
+      "name": "银色金属环/垫圈（多件，待复核）",
+      "category": "五金工具"
+    },
+    "646": {
+      "name": "粉色海绵块+金属条（待复核）",
+      "category": "五金工具"
+    },
+    "647": {
+      "name": "黑色塑料卡扣（多件装）",
+      "category": "汽配"
+    },
+    "648": {
+      "name": "橙色塑料波纹软管",
+      "category": "五金工具"
+    },
+    "649": {
+      "name": "黑色橡胶吸盘/真空吸盘工具",
+      "category": "五金工具"
+    },
+    "650": {
+      "name": "透明塑料小件（待复核）",
+      "category": "待分类"
+    },
+    "651": {
+      "name": "小型断路器/电气开关",
+      "category": "电子电气"
+    },
+    "652": {
+      "name": "白色电源插座/转换插头",
+      "category": "电子电气"
+    },
+    "653": {
+      "name": "银色金属小件（待复核）",
+      "category": "待分类"
+    },
+    "654": {
+      "name": "白色塑料卡扣/扎带（多件）",
+      "category": "五金工具"
+    },
+    "655": {
+      "name": "螺旋管道清洁刷（带软轴）",
+      "category": "五金工具"
+    },
+    "656": {
+      "name": "黑白小接头/盖帽套装（待复核）",
+      "category": "汽配"
+    },
+    "657": {
+      "name": "黑色手压泵/阀体（待复核）",
+      "category": "汽配"
+    },
+    "658": {
+      "name": "透明塑料软管/气管（带接头）",
+      "category": "五金工具"
+    },
+    "659": {
+      "name": "黑色橡胶劳保手套",
+      "category": "五金工具"
+    },
+    "660": {
+      "name": "黑色橡胶防尘套（L/R一对）",
+      "category": "汽配"
+    },
+    "661": {
+      "name": "金属长杆/圆棒",
+      "category": "五金工具"
+    },
+    "662": {
+      "name": "金属伸缩杆/拉杆（两支装）",
+      "category": "五金工具"
+    },
+    "663": {
+      "name": "电磨配件套装（待复核）",
+      "category": "待分类"
+    },
+    "664": {
+      "name": "工作灯/电缆组件（待复核）",
+      "category": "电子电气"
+    },
+    "665": {
+      "name": "彩色圆点装饰贴纸",
+      "category": "家居用品"
+    },
+    "666": {
+      "name": "手写标签零件袋（待复核）",
+      "category": "待分类"
+    },
+    "667": {
+      "name": "彩色马赛克装饰贴片（待复核）",
+      "category": "家居用品"
+    },
+    "668": {
+      "name": "黑色带金属孔眼织物/护具（待复核）",
+      "category": "汽配"
+    },
+    "669": {
+      "name": "黑色汽车配件（待复核）",
+      "category": "汽配"
+    },
+    "670": {
+      "name": "黑色塑料电气接头/传感器（待复核）",
+      "category": "电子电气"
+    },
+    "671": {
+      "name": "黄铜螺纹接头/螺母套装",
+      "category": "五金工具"
+    },
+    "672": {
+      "name": "黑色圆片切割片/打磨片",
+      "category": "五金工具",
+      "evidence": "[来源行674 原图佐证: image2177 带孔黑色圆盘砂纸]"
+    },
+    "673": {
+      "name": "黑色电源连接线/带插头电缆",
+      "category": "电子电气"
+    },
+    "674": {
+      "name": "黑色碳纤维纹装饰条（待复核）",
+      "category": "汽配"
+    },
+    "675": {
+      "name": "黑金花纹胶带/布基胶带",
+      "category": "五金工具"
+    },
+    "676": {
+      "name": "黑色电源适配器/车载充电器（带线）",
+      "category": "电子电气"
+    },
+    "677": {
+      "name": "黑色尼龙织带/绑带（待复核）",
+      "category": "汽配"
+    },
+    "678": {
+      "name": "黄色吸塑包装小配件（待复核）",
+      "category": "汽配"
+    },
+    "679": {
+      "name": "黑绿塑料卡扣（多件）",
+      "category": "汽配"
+    },
+    "680": {
+      "name": "黑色塑料支架/卡扣（待复核）",
+      "category": "汽配"
+    },
+    "681": {
+      "name": "内六角扳手套装",
+      "category": "五金工具"
+    },
+    "682": {
+      "name": "电源插头/插头配件（两个）",
+      "category": "电子电气"
+    },
+    "683": {
+      "name": "小瓶胶水/膏体（待复核）",
+      "category": "待分类"
+    },
+    "684": {
+      "name": "银色圆形金属片/纽扣（待复核）",
+      "category": "五金工具"
+    },
+    "685": {
+      "name": "LED工作灯（待复核）",
+      "category": "电子电气"
+    },
+    "686": {
+      "name": "黑色电线线束/接头（待复核）",
+      "category": "电子电气"
+    },
+    "687": {
+      "name": "白色三孔电源插座面板",
+      "category": "电子电气"
+    },
+    "688": {
+      "name": "木棒/木条（待复核）",
+      "category": "五金工具"
+    },
+    "689": {
+      "name": "白色泡沫滚筒/海绵滚轮（待复核）",
+      "category": "五金工具"
+    },
+    "690": {
+      "name": "蓝色接线端子/连接器（多件）",
+      "category": "电子电气"
+    },
+    "691": {
+      "name": "乳白色塑料圆棒/套管（待复核）",
+      "category": "五金工具"
+    },
+    "692": {
+      "name": "透明塑料软管/套管（待复核）",
+      "category": "五金工具"
+    },
+    "693": {
+      "name": "透明塑料管/套管（待复核）",
+      "category": "五金工具"
+    },
+    "694": {
+      "name": "透明塑料长管（待复核）",
+      "category": "五金工具"
+    },
+    "695": {
+      "name": "不锈钢钢丝绳/软管（3米）",
+      "category": "五金工具"
+    },
+    "696": {
+      "name": "不锈钢钢丝绳/钢丝（带标签）",
+      "category": "五金工具"
+    },
+    "697": {
+      "name": "粉色丝带/蝴蝶结装饰（待复核）",
+      "category": "待分类"
+    },
+    "698": {
+      "name": "绿色应急疏散指示标识贴",
+      "category": "家居用品"
+    },
+    "699": {
+      "name": "黑色海绵收纳盒/垫（带小工具，待复核）",
+      "category": "汽配"
+    },
+    "700": {
+      "name": "黑色圆柱件+彩色塑料件（待复核）",
+      "category": "待分类"
+    },
+    "701": {
+      "name": "带线连接器/继电器组件（待复核）",
+      "category": "电子电气"
+    },
+    "702": {
+      "name": "金色亮片/装饰闪粉（带彩色小饰片）",
+      "category": "家居用品"
+    },
+    "703": {
+      "name": "黑色电源适配器（带电源线）",
+      "category": "电子电气"
+    },
+    "704": {
+      "name": "汽车塑料卡扣/固定件套装（待复核）",
+      "category": "汽配"
+    },
+    "705": {
+      "name": "黑色电源适配器（带线）",
+      "category": "电子电气"
+    },
+    "706": {
+      "name": "透明塑料条/片（待复核）",
+      "category": "待分类"
+    },
+    "707": {
+      "name": "黑色椭圆形塑料件/底座（待复核）",
+      "category": "五金工具"
+    },
+    "708": {
+      "name": "金属旋转传感器/电位器（待复核）",
+      "category": "电子电气"
+    },
+    "709": {
+      "name": "金色圆片带导线（待复核）",
+      "category": "电子电气"
+    },
+    "710": {
+      "name": "棕色皮质套/袋（待复核）",
+      "category": "待分类"
+    },
+    "711": {
+      "name": "黑色扁平件/垫（待复核）",
+      "category": "待分类"
+    },
+    "712": {
+      "name": "透明塑料小件（待复核）",
+      "category": "待分类"
+    },
+    "713": {
+      "name": "淡黄色块状物（蜡/皂，待复核）",
+      "category": "待分类"
+    },
+    "714": {
+      "name": "黑色汽车电子开关/传感器（待复核）",
+      "category": "汽配"
+    },
+    "715": {
+      "name": "白色小滚轮/套筒（多件）",
+      "category": "五金工具"
+    },
+    "716": {
+      "name": "黑色电气控制开关（待复核）",
+      "category": "电子电气"
+    },
+    "717": {
+      "name": "蓝色金属接头/螺丝配件（待复核）",
+      "category": "五金工具"
+    },
+    "718": {
+      "name": "白色长袖衬衫",
+      "category": "家居用品"
+    },
+    "719": {
+      "name": "白色衬衫",
+      "category": "家居用品"
+    },
+    "720": {
+      "name": "白色短袖衬衫",
+      "category": "家居用品"
+    },
+    "721": {
+      "name": "白色衬衫",
+      "category": "家居用品"
+    },
+    "722": {
+      "name": "白色衬衫",
+      "category": "家居用品"
+    },
+    "723": {
+      "name": "黑色布包/衣物",
+      "category": "家居用品"
+    },
+    "724": {
+      "name": "黑色布包/衣物",
+      "category": "家居用品"
+    },
+    "725": {
+      "name": "黑色布包/衣物",
+      "category": "家居用品"
+    },
+    "726": {
+      "name": "黑色布包/衣物",
+      "category": "家居用品"
+    },
+    "727": {
+      "name": "黑色布包/衣物",
+      "category": "家居用品"
+    },
+    "728": {
+      "name": "黑色橡胶轮胎/密封环",
+      "category": "汽配"
+    },
+    "729": {
+      "name": "透明塑料软管（蓝色接头）",
+      "category": "五金工具"
+    },
+    "730": {
+      "name": "红色蜂窝研磨片/砂纸片",
+      "category": "五金工具"
+    },
+    "731": {
+      "name": "黑色塑料卡扣",
+      "category": "汽配"
+    },
+    "732": {
+      "name": "透明塑料管",
+      "category": "五金工具"
+    },
+    "733": {
+      "name": "透明塑料软管",
+      "category": "五金工具"
+    },
+    "734": {
+      "name": "黑色橡胶轮胎",
+      "category": "汽配"
+    },
+    "735": {
+      "name": "金属固定条/连接片套装",
+      "category": "五金工具"
+    },
+    "736": {
+      "name": "T型手柄五金工具套装",
+      "category": "五金工具"
+    },
+    "737": {
+      "name": "电源/数据连接线套装",
+      "category": "电子电气"
+    },
+    "738": {
+      "name": "金属珠链钥匙扣",
+      "category": "五金工具"
+    },
+    "739": {
+      "name": "金属接头/固定件",
+      "category": "汽配"
+    },
+    "740": {
+      "name": "彩色O型密封圈套装",
+      "category": "五金工具"
+    },
+    "741": {
+      "name": "黑色塑料接头/固定扣",
+      "category": "汽配"
+    },
+    "742": {
+      "name": "黑色塑料盖/堵头",
+      "category": "汽配"
+    },
+    "743": {
+      "name": "盒装彩色小圆片配件（待复核）",
+      "category": "待分类"
+    },
+    "744": {
+      "name": "黑色电气插座/接插件",
+      "category": "电子电气"
+    },
+    "745": {
+      "name": "黑色电源适配器/控制器",
+      "category": "电子电气"
+    },
+    "746": {
+      "name": "橡胶衬套及配件套装",
+      "category": "汽配"
+    },
+    "747": {
+      "name": "黑色塑料卡扣（多件装）",
+      "category": "汽配"
+    },
+    "748": {
+      "name": "带开关电线/接线端子套装",
+      "category": "电子电气"
+    },
+    "749": {
+      "name": "蓝色织带/布料",
+      "category": "家居用品"
+    },
+    "750": {
+      "name": "小弹簧/螺丝配件",
+      "category": "五金工具"
+    },
+    "751": {
+      "name": "黄铜螺丝螺母配件",
+      "category": "五金工具"
+    },
+    "752": {
+      "name": "蓝色密封圈/胶带环",
+      "category": "五金工具"
+    },
+    "753": {
+      "name": "白色格纹装饰膜",
+      "category": "家居用品"
+    },
+    "754": {
+      "name": "黑色螺旋弹簧组件",
+      "category": "五金工具"
+    },
+    "755": {
+      "name": "橡胶滚轮/轴承",
+      "category": "汽配"
+    },
+    "756": {
+      "name": "黄铜固定片",
+      "category": "五金工具"
+    },
+    "757": {
+      "name": "黑色橡胶垫/脚垫",
+      "category": "汽配"
+    },
+    "758": {
+      "name": "金色金属网状球（待复核）",
+      "category": "五金工具"
+    },
+    "759": {
+      "name": "金属锅铲/勺+黑色杯垫套装",
+      "category": "家居用品",
+      "evidence": "[来源行761 原图佐证: image2435 锅铲杯具，误入]"
+    },
+    "760": {
+      "name": "白色束线带/塑料扎带",
+      "category": "五金工具"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "total_originals": 2442,
+  "excluded_pure_packaging": 12,
+  "keep_for_library": 2430,
+  "selected_groups": 761,
+  "failed": 0,
+  "equation": {
+    "excluded": 12,
+    "keep": 2430,
+    "failed": 0,
+    "sum": 2442
+  },
+  "balance": true,
+  "source_scope": "仅已保存工作簿 Sheet1；不能证明覆盖在线原表其它工作表",
+  "review_status": "保守初筛：仅剔除高置信度纯包装；keep 表示保留原图待确认，类目与同款命名由来源行号分组 + 网页人工确认，CLIP 建议仅供参考"
+}

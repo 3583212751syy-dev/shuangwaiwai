@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-24",
+  "purpose": "对重点产品定名与类目做公开来源交叉核对，避免只用 CLIP 猜测",
+  "cases": [
+    {
+      "queryImage": "C:/Users/Administrator/Desktop/1.webp",
+      "matchedGroup": "来源行473（groups.json 索引471）· 彩色花纹切割片/打磨片（4片装）",
+      "matchedFiles": ["image1540.jpeg", "image1541.jpeg", "image1542.jpeg"],
+      "visualCheck": "查询图与底图均为 4 片 4.5 英寸黑齿缘、蓝黄红彩色标签的切割片；花纹、片数、标签布局一致。展示图为白底效果图，底图为实拍，视觉 cosine 天然偏低。",
+      "nameEvidence": [
+        {
+          "source": "义乌购",
+          "url": "https://tbc.yiwugo.com/product/detail/985942068.html",
+          "title": "跨境4.5寸115烧结金刚石锯片瓷砖陶瓷大理石岩板花岗岩石材切割片",
+          "supports": "4.5寸/115mm 规格、切割片/金刚石锯片叫法、跨境货源"
+        },
+        {
+          "source": "Alibaba.com",
+          "url": "https://www.alibaba.com/product-detail/Diamond-Cutting-and-Grinding-Discs-Double_1601112613680.html",
+          "title": "Diamond Cutting and Grinding Discs, 4.5 inch, colors silver/red/blue/green",
+          "supports": "4.5 英寸、多色、切割+打磨两用盘、角磨机适配"
+        },
+        {
+          "source": "1688 百科",
+          "url": "https://wiki.1688.com/zh/diamond-blades/WKfr0lxcs8ar5s",
+          "title": "多功能复合金刚石锯片：岩板切割片/磨片/石材打磨边锯片倒角",
+          "supports": "切割片、磨片、倒角片在供应链上的通用叫法"
+        }
+      ],
+      "category": "五金工具 > 磨具磨料 > 切割片/磨片",
+      "conclusion": "定名采用「4.5寸彩色花纹切割片/打磨片（4片装）」，类目五金工具；不写具体品牌或型号，因为公开来源与图片均不足以证明型号。"
+    }
+    ,
+    {
+      "product": "汽车塑料固定卡扣",
+      "nameEvidence": [
+        {
+          "source": "1688 供应商页",
+          "url": "http://corp.1688.com/page/index.htm?memberId=*7zl*1D*U1D7r1uRSZXbZ8NTT",
+          "title": "南宫市天鸿扣业汽车配件制造厂：汽车卡扣细分类与不同叫法",
+          "supports": "门板/保险杠/叶子板等汽车卡扣；别名塑料铆钉、塑胶卡扣、尼龙卡扣，类目属汽车配件"
+        },
+        {
+          "source": "1688 百科",
+          "url": "https://wiki.1688.com/zh/auto-accessories/WKfyu9dnmikxds",
+          "title": "1688多规格汽车卡扣套装",
+          "supports": "多规格汽车卡扣套装为常见批发形态，类目汽车用品 > 车身及附件"
+        }
+      ],
+      "conclusion": "底图库中大量白色/黑色塑料卡扣统一使用「塑料固定卡扣」通名，类目汽配；图片不足以确定车型 OE 号，不写具体适配车型。"
+    }
+  ],
+  "scopeNote": "其余 760 组按分组联系表逐格目检定名；对无法从图片判断品牌的组只写通用品名，不编造型号、材质或规格。"
+}

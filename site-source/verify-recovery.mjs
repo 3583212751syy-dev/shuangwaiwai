@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import app from './dist/server/index.js';
+const objects=new Map(),env={BUCKET:{async put(k,b,o){objects.set(k,{b,o})},async get(k){const v=objects.get(k);return v?{text:async()=>String(v.b),body:v.b,httpMetadata:v.o?.httpMetadata}:null},async list(){return {objects:[...objects.keys()].filter(k=>k.startsWith('meta/')).map(key=>({key})),truncated:false}}}};
+const req=(p,o)=>app.fetch(new Request('https://example.test'+p,o),env);
+const f=new FormData();f.append('image',new Blob(['original'],{type:'image/png'}),'test.png');
+const item=await(await req('/api/images',{method:'POST',body:f})).json();
+const change=deleted=>req('/api/images/'+item.id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({deleted})});
+assert.equal((await change(true)).status,200);
+assert.equal((await(await req('/api/images')).json()).length,0);
+assert.equal((await(await req('/api/images?trash=1')).json())[0].id,item.id);
+assert.equal(await(await req('/images/'+item.id)).text(),'original');
+await change(false);
+assert.equal((await(await req('/api/images')).json())[0].id,item.id);
+assert.equal((await(await req('/api/images?trash=1')).json()).length,0);
+console.log('PASS: removed images excluded from search inventory; originals retained; restore works');

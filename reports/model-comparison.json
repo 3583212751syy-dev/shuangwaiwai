@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-24",
+  "question": "CLIP 与 DINOv2 哪个更适合底图库「同款产品识别」，是否融合",
+  "library": {
+    "images": 2430,
+    "groups": 761,
+    "query": "C:/Users/Administrator/Desktop/1.webp",
+    "groundTruth": "来源行473（groups.json 索引471）· 4片彩色花纹切割片（image1540/image1541/image1542）"
+  },
+  "method": {
+    "evaluation": "留一法：每个来源组最多取 2 张底图当查询，排除查询图本身；按同一来源行分组，使用线上同款产品相似度公式 top*0.6 + strong_ratio(>=0.65)*0.25 + avg*0.15",
+    "queries": 1486,
+    "fusion": "对每次查询，把 CLIP 与 DINOv2 各组产品分数分别做 z-score 归一化，再等权相加"
+  },
+  "results": {
+    "clip": {"recall_at_1": 0.4159, "recall_at_5": 0.6332, "avg_top1_margin": 0.0273},
+    "dinov2_small": {"recall_at_1": 0.4415, "recall_at_5": 0.6400, "avg_top1_margin": 0.0751},
+    "clip_plus_dinov2": {"recall_at_1": 0.5007, "recall_at_5": 0.6992}
+  },
+  "singleCase": {
+    "clip_first": "第473行 · 切割片套装（产品分 0.5841）",
+    "dino_first": "第473行 · 切割片套装（产品分 0.3546）",
+    "fusion_first": "第473行 · 切割片套装（融合 z 分 5.8415，第二 2.3691）"
+  },
+  "decision": "接入双模型融合；DINOv2 模型缺失时自动退回 CLIP 单模型。DINOv2-small q8 模型 24,446,700 字节随站点本地发布，不依赖外网。",
+  "scripts": [
+    "tools/analyze-dinov2.mjs",
+    "tools/bench-model-compare.mjs",
+    "tools/eval-model-recall.mjs",
+    "tools/eval-ensemble.mjs",
+    "tools/verify-fusion.mjs"
+  ],
+  "caveat": "召回率以「表格同一行=同一产品」为真值；不同型号但外观相近的卡扣/密封圈会被判为不同组，因此这是保守口径，不代表型号级准确。"
+}

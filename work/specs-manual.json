@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "method": "逐张目检原图（Read 工具真实看图）后录入；只写图上确实可读的型号/规格，不推测",
+    "note": "key=底图文件名；curves=脱扣曲线/电流规格；models=印在壳体或包装上的型号；count=画面中同规格本体数量",
+    "updatedAt": "2026-11-25T05:45:00Z"
+  },
+  "specs": {
+    "image988.jpeg": {"name": "小型断路器 DZ47-63 C20（2P）", "curves": ["C20"], "models": ["DZ47-63"], "count": 1, "poles": ["2P"], "evidence": "壳体正面清晰印 DZ47-63 / C20 / 4500A；双极联动，一个本体"},
+    "image989.jpeg": {"name": "小型断路器 DZ47-63 C20（带侧附件）", "curves": ["C20"], "models": ["DZ47-63"], "count": 1, "evidence": "包装侧面印 DZ47-63 C20；壳体背面与侧面附件同组"},
+    "image990.jpeg": {"name": "小型断路器 DZ47-63 C20（带侧附件）", "curves": ["C20"], "models": ["DZ47-63"], "count": 1, "evidence": "壳体正面清晰印 DZ47-63 / C20；一个本体带右侧附件，用户截图中的底图"},
+    "image1930.jpeg": {"name": "电动机保护器 DZ808-32", "curves": [], "models": ["DZ808-32"], "count": 1, "evidence": "壳体印 DZ808-32(ME32/RS32)，红按钮 STOP/RESET"},
+    "image2106.jpeg": {"name": "塑壳断路器 ZBM1-63L/3300", "curves": [], "models": ["ZBM1-63"], "count": 1, "evidence": "包装印 ZBM1-63L/3300，In=63A，3P；壳体印 ZBM1-63"},
+    "image2109.jpeg": {"name": "塑壳断路器 ZBM1-63L/3300", "curves": [], "models": ["ZBM1-63"], "count": 1, "evidence": "同组包装印 ZBM1-63L/3300，In=63A，3P"}
+  }
+}

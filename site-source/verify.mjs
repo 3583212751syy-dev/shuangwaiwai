@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+import app from './dist/server/index.js';
+const page=await readFile('index.html','utf8');assert.ok(page.includes('src="/ai-client.mjs"'));assert.ok(page.includes('id="base-drop"'));assert.ok(page.includes('id="query-drop"'));
+const objects=new Map(),env={BUCKET:{async put(k,b,o){objects.set(k,{b,o})},async get(k){const v=objects.get(k);return v?{text:async()=>String(v.b),body:v.b,httpMetadata:v.o?.httpMetadata}:null},async list(){return {objects:[...objects.keys()].filter(k=>k.startsWith('meta/')).map(key=>({key})),truncated:false}}}};
+const request=(p,o)=>app.fetch(new Request('https://example.test'+p,o),env);
+assert.equal((await request('/')).status,200);
+assert.deepEqual(await (await request('/api/images')).json(),[]);
+for(let i=0;i<2;i++){const f=new FormData();f.append('image',new Blob(['test'],{type:'image/png'}),'product.png');f.append('name','宠物梳');f.append('category','宠物用品');f.append('group','宠物梳');assert.equal((await request('/api/images',{method:'POST',body:f})).status,201)}
+let rows=await (await request('/api/images')).json();assert.equal(rows.length,2);assert.notEqual(rows[0].id,rows[1].id);assert.equal(new Set(rows.map(x=>x.group)).size,1);
+const id=rows[0].id;assert.equal((await request('/api/images/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({category:'待分类'})})).status,200);
+rows=await (await request('/api/images')).json();assert.equal(rows.find(x=>x.id===id).category,'待分类');assert.equal((await request('/images/'+id)).status,200);
+const bad=new FormData();bad.append('image',new Blob(['no'],{type:'text/plain'}),'no.txt');assert.equal((await request('/api/images',{method:'POST',body:bad})).status,400);
+const ai={model:'Xenova/clip-vit-base-patch32',status:'待确认',embedding:Array(512).fill(0),suggestedName:'固定件',suggestedCategory:'五金工具',score:.3};
+assert.equal((await request('/api/images/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({ai})})).status,200);
+const saved=await (await request('/api/images')).json();assert.equal(saved.find(x=>x.id===id).ai.embedding.length,512);assert.equal(saved.find(x=>x.id===id).category,'待分类');
+assert.equal((await request('/api/images/'+id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({ai:{...ai,embedding:[0]}})})).status,400);
+assert.equal((await request('/ai.mjs')).status,200);assert.equal((await request('/ai-client.mjs')).status,200);
+console.log('PASS: page syntax, upload, duplicate retention, grouping, classification edits, image reads, invalid file rejection');

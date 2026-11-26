@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {normalize,cosine,rank,decision,CATALOG,sourceGroup} from './ai.mjs';
+assert.ok(Math.abs(cosine(normalize([1,2]),normalize([1,2]))-1)<1e-10);
+assert.equal(cosine([1,0],[0,1]),0);
+const vectors=CATALOG.map((_,i)=>Array.from({length:CATALOG.length},(_,j)=>i===j?1:0));
+assert.equal(decision(rank(vectors[0],vectors)).suggestedName,'气弹簧支撑杆');
+assert.equal(decision(rank(vectors[0],vectors)).confident,true);
+const unknown=CATALOG.length-1;assert.equal(decision(rank(vectors[unknown],vectors)).status,'待确认');
+assert.equal(decision([{index:0,score:.51,cosine:.3},{index:1,score:.49,cosine:.29}]).status,'待确认');
+assert.equal(sourceGroup('表格第0056行_B列_原图192.jpg'),sourceGroup('表格第0056行_A列_原图191.jpg'));
+assert.notEqual(sourceGroup('表格第0055行_A列_原图188.jpg'),sourceGroup('表格第0056行_A列_原图191.jpg'));
+assert.equal(sourceGroup('photo.jpg'),null);
+console.log('PASS: feature similarity, classification margin, unknown rejection, source row grouping');

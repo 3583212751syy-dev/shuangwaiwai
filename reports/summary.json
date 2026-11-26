@@ -1,0 +1,18 @@
+{
+  "source_filename": "product-source-current.xlsx",
+  "source_bytes": 411092924,
+  "source_sha256": "8b5a5c32299bd1350279cf485a64149b996480b334f0b1d5e628a43924d412af",
+  "sheets": [
+    "Sheet1"
+  ],
+  "embedded_media_files": 2442,
+  "unique_image_hashes": 2442,
+  "drawing_occurrences": 2648,
+  "missing_picture_positions": 0,
+  "unreferenced_media_files": 0,
+  "verified_images": 2442,
+  "zip_crc": "PASS",
+  "byte_hash_check": "PASS",
+  "scope": "This saved workbook only; not proof of coverage of the original online workbook.",
+  "filtering_status": "Not classified or filtered. All originals preserved."
+}

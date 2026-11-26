@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "method": "逐组目检联系表 group-sheets 定名；组=来源表格一行(同一产品不同角度)；名称取该组代表图的真实产品通用叫法；类目按商品实际用途归类",
+    "status": "in_progress",
+    "pages_done": 0,
+    "note": "key 为组序号 idx（对应 groups.json 数组下标），value 含 name/category/evidence"
+  },
+  "labels": {}
+}

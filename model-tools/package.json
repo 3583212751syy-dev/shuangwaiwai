@@ -1,0 +1,1 @@
+{"private":true,"type":"module","dependencies":{"@huggingface/transformers":"3.8.1"},"pnpm":{"onlyBuiltDependencies":["onnxruntime-node","sharp","protobufjs"]}}

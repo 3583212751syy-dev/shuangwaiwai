@@ -1,0 +1,24 @@
+{
+  "query_image": "C:/Users/Administrator/Desktop/1.webp",
+  "query_description": "白底精修展示图，4片带蓝黄红彩色扇形花纹的圆形切割/打磨片",
+  "true_match": {
+    "group": "第473行 · 切割片套装",
+    "group_index": 471,
+    "index_note": "groups.json 数组下标 471 对应来源行 473；此前误把行号 473 当数组下标写在标签里，已于 2026-11-24 校正，检索按组名不受影响",
+    "files": ["image1540.jpeg", "image1541.jpeg"],
+    "evidence": "image1540/1541 为4片彩色花纹圆片，花纹、颜色、片数与 1.webp 一致，原图目检确认"
+  },
+  "before_fix": {
+    "algorithm": "CLIP文本标签硬筛 + 单张视觉cosine + 绝对角度数加成",
+    "top1": "第93行 · 切割片套装（实为高压清洗软管，image341-346，6角度组）",
+    "problem": "CLIP把17种不同产品误标为切割片套装（软管/砂纸/风扇/波纹管等）；绝对角度数让6角度的软管组虚高居首"
+  },
+  "after_fix": {
+    "algorithm": "产品相似度优先(同来源行=同产品多角度)：最高单张0.6+强命中比例0.25+平均0.15；视觉作辅助；不用文本标签加权",
+    "top1": "第473行 · 切割片套装（3角度 image1540-1542，真彩色切割片）",
+    "top1_product_score": 0.604,
+    "runner_up": "第433行 轮胎内胎 0.574",
+    "verified_by": "真实Chrome通过CDP上传1.webp，抓取首位卡片图片URL反查来源行与原图目检"
+  },
+  "product_labels_note": "逐组目检定名进行中；首批62组已人工确认见 reports/product-labels-manual.json；17个误标切割片组已逐张原图纠正"
+}
