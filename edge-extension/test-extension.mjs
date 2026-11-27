@@ -87,7 +87,7 @@ ok('content.js 提取商品页字段', () => {
   };
   vm.runInNewContext(fs.readFileSync(path.join(process.cwd(), 'content.js'), 'utf8'), context);
   let out;
-  listeners.scan({ type: 'WB_SCAN_PAGE' }, {}, r => { out = r; });
+  listeners.scan({ type: 'WB_SCAN_PAGE_V2' }, {}, r => { out = r; });
   assert.equal(out.ok, true);
   assert.match(out.data.name, /Interruptor Inalámbrico/);
   assert.equal(out.data.price, '179.00');
@@ -114,7 +114,7 @@ ok('页面文本只取标注 ID，忽略相关推荐', () => {
   };
   vm.runInNewContext(fs.readFileSync(path.join(process.cwd(), 'content.js'), 'utf8'), context);
   let out;
-  listeners.scan({ type: 'WB_SCAN_PAGE' }, {}, r => { out = r; });
+  listeners.scan({ type: 'WB_SCAN_PAGE_V2' }, {}, r => { out = r; });
   const ids = out.data.skuCandidates.map(x => x.sku);
   assert.ok(ids.includes('MLM3137701327'));
   assert.ok(!ids.includes('MLM9999999999'), '相关推荐 ID 不应进入候选');

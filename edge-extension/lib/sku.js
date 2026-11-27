@@ -4,7 +4,7 @@
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SKUMatch = api;
 })(typeof self !== 'undefined' ? self : globalThis, function () {
-  const MLM_RE = /\bMLM-?(\d{7,10})\b/gi;
+  const MLM_RE = /\bMLM-?(\d{7,14})\b/gi;
   const trim = s => String(s == null ? '' : s).trim();
 
   function normalizeSKU(raw) {

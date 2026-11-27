@@ -47,7 +47,7 @@ async function scan() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) throw new Error('没有可用标签页');
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] });
-    const out = await chrome.tabs.sendMessage(tab.id, { type: 'WB_SCAN_PAGE' });
+    const out = await chrome.tabs.sendMessage(tab.id, { type: 'WB_SCAN_PAGE_V2' });
     if (!out?.ok) throw new Error(out?.error || '页面未返回结果');
     render(out.data);
     $('status').textContent = '扫描完成 · ' + new Date(out.data.scannedAt).toLocaleString('zh-CN');

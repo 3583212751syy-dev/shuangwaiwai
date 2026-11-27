@@ -1,10 +1,25 @@
 /* 网页一键扫描：提取商品主图、名称、规格描述、SKU */
 (function () {
-  if (window.__wbScannerLoaded) return;
-  window.__wbScannerLoaded = true;
+  // 扩展更新后可能重复注入：先移除上一版监听器，保证始终用已修复的代码。
+  const KEY = '__wbScanListener';
+  if (window[KEY]) {
+    try { chrome.runtime.onMessage.removeListener(window[KEY]); } catch {}
+  }
 
-  function text(el) { return (el?.textContent || '').replace(/\s+/g, ' ').trim(); }
-  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
+  // JSON-LD 字段可能是字符串/数字/数组/对象（Mercado Libre 的 description/price 常见），
+  // 直接调用 .replace 会抛 "xxx.replace is not a function"，必须统一转成字符串。
+  function clean(s) {
+    if (s == null) return '';
+    if (Array.isArray(s)) return s.map(clean).filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+    if (typeof s === 'object') {
+      if ('value' in s) return clean(s.value);
+      if ('name' in s) return clean(s.name);
+      if ('url' in s) return clean(s.url);
+      return '';
+    }
+    return String(s).replace(/\s+/g, ' ').trim();
+  }
+  function text(el) { return clean(el?.textContent); }
 
   function meta(name) {
     const q = s => document.querySelector(s);
@@ -81,7 +96,7 @@
       if (lines.length >= 40) break;
     }
     const p = findProduct();
-    if (p.description) push(p.description.replace(/<[^>]+>/g, ' '));
+    if (p.description) push(clean(p.description).replace(/<[^>]+>/g, ' '));
     if (!lines.length) {
       for (const li of document.querySelectorAll('li')) push(text(li));
     }
@@ -99,7 +114,7 @@
     const add = (s, where) => {
       const v = clean(s);
       if (!v) return;
-      for (const m of v.matchAll(/\bMLM-?(\d{7,10})\b/gi)) {
+      for (const m of v.matchAll(/\bMLM-?(\d{7,14})\b/gi)) {
         const id = 'MLM' + m[1];
         if (!out.has(id)) out.set(id, { sku: id, evidence: m[0], where });
       }
@@ -116,7 +131,7 @@
     add(location.href, 'URL');
     // 页面文本只取"明确标注"的编号，避免把相关推荐商品的 MLM ID 误当主商品 SKU。
     const body = document.body?.innerText || '';
-    const labeled = body.match(/(?:商品ID|商品编号|商品编码|SKU|C[oó]digo(?:\s+de\s+producto)?|Item\s*ID|Product\s*ID|ID)[\s:：]*\(?(MLM-?\d{7,10})\)?/gi) || [];
+    const labeled = body.match(/(?:商品ID|商品编号|商品编码|SKU|C[oó]digo(?:\s+de\s+producto)?|Item\s*ID|Product\s*ID|ID)[\s:：]*\(?(MLM-?\d{7,14})\)?/gi) || [];
     for (const s of labeled) add(s, '页面标注 ID');
     return [...out.values()].slice(0, 30);
   }
@@ -134,11 +149,12 @@
     };
   }
 
-  chrome.runtime.onMessage.addListener((msg, sender, reply) => {
-    if (msg?.type === 'WB_SCAN_PAGE') {
+  window[KEY] = (msg, sender, reply) => {
+    if (msg?.type === 'WB_SCAN_PAGE_V2') {
       try { reply({ ok: true, data: scan() }); }
       catch (e) { reply({ ok: false, error: String(e?.message || e) }); }
       return true;
     }
-  });
+  };
+  chrome.runtime.onMessage.addListener(window[KEY]);
 })();
