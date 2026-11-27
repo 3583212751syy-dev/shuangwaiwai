@@ -96,4 +96,29 @@ ok('content.js 提取商品页字段', () => {
   assert.ok(out.data.skuCandidates.some(x => x.sku === 'MLM2850659521'));
 });
 
+// 防误报：相关商品区的 MLM ID 不应被当成主商品 SKU
+ok('页面文本只取标注 ID，忽略相关推荐', () => {
+  const listeners = {};
+  const document = {
+    title: '商品页',
+    querySelector: () => null,
+    querySelectorAll: sel => sel.includes('ld+json') || sel === 'li' ? [] : [],
+    body: { innerText: '商品ID:MLM3137701327(MLM66631409)\n相关推荐 MLM9999999999 MLM8888888888' }
+  };
+  const context = {
+    window: { __wbScannerLoaded: false }, document,
+    location: { href: 'https://www.mercadolibre.com.mx/p/MLM7777777777' },
+    URL: globalThis.URL, Date: globalThis.Date,
+    chrome: { runtime: { onMessage: { addListener: fn => { listeners.scan = fn; } } } }
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(process.cwd(), 'content.js'), 'utf8'), context);
+  let out;
+  listeners.scan({ type: 'WB_SCAN_PAGE' }, {}, r => { out = r; });
+  const ids = out.data.skuCandidates.map(x => x.sku);
+  assert.ok(ids.includes('MLM3137701327'));
+  assert.ok(!ids.includes('MLM9999999999'), '相关推荐 ID 不应进入候选');
+  assert.ok(!ids.includes('MLM8888888888'), '相关推荐 ID 不应进入候选');
+  assert.ok(ids.includes('MLM7777777777'), 'URL 里的主商品 ID 应保留');
+});
+
 console.log('ALL PASS', pass);

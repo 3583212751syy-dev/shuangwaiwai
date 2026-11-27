@@ -114,7 +114,10 @@
     add(p.productID, 'JSON-LD productID');
     for (const name of ['product:retailer_item_id', 'itemprop:sku', 'sku', 'product_id']) add(meta(name), 'meta ' + name);
     add(location.href, 'URL');
-    add(document.body?.innerText || '', '页面文本');
+    // 页面文本只取"明确标注"的编号，避免把相关推荐商品的 MLM ID 误当主商品 SKU。
+    const body = document.body?.innerText || '';
+    const labeled = body.match(/(?:商品ID|商品编号|商品编码|SKU|C[oó]digo(?:\s+de\s+producto)?|Item\s*ID|Product\s*ID|ID)[\s:：]*\(?(MLM-?\d{7,10})\)?/gi) || [];
+    for (const s of labeled) add(s, '页面标注 ID');
     return [...out.values()].slice(0, 30);
   }
 
