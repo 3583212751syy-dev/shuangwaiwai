@@ -1,7 +1,7 @@
 // 自包含在线版：Worker 代码 + 内存索引 + 本机模型缓存，单端口 HTTP 服务。
 // 图片按需从磁盘读取（不常驻内存），避免 2430 张原图撑爆沙箱内存。
 import http from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import Module,{createRequire} from 'node:module';
@@ -41,8 +41,14 @@ async function readSpecs(buf){
 
 const objects=new Map();
 const idToFile=new Map();
+// 人工命名覆盖表持久化：BUCKET 本身是内存对象，names/all 写穿到磁盘，重启不丢。
+const namesFile=path.join(root,'names-overrides.json');
+try{const seed=await readFile(namesFile,'utf8');objects.set('names/all',{buf:Buffer.from(seed)})}catch{/* 首次启动无文件 */}
 const env={BUCKET:{
- async put(k,b,o){objects.set(k,{buf:Buffer.isBuffer(b)?b:Buffer.from(b),httpMetadata:o?.httpMetadata})},
+ async put(k,b,o){
+  objects.set(k,{buf:Buffer.isBuffer(b)?b:Buffer.from(b),httpMetadata:o?.httpMetadata});
+  if(k==='names/all'){try{await writeFile(namesFile,objects.get(k).buf,'utf8')}catch{/* 磁盘写失败不阻塞请求，重启后内存版仍在 */}}
+ },
  async get(k){const v=objects.get(k);return v?{text:async()=>v.buf.toString('utf8'),body:new Uint8Array(v.buf),httpMetadata:v.httpMetadata}:null},
  async list({prefix}={}){return {objects:[...objects.keys()].filter(k=>k.startsWith(prefix||'')).sort().map(key=>({key})),truncated:false}}
 }};

@@ -193,6 +193,25 @@ export function catalogAnalysis(x,analysis){
  return {...analysis,suggestedName:c.name,suggestedCategory:c.category,status:'已识别',confident:true,method:'产品目录',score:1};
 }
 
+// MobileCLIP-S0（fp32，视觉塔必须 fp32：Apple 重参数化结构被 q8 量化摧毁，实测 R@1 从 0.5834 崩到 0.0168）。
+// 检索主信号：留一评测 1486 查询 R@1=0.5834/R@20=0.8822，超 DINOv3-cls(0.5599) 与全部融合组合；
+// 跨域真实查询 1.webp 真同款 top1 命中，库外查询分数回落。注意其绝对分数无真值/非真值分离力
+// （tools/calibrate-verdict.mjs），只用于排序，verdict 阈值已按新分布重校准（search.mjs 0.75/0.70）。
+export const MC_MODEL='Xenova/mobileclip_s0';
+export async function createMobileClipEmbedder(lib,progress=()=>{},device=typeof window==='undefined'?'cpu':'wasm',modelBase=null){
+ const opts={device,progress_callback:progress};
+ if(modelBase){lib.env.allowLocalModels=true;lib.env.localModelPath=modelBase;if(typeof window!=='undefined')lib.env.useBrowserCache=true}
+ else lib.env.allowLocalModels=false;
+ if(lib.env.backends?.onnx?.wasm)lib.env.backends.onnx.wasm.numThreads=1;
+ const processor=await lib.AutoProcessor.from_pretrained(MC_MODEL,opts);
+ const model=await lib.CLIPVisionModelWithProjection.from_pretrained(MC_MODEL,{dtype:'fp32',device,progress_callback:progress});
+ return {async embed(source){
+  const image=await lib.RawImage.read(source);
+  const inputs=await processor(image),out=await model(inputs);
+  return normalize(Array.from(out.image_embeds.data));
+ },dispose:()=>model.dispose()};
+}
+
 // DINOv3-vits16（CLS 池化）视觉特征：检索主信号。CLIP 保留做品名识别。
 // 留一评测（1486 次，tools/eval-dinov3.mjs）：CLIP R@1=0.4159、DINOv2=0.4415、
 // CLIP+DINOv2 融合=0.4684，DINOv3-CLS 单模型=0.5599——单模型超过全部融合组合，

@@ -7,6 +7,9 @@ const labels = JSON.parse(readFileSync(repo + '/work/labels-manual.json', 'utf8'
 const dinoRaw = JSON.parse(readFileSync(repo + '/work/embeddings-dinov3.json', 'utf8'));
 // DINOv3-CLS 池化向量（评测 R@1=0.5599 优于 dinov2 mean 0.4415）
 const dino = {};for(const[f,v]of Object.entries(dinoRaw))dino[f]=v.c;
+const mcRaw = JSON.parse(readFileSync(repo + '/work/embeddings-mobileclip-fp32.json', 'utf8'));
+// MobileCLIP-S0 fp32 向量（检索主信号，留一 R@1=0.5834）
+const mc = {};for(const[f,v]of Object.entries(mcRaw))mc[f]=v.v;
 
 // 行号 -> [名称, 类目, 确认状态]；名字里带「待复核」的组保留后缀和「待确认」状态
 const byRow = {};
@@ -38,12 +41,30 @@ for (const f of Object.keys(dino).sort()) {
 }
 const b64 = Buffer.concat(chunks).toString('base64');
 
+const mcFiles = [], mcChunks = [];
+let mcBytes = 0;
+for (const f of Object.keys(mc).sort()) {
+  const v = mc[f];
+  if (!Array.isArray(v) || v.length !== 512) continue;
+  const n = Math.hypot(...v) || 1;
+  const q = Buffer.alloc(512);
+  for (let k = 0; k < 512; k++) {
+    const s2 = Math.max(-127, Math.min(127, Math.round((v[k] / n) * 127)));
+    q[k] = s2 < 0 ? s2 + 256 : s2;
+  }
+  mcFiles.push(f);
+  mcChunks.push(q);
+  mcBytes += 512;
+}
+const mcB64 = Buffer.concat(mcChunks).toString('base64');
+
 const out = {
   v: 1,
   generatedAt: new Date().toISOString(),
-  note: 'labels 按来源行号覆盖线上底库的品名/类目；dino 为 int8 量化向量，前端除以 127 还原',
+  note: 'labels 按来源行号覆盖线上底库的品名/类目；dino/mc 为 int8 量化向量，前端除以 127 还原',
   labels: byRow,
   dino: {dim: 384, files, b64},
+  mc: {dim: 512, files: mcFiles, b64: mcB64},
 };
 const p = repo + '/site-source/overrides.json';
 writeFileSync(p, JSON.stringify(out));

@@ -3,8 +3,8 @@
 import {readFileSync} from 'node:fs';
 const W='D:/GPT/2026-11-21/new-chat-2/work';
 const R=W+'/git-handoff/projects/product-image-compare';
-const tf='file:///'+W+'/model-runtime/node_modules/.pnpm/@huggingface+transformers@3.8.1/node_modules/@huggingface/transformers/dist/transformers.node.mjs';
-const {AutoModel,AutoProcessor,env,RawImage,pipeline}=await import(tf);
+const tf='file:///'+W+'/_siglip2/node_modules/@huggingface/transformers/dist/transformers.node.mjs';
+const {AutoModel,AutoProcessor,CLIPVisionModelWithProjection,env,RawImage,pipeline}=await import(tf);
 env.allowLocalModels=true;env.localModelPath=W+'/deploy-product-library/model-cache';env.useBrowserCache=false;
 
 const meta=JSON.parse(readFileSync(W+'/deploy-product-library/metadata.json','utf8'));
@@ -22,10 +22,17 @@ console.log('真值组:',gtEntry?.group,'| 库内图:',gtEntry?.filename);
 
 // 加载三个查询端模型
 const clipPipe=await pipeline('image-feature-extraction','Xenova/clip-vit-base-patch32',{device:'cpu',dtype:'q8'});
+env.localModelPath=W+'/model-alt';
 const dino2Proc=await AutoProcessor.from_pretrained('onnx-community/dinov2-small');
 const dino2Model=await AutoModel.from_pretrained('onnx-community/dinov2-small',{dtype:'q8',device:'cpu'});
 const dino3Proc=await AutoProcessor.from_pretrained('onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX');
 const dino3Model=await AutoModel.from_pretrained('onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX',{dtype:'q8',device:'cpu'});
+const mcRaw=JSON.parse(readFileSync(R+'/work/embeddings-mobileclip-fp32.json','utf8'));const mcLib={};for(const[f,v]of Object.entries(mcRaw))mcLib[f]=v.v;
+env.localModelPath=W+'/model-alt';
+const mcProc=await AutoProcessor.from_pretrained('Xenova/mobileclip_s0');
+const mcModel=await CLIPVisionModelWithProjection.from_pretrained('Xenova/mobileclip_s0',{dtype:'fp32',device:'cpu'});
+env.localModelPath=W+'/deploy-product-library/model-cache';
+env.localModelPath=W+'/deploy-product-library/model-cache';
 
 async function qvec(path){
  const img=await RawImage.read(path);
@@ -35,7 +42,8 @@ async function qvec(path){
  const pool=v=>{const dim=384,n=v.length/dim,o=new Array(dim).fill(0);for(let t=0;t<n;t++)for(let d=0;d<dim;d++)o[d]+=v[t*dim+d];return o};
  return{clip:norm(Array.from(co.data||co[0]?.data)),
         dino2:norm(pool(Array.from(o2.last_hidden_state.data))),
-        dino3cls:norm(Array.from(o3.last_hidden_state.data).slice(0,384))};
+        dino3cls:norm(Array.from(o3.last_hidden_state.data).slice(0,384)),
+        mc:norm(Array.from((await mcModel(await mcProc(img))).image_embeds.data))};
 }
 function rank(path,model,gt){
  const lib=model==='clip'?clipLib:(model==='dino2'?dino2:null);
@@ -54,11 +62,11 @@ function rank(path,model,gt){
 async function evaluateQuery(path,label,gtGroupLike){
  const q=await qvec(path);
  console.log('\n查询:',label);
- for(const model of ['clip','dino2','dino3cls']){
+ for(const model of ['mc','dino3cls','clip']){
   const rows=[];
   const groups=new Map();
   for(const x of meta){
-   let v=model==='dino3cls'?dino3raw[x.filename]?.c:getVec(model==='clip'?clipLib:dino2,x.filename);
+   let v=model==='dino3cls'?dino3raw[x.filename]?.c:(model==='mc'?mcLib[x.filename]:getVec(model==='clip'?clipLib:dino2,x.filename));
    if(!v)continue;
    v=norm(v);
    const s=cos(q[model],v);

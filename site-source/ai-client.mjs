@@ -1,11 +1,15 @@
-import {createRecognizer,createDinoEmbedder,sourceGroup,identify,catalogAnalysis} from './ai.mjs';
-import {searchLibrary,READY,DINO_READY,candidateVerdict} from './search.mjs';
+import {createRecognizer,createDinoEmbedder,createMobileClipEmbedder,sourceGroup,identify,catalogAnalysis,MC_MODEL} from './ai.mjs';
+import {searchLibrary,READY,DINO_READY,MC_READY,candidateVerdict} from './search.mjs';
 import {effectiveLabel,catalogFor,CATEGORIES,groupProducts,isDefaultName} from './catalog.mjs';
 import {parseSpecText,summarize as summarizeSpecs,compareSpecs,compareGroupSpecs} from './specs.mjs';
 
 const $=id=>document.getElementById(id);
 let library=[],queries=[],recognizer,loading,working=false,indexing=false,baseQueue=[],page=36,pasteTarget='query';
 let grouped=false,pendingOnly=false,selected=new Set(),topK=8,overlay=false,compareState=null;
+// 人工命名覆盖表：识别不准时用户填的产品名称（任意语言自动翻译成中文），按同款分组生效。
+let manualNames={};
+const nameKey=x=>x.row!=null?'row:'+x.row:'group:'+(x.group||x.name);
+async function loadManualNames(){try{manualNames=await api('/api/names')}catch{/* 服务不可用时保持空表，不阻塞主流程 */}}
 
 const el=(tag,text,cls)=>{const x=document.createElement(tag);if(text!==undefined&&text!==null)x.textContent=text;if(cls)x.className=cls;return x};
 const btn=(text,fn,cls)=>{const b=el('button',text,cls);b.onclick=fn;return b};
@@ -92,10 +96,21 @@ function decodeDino(d){
  }
  return out;
 }
+function decodeMc(d){
+ if(!d?.b64||!d.files?.length)return {};
+ const bin=atob(d.b64),dim=d.dim||512,out={};
+ for(let i=0;i<d.files.length;i++){
+  const v=new Array(dim);
+  for(let k=0;k<dim;k++){const b=bin.charCodeAt(i*dim+k);v[k]=(b>127?b-256:b)/127}
+  out[d.files[i]]=v;
+ }
+ return out;
+}
 async function applyOverrides(list){
  const o=await loadOverrides();if(!o)return list;
  const dino=o.dino?decodeDino(o.dino):{};
- let relabelled=0,withDino=0;
+ const mcVecs=o.mc?decodeMc(o.mc):{};
+ let relabelled=0,withDino=0,withMc=0;
  for(const x of list){
   const lab=o.labels&&x.row!=null?o.labels[String(x.row)]:null;
   if(lab&&lab[0]){x.name=lab[0];x.category=lab[1]||x.category;x.group='第'+x.row+'行 · '+lab[0];x.labelSource='底图库标签';relabelled++;
@@ -105,11 +120,19 @@ async function applyOverrides(list){
   if(LEGACY_CATEGORY[x.category])x.category=LEGACY_CATEGORY[x.category];
   const vec=dino[x.filename];
   if(vec&&x.ai&&!DINO_READY(x)){x.ai.dinoEmbedding=vec;x.ai.dinoModel='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';x.ai.dinoPooling='cls-v1';withDino++}
+  const mv=mcVecs[x.filename];
+  if(mv&&x.ai&&!MC_READY(x)){x.ai.mcEmbedding=mv;x.ai.mcModel=MC_MODEL;withMc++}
  }
- if(relabelled||withDino)console.log('底库覆盖表已应用：标签 '+relabelled+' 条、DINOv3 向量 '+withDino+' 条');
+ // 人工命名最高优先：覆盖识别名/目录名/库标签，之后所有检索与展示都用它
+ let named=0;
+ for(const x of list){
+  const m=manualNames[nameKey(x)];
+  if(m?.name&&x.name!==m.name){x.name=m.name;x.group=(x.row!=null?'第'+x.row+'行 · ':'')+m.name;x.manualName=m;x.labelSource='人工命名';named++}
+ }
+ if(relabelled||withDino||withMc||named)console.log('底库覆盖表已应用：标签 '+relabelled+' 条、DINOv3 向量 '+withDino+' 条、MobileCLIP 向量 '+withMc+' 条、人工命名 '+named+' 条');
  return list;
 }
-async function refresh(){library=await applyOverrides(await api('/api/images'));initFilters();renderLibrary()}
+async function refresh(){await loadManualNames();library=await applyOverrides(await api('/api/images'));initFilters();renderLibrary()}
 
 /* ---------- 编辑 / 批量 / 导出 ---------- */
 function openEdit(x){
@@ -167,12 +190,27 @@ async function readyDino(report){
  })().catch(e=>{dinoLoading=null;console.warn('DINOv2 加载失败，退回单模型：'+e.message);return null});
  return dinoLoading;
 }
+let mcEmbedder,mcLoading;
+async function readyMc(report){
+ if(mcEmbedder)return mcEmbedder;if(mcLoading)return mcLoading;
+ mcLoading=(async()=>{
+  const base=await localModelBase();if(!base)return null;
+  const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2');
+  mcEmbedder=await createMobileClipEmbedder(lib,p=>{if(p.status==='progress')report('正在加载检索主模型 '+Math.round(p.progress||0)+'%')},'wasm',base);
+  return mcEmbedder;
+ })().catch(e=>{mcLoading=null;console.warn('MobileCLIP 加载失败，检索退回 CLIP 路：'+e.message);return null});
+ return mcLoading;
+}
 async function rawAnalyze(source,report){
  const analysis=await (await ready(report)).analyze(source);
  try{
   const dino=await readyDino(report);
   if(dino){analysis.dinoEmbedding=await dino.embed(source);analysis.dinoModel='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX';analysis.dinoPooling='cls-v1'}
  }catch(e){console.warn('DINOv2 特征失败，本次只用 CLIP：'+e.message)}
+ try{
+  const mc=await readyMc(report);
+  if(mc){analysis.mcEmbedding=await mc.embed(source);analysis.mcModel=MC_MODEL}
+ }catch(e){console.warn('MobileCLIP 特征失败，检索退回 CLIP 路：'+e.message)}
  return analysis;
 }
 // 平台查证参考库：人工确认过的真实产品图（1688/美客多查证）做视觉锚点。
@@ -377,9 +415,11 @@ function idRows(a,top,vd,q){
  rows.push('分类：'+(subNoTrust?'未判定（低置信不采信'+(s1?'，最接近 '+s1.sub+' '+s1.score.toFixed(2)+(subs[1]?' / '+subs[1].sub+' '+subs[1].score.toFixed(2):'')+'）':''):(s1?(s1.sub+'（'+s1.subZh+'）'+(s1.score!=null?' · 置信度 '+s1.score.toFixed(2)+(s1.score<0.35?'（偏低，仅供参考）':''):' · 依据读图规格')):'未判定'))+(!specCat&&!ref&&subs[1]&&!subNoTrust?' · 其他可能 '+subs[1].sub+'（'+subs[1].subZh+'） '+subs[1].score.toFixed(2):''));
  // 命中同款：名称直接用底图库同款分组的人工标签（与同款卡片/汇总表一致），不再附「形近参考不是结论」
  const libName=vd.ok&&top?top.label.name:null;
+ // 人工命名标注：名称来自用户纠正时透明展示来源，翻译过的注明原词
+ const manMark=libName&&top&&top.image.manualName?'（人工命名'+(top.image.manualName.original&&top.image.manualName.original!==top.image.manualName.name?'，翻译自 '+top.image.manualName.original:'')+'）':'';
  const name=libName||specCat?.name||(a?.suggestedName&&a.suggestedName!=='未识别'?a.suggestedName:(a?.referenceName&&!vd.ok?'未识别':(a?.suggestedName||'未识别')));
  const nameBasis=libName?'底图库同款分组标签':(specCat?.name?'读图规格':(a?.method||'CLIP'));
- rows.push('名称：'+name+(!libName&&!ref&&a?.referenceName&&name!==a.referenceName?' · 形近参考：'+a.referenceName+'（底图分组 '+a.referenceGroup+'，不是识别结论）':'')+' · 判定方式 '+nameBasis);
+ rows.push('名称：'+name+manMark+(!libName&&!ref&&a?.referenceName&&name!==a.referenceName?' · 形近参考：'+a.referenceName+'（底图分组 '+a.referenceGroup+'，不是识别结论）':'')+' · 判定方式 '+nameBasis);
  return rows;
 }
 function result(q,forceAll=false){
@@ -419,6 +459,69 @@ function result(q,forceAll=false){
    line.append(btn(c.name+' '+c.score.toFixed(3),()=>{q.analysis={...q.analysis,suggestedName:c.name,suggestedCategory:c.category,status:'人工确认',confident:true,method:'人工选择',matchedGroup:c.group};section.replaceWith(result(q,forceAll))},'pill'));
   }
   idBox.append(line);
+ }
+ // ③ 识别不准？人工命名：任意语言输入 → 服务端自动翻译成中文 → 存为分组人工名称（最高优先），
+ // 也可直接把这张图以中文名加入底图库，让同款产品以后能被认出来。
+ {
+  const box=el('details',null,'namebox');box.append(el('summary','识别不准？填产品名称纠正（支持任意语言，自动翻译中文）'));
+  const row=el('div',null,'name-row');
+  const inp=el('input');inp.placeholder='粘贴平台 listing 标题或产品名，如：Funda para sillin de moto';
+  const tBtn=btn('翻译成中文',null,'pill');
+  row.append(inp,tBtn);box.append(row);
+  const out=el('div',null,'sub');
+  const cur=top?manualNames[nameKey(top.image)]:null;
+  if(cur?.name)box.append(el('div','当前该分组人工名称：'+cur.name+(cur.original&&cur.original!==cur.name?'（翻译自 '+cur.original+'）':''),'sub'));
+  box.append(out);
+  tBtn.onclick=async()=>{
+   const text=inp.value.trim();if(!text){out.textContent='请先输入产品名称';return}
+   tBtn.disabled=true;out.textContent='翻译中…';
+   let r;
+   try{
+    // 主源：浏览器直连 MyMemory（支持 CORS，沙箱服务端无外网，服务端翻译多数场景不可用）
+    const cjk=(text.match(/[\u4e00-\u9fff]/g)||[]).length;
+    if(cjk*2>=text.length)r={original:text,translated:text,provider:'原文已是中文'};
+    else{
+     const resp=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=Autodetect|zh-CN',{signal:AbortSignal.timeout(12000)});
+     const d=await resp.json();
+     const t=String(d?.responseData?.translatedText||'').trim();
+     if(d?.responseStatus!==200||!t||t===text)throw Error('mymemory 无结果');
+     const det=d.responseData.detectedLanguage&&d.responseData.detectedLanguage!=='zh-CN'?'（检测语言 '+d.responseData.detectedLanguage+'）':'';
+     r={original:text,translated:t,provider:'MyMemory'+det};
+    }
+   }catch(e){
+    r=await api('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+   }
+   try{
+    out.replaceChildren(el('span','中文名：'+r.translated+'（'+r.provider+'） '));
+    if(top){
+     const save=btn('保存为该分组人工名称',async()=>{
+      save.disabled=true;
+      try{
+       manualNames=await api('/api/names',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({group:nameKey(top.image),name:r.translated,original:r.original})});
+       await refresh();status('query-status','人工命名已保存：'+r.translated+'（分组 '+nameKey(top.image)+'）');
+       section.replaceWith(result(q,forceAll));
+      }catch(e){save.disabled=false;out.append(el('span',' '+e.message))}
+     },'pill');
+     out.append(save);
+     out.append(el('span',' · 生效分组：'+nameKey(top.image)+' ','sub'));
+    }
+    const add=btn('以此名称加入底图库',async()=>{
+     add.disabled=true;
+     try{
+      const fd=new FormData();
+      const f=q.file instanceof File?q.file:new File([await q.file.arrayBuffer()],q.file.name,{type:q.file.type});
+      fd.append('image',f,f.name);fd.append('name',r.translated);fd.append('group',r.translated);
+      if(top?.label?.category)fd.append('category',top.label.category);
+      library.unshift(await api('/api/images',{method:'POST',body:fd}));
+      await refresh();prepareIndex();
+      out.append(el('span',' 已入库：'+r.translated+'（检索准备就绪后即可被识别）','ok-text'));
+     }catch(e){add.disabled=false;out.append(el('span',' '+e.message))}
+    },'pill');
+    out.append(add);
+   }catch(e){out.textContent=e.message;out.classList.add('error')}
+   finally{tBtn.disabled=false}
+  };
+  idBox.append(box);
  }
  const grid=el('div',null,'grid');
  for(let hi=0;hi<found.results.length;hi++){

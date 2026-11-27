@@ -26,7 +26,57 @@ export default {async fetch(req,env){
   const buf=await r.arrayBuffer();if(buf.byteLength>20*1024*1024)return json({error:'图片超过 20 MB'},413);
   return new Response(buf,{headers:{'Content-Type':type,'Cache-Control':'private, max-age=600','X-Content-Type-Options':'nosniff'}});
  }
+ // 产品名称翻译：任意语言 → 中文。主源 Google 免费接口，备源 MyMemory（含 Autodetect 语种），
+ // 都不可用时报错让用户直接填中文，绝不把失败包装成成功。
+ if(p==='/api/translate'&&req.method==='POST'){
+  const b=await req.json().catch(()=>null);
+  const text=String(b?.text||'').trim().replace(/\s+/g,' ').slice(0,300);
+  if(!text)return json({error:'请输入产品名称'},400);
+  const cjk=(text.match(/[\u4e00-\u9fff]/g)||[]).length;
+  if(cjk*2>=text.length)return json({original:text,translated:text,provider:'原文已是中文'});
+  const providers=[
+   async()=>{
+    // MyMemory 先：支持 CORS 且国内可达；线上沙箱无外网时前端会直连兜底
+    const r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=Autodetect|zh-CN',{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error('mymemory '+r.status);
+    const d=await r.json();
+    const t=String(d?.responseData?.translatedText||'').trim();
+    if(d?.responseStatus!==200||!t||t===text)throw Error('mymemory bad');
+    const det=d.responseData.detectedLanguage&&d.responseData.detectedLanguage!=='zh-CN'?'（检测语言 '+d.responseData.detectedLanguage+'）':'';
+    return [t,'MyMemory'+det];
+   },
+   async()=>{
+    const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q='+encodeURIComponent(text),{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw Error('google '+r.status);
+    const d=await r.json();
+    const t=(d?.[0]||[]).map(x=>x?.[0]||'').join('').trim();
+    if(!t)throw Error('google empty');
+    return [t,'google'];
+   },
+  ];
+  for(const fn of providers){
+   try{const [translated,provider]=await fn();return json({original:text,translated:String(translated).trim().slice(0,300),provider})}
+   catch(e){/* 换下一个源 */}
+  }
+  return json({error:'翻译服务暂不可用，可直接填写中文名称保存'},502);
+ }
+ // 人工命名覆盖表：识别不准时用户填的名称（任意语言自动翻译成中文后保存），按同款分组生效。
+ // 存 BUCKET 'names/all' 一个 JSON；server 端写穿到磁盘 names-overrides.json，重启不丢。
  if(!env.BUCKET)return json({error:'图库存储尚未连接'},503);
+ if(p==='/api/names'&&req.method==='GET'){
+  const o=await env.BUCKET.get('names/all');
+  return json(o?JSON.parse(await o.text()):{});
+ }
+ if(p==='/api/names'&&req.method==='POST'){
+  const b=await req.json().catch(()=>null);
+  const group=String(b?.group||'').trim().slice(0,180),name=String(b?.name||'').trim().slice(0,180),original=String(b?.original||'').trim().slice(0,300);
+  if(!group||!name)return json({error:'需要分组名和产品名称'},400);
+  const old=await env.BUCKET.get('names/all');
+  const names=old?JSON.parse(await old.text()):{};
+  names[group]={name,original:original||undefined,at:new Date().toISOString()};
+  await env.BUCKET.put('names/all',JSON.stringify(names));
+  return json(names,201);
+ }
  if(p==='/api/images'&&req.method==='GET'){
   let cursor,items=[];
   do{const page=await env.BUCKET.list({prefix:'meta/',cursor});const data=await Promise.all(page.objects.map(async o=>{const r=await env.BUCKET.get(o.key);return r?JSON.parse(await r.text()):null}));items.push(...data.filter(Boolean));cursor=page.truncated?page.cursor:undefined}while(cursor);
@@ -53,12 +103,19 @@ export default {async fetch(req,env){
    const a=body.ai;
    if(a.model!=='Xenova/clip-vit-base-patch32'||!['待确认','已识别','人工确认'].includes(a.status)||!Array.isArray(a.embedding)||a.embedding.length!==512||a.embedding.some(x=>!Number.isFinite(x)||Math.abs(x)>1.01))return json({error:'识图数据格式不正确'},400);
    const preservedDino=Object.fromEntries(['dinoEmbedding','dinoModel','dinoPooling'].filter(k=>m.ai?.[k]!==undefined).map(k=>[k,m.ai[k]]));
+   // MobileCLIP 检索主向量：512 维 fp32 归一化；只更新 CLIP/标签时保留已有 MC 数据
+   const preservedMc=Object.fromEntries(['mcEmbedding','mcModel'].filter(k=>m.ai?.[k]!==undefined).map(k=>[k,m.ai[k]]));
+   if(a.mcEmbedding!==undefined){
+    if(!Array.isArray(a.mcEmbedding)||a.mcEmbedding.length!==512||a.mcEmbedding.some(x=>!Number.isFinite(x)||Math.abs(x)>1.01)||!a.mcEmbedding.some(x=>x!==0)||
+       (a.mcModel&&a.mcModel!=='Xenova/mobileclip_s0'))return json({error:'MobileCLIP 数据格式不正确'},400);
+    Object.assign(preservedMc,{mcEmbedding:a.mcEmbedding,mcModel:'Xenova/mobileclip_s0'});
+   }
    if(a.dinoEmbedding!==undefined){
     if(!Array.isArray(a.dinoEmbedding)||a.dinoEmbedding.length!==384||a.dinoEmbedding.some(x=>!Number.isFinite(x)||Math.abs(x)>1.01)||!a.dinoEmbedding.some(x=>x!==0)||
        (a.dinoModel&&a.dinoModel!=='onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX')||(a.dinoPooling&&a.dinoPooling!=='cls-v1'))return json({error:'DINO 数据格式不正确'},400);
     Object.assign(preservedDino,{dinoEmbedding:a.dinoEmbedding,dinoModel:'onnx-community/dinov3-vits16-pretrain-lvd1689m-ONNX',dinoPooling:'cls-v1'});
    }
-   m.ai={...preservedDino,model:a.model,version:'3.8.1',status:a.status,suggestedName:String(a.suggestedName||'').slice(0,100),suggestedCategory:String(a.suggestedCategory||'待确认').slice(0,50),score:Math.min(1,Math.max(0,Number(a.score)||0)),embedding:a.embedding,at:new Date().toISOString()};
+   m.ai={...preservedDino,...preservedMc,model:a.model,version:'3.8.1',status:a.status,suggestedName:String(a.suggestedName||'').slice(0,100),suggestedCategory:String(a.suggestedCategory||'待确认').slice(0,50),score:Math.min(1,Math.max(0,Number(a.score)||0)),embedding:a.embedding,at:new Date().toISOString()};
    if(typeof a.method==='string')m.ai.method=a.method.slice(0,40);
    m.classification='CLIP 图片内容识别';
   }

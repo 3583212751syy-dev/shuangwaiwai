@@ -27,11 +27,11 @@ const r4=compareSpecs(parseSpecText('DZ47-63 C16 230V 400V'),parseSpecText('DZ47
 ok('无冲突',r4.conflict===null);
 
 console.log('【场景5】一条缺 DINO 不关闭全库 + 强 CLIP 候选不被埋');
-const r5=productResults([row('a',.99),row('b',.3,null)],q.embedding,q.dinoEmbedding);
+const r5=productResults([row('a',.99),row('b',.3,null)],null,q.embedding,q.dinoEmbedding);
 ok('首位为 a（RRF 排名正确）',r5[0].image.id==='a');
 ok('a 双模型齐 → fused=true',r5[0].fused===true);
 ok('b 缺 DINO → 标记 fused=false（CLIP 回退）',r5[1].fused===false);
-const r5b=productResults([row('a',.99,null),row('b',.3,.3)],q.embedding,q.dinoEmbedding);
+const r5b=productResults([row('a',.99,null),row('b',.3,.3)],null,q.embedding,q.dinoEmbedding);
 ok('强 CLIP 纯模型候选不被弱双模型埋掉',r5b[0].image.id==='a');
 
 console.log('【场景6】旧 overrides.json 记录兼容（无 confirmations/dino 字段）');

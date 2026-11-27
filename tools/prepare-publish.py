@@ -65,10 +65,13 @@ def main():
         for target in (DST, SRC):
             shutil.copytree(ocr_src, os.path.join(target, "models", "ocr"), dirs_exist_ok=True)
 
-    # DINOv2 模型（pack-site 会刷新 Xenova CLIP，DINO 目录需单独带）
+    # DINOv3 与 MobileCLIP 模型（pack-site 会刷新 Xenova CLIP，子目录需单独带）
     dino_src = os.path.join(SRC, "model-cache", "onnx-community")
     if os.path.isdir(dino_src):
         shutil.copytree(dino_src, os.path.join(DST, "model-cache", "onnx-community"), dirs_exist_ok=True)
+    mc_src = os.path.join(SRC, "model-cache", "Xenova", "mobileclip_s0")
+    if os.path.isdir(mc_src):
+        shutil.copytree(mc_src, os.path.join(DST, "model-cache", "Xenova", "mobileclip_s0"), dirs_exist_ok=True)
 
     names = [m["filename"] for m in json.load(open(meta_path, encoding="utf-8"))]
     if keep:

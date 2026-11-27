@@ -16,6 +16,8 @@ const groups=JSON.parse(await readFile(path.join(repo,'work','groups.json'),'utf
 const emb=JSON.parse(await readFile(path.join(repo,'work','embeddings.json'),'utf8'));
 const dinoRaw=JSON.parse(await readFile(path.join(repo,'work','embeddings-dinov3.json'),'utf8'));
 const dino={};for(const[f,v]of Object.entries(dinoRaw))dino[f]=v.c; // DINOv3-CLS
+const mcRaw=JSON.parse(await readFile(path.join(repo,'work','embeddings-mobileclip-fp32.json'),'utf8'));
+const mc={};for(const[f,v]of Object.entries(mcRaw))mc[f]=v.v; // MobileCLIP-S0 fp32（检索主信号）
 const manual=JSON.parse(await readFile(path.join(repo,'work','labels-manual.json'),'utf8')).labels||{};
 const keep=selection.filter(x=>x.decision==='keep');
 
@@ -69,6 +71,8 @@ for(const m of meta)if(m.ai){
  analyses[m.filename]={...m.ai};
  const dv=dino[m.filename];
  if(Array.isArray(dv)&&dv.length===384){analyses[m.filename].dinoEmbedding=dv;withDino++}
+ const mv=mc[m.filename];
+ if(Array.isArray(mv)&&mv.length===512){analyses[m.filename].mcEmbedding=mv;analyses[m.filename].mcModel='Xenova/mobileclip_s0'}
 }
 await writeFile(path.join(out,'analyses.json'),JSON.stringify(analyses));
 
@@ -79,6 +83,11 @@ async function copyDir(src,dst){await mkdir(dst,{recursive:true});for(const e of
 await copyDir(modelSrc,path.join(out,'model-cache'));
 // 第二视觉模型：DINOv3-vits16 q8 21MB（CLS 池化，检索主信号），与 CLIP 一起随站点发布。
 await copyDir(path.join(work,'model-alt','onnx-community','dinov3-vits16-pretrain-lvd1689m-ONNX'),path.join(out,'model-cache','onnx-community','dinov3-vits16-pretrain-lvd1689m-ONNX'));
+// MobileCLIP-S0 fp32 视觉塔 44MB（检索主信号；q8 会摧毁重参数化结构，禁止换 quantized）
+await copyDir(path.join(work,'model-alt','Xenova','mobileclip_s0'),path.join(out,'model-cache','Xenova','mobileclip_s0'));
+// 只带视觉塔：识别文本塔是 CLIP 的，MobileCLIP text 41MB 用不上，省体积
+await rm(path.join(out,'model-cache','Xenova','mobileclip_s0','onnx','text_model_quantized.onnx'),{force:true});
+await rm(path.join(out,'model-cache','Xenova','mobileclip_s0','onnx','vision_model_quantized.onnx'),{force:true}); // q8 已证明摧毁该模型，防止误用
 await copyFile(path.join(siteSrc,'build.mjs'),path.join(out,'build.mjs')); // 参考
 // 使用 site-source 刚重建的 worker，避免误用旧目录里的过期产物。
 const distWorker=path.join(siteSrc,'dist','server','index.js');

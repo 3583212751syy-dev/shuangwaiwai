@@ -10,16 +10,16 @@ const q={embedding:vec(512),dinoEmbedding:vec(384)};
 const hash='a'.repeat(64);
 
 test('one missing DINO does not disable other groups',()=>{
- const r=productResults([row('a'),row('b',.8,null)],q.embedding,q.dinoEmbedding);
+ const r=productResults([row('a'),row('b',.8,null)],null,q.embedding,q.dinoEmbedding);
  assert.equal(r.find(x=>x.image.id==='a').fused,true);
  assert.equal(r.find(x=>x.image.id==='b').fused,false);
 });
 test('mixed views retain available DINO evidence',()=>{
- const r=productResults([row('a',.9,.8,'g'),row('b',.8,null,'g')],q.embedding,q.dinoEmbedding);
+ const r=productResults([row('a',.9,.8,'g'),row('b',.8,null,'g')],null,q.embedding,q.dinoEmbedding);
  assert.equal(r.length,1);assert.equal(r[0].dinoCoverage,.5);assert.equal(r[0].fused,true);
 });
 test('strong CLIP-only candidates are not buried by weak dual-model entries',()=>{
- const r=productResults([row('a',.99,null),row('b',.1,.1)],q.embedding,q.dinoEmbedding);
+ const r=productResults([row('a',.99,null),row('b',.1,.1)],null,q.embedding,q.dinoEmbedding);
  assert.equal(r[0].image.id,'a');assert.equal(r[0].fused,false);
 });
 test('CLIP-only and empty queries remain finite and conservative',()=>{
@@ -30,11 +30,11 @@ test('CLIP-only and empty queries remain finite and conservative',()=>{
 test('invalid vectors and incompatible DINO metadata are ignored',()=>{
  const a=row('a');a.ai.embedding[0]=NaN;assert.equal(READY(a),false);
  const b=row('b');b.ai.dinoPooling='another-pool';assert.equal(DINO_READY(b),false);
- assert.equal(productResults([b],q.embedding,q.dinoEmbedding)[0].fused,false);
+ assert.equal(productResults([b],null,q.embedding,q.dinoEmbedding)[0].fused,false);
 });
 test('rank fusion ties do not depend on input ordering',()=>{
  const a=row('a'),b=row('b');
- const r1=productResults([a,b],q.embedding,q.dinoEmbedding),r2=productResults([b,a],q.embedding,q.dinoEmbedding);
+ const r1=productResults([a,b],null,q.embedding,q.dinoEmbedding),r2=productResults([b,a],null,q.embedding,q.dinoEmbedding);
  assert.deepEqual(r1.map(x=>[x.image.id,x.score]),r2.map(x=>[x.image.id,x.score]));
 });
 test('huge or negative ranking scores cannot certify identity',()=>{
