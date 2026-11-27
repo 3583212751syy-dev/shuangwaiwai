@@ -712,3 +712,21 @@ $('trash').ontoggle=async()=>{
 
 refresh().then(()=>{if(library.some(x=>!READY(x)))prepareIndex()}).catch(e=>status('base-status',e.message,true));
 
+// 浏览器插件参数：?img=<图片URL>&img=<图片URL>&autorun=1
+// 自动把商品页扫描出的图片加入左侧对比图，并自动开始查找，结果里展示图库匹配图。
+(async function autoImportFromQuery(){
+ try{
+  const p=new URLSearchParams(location.search);
+  const urls=p.getAll('img').filter(u=>/^https?:\/\//i.test(u)).slice(0,12);
+  if(!urls.length)return;
+  status('query-status','正在导入 '+urls.length+' 张网页图片…');
+  let ok=0;
+  for(const u of urls){
+   try{await fromURL(u,'query');ok++}catch{}
+  }
+  if(!ok){status('query-status','网页图片导入失败，请手动拖入图片。',true);return}
+  status('query-status','已导入 '+ok+' 张，开始与图库对比…');
+  if(p.get('autorun')==='1')await search();
+ }catch(e){status('query-status','自动导入失败：'+e.message,true)}
+})();
+

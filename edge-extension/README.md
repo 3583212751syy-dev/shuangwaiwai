@@ -23,14 +23,14 @@
 ## 字段提取
 
 - **名称**：JSON-LD `name` → `og:title` → `h1` → `document.title`。
-- **图片**：JSON-LD `image` → `og:image` → `twitter:image` → 页面商品图 `img`。
+- **图片**：只取商品图库容器与左侧竖排缩略图；跳过视频格、广告横幅、店铺 logo、相关推荐；按图片核心 ID 去重，避免同一张图的 srcset 多尺寸重复。DOM 抓不到时才回退 JSON-LD / `og:image`。
 - **规格**：规格区/商品信息的 `li` 与 `tr`（覆盖 Mercado Libre、Shopee、Amazon、1688 常见结构），最多 40 条。
 - **SKU**：JSON-LD `sku`/`mpn`/`productID`、meta `product:retailer_item_id`、URL、页面文本。
 - **价格**：JSON-LD `offers.price` → `og:price:amount`。
 
 ## 与图片对比工具联动
 
-插件弹窗「图片对比工具」按钮打开 `https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY`（可在设置里改地址）。扫描结果可一键复制，粘贴到网页的对比输入框即可继续做同款图片检索。
+「一键扫描当前网页」完成后会自动在后台打开图库工具（不抢前台焦点），把扫描出的商品图带过去检索，并把「网页商品图 / 图库匹配图」并列回填到插件面板；也可点「图片对比工具」重试。默认地址 `https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY`（可在设置里改）。扫描结果仍可一键复制。
 
 ## 重新生成 SKU 集合
 

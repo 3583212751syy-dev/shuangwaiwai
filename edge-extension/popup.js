@@ -2,9 +2,36 @@ const $ = id => document.getElementById(id);
 let current = null;
 let index = new Map();
 let setInfo = null;
+let galleryTabId = null;
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function zoom(src) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src = src;
+  lb.style.display = 'flex';
+}
+function zoomAttr() {
+  return "onclick=\"event.preventDefault();event.stopPropagation();zoom(this.src)\"";
+}
+function resetMatches(msg) {
+  $('match-panel').classList.remove('hidden');
+  $('match-grid').innerHTML = '';
+  $('match-status').textContent = msg || '';
+}
+function renderMatches(items) {
+  if (!items.length) { resetMatches('暂未找到图库匹配图'); return; }
+  $('match-panel').classList.remove('hidden');
+  $('match-status').textContent = '共 ' + items.length + ' 组';
+  $('match-grid').innerHTML = items.map(x => {
+    const q = x.query || current?.images?.[0] || '';
+    return '<div class="match-box"><h4>网页商品图</h4>' +
+      (q ? '<img src="' + esc(q) + '" alt="网页图" ' + zoomAttr() + '>' : '<div class="meta">无图</div>') +
+      '</div><div class="match-box"><h4>' + esc(x.title || '图库候选') + '</h4>' +
+      (x.src ? '<img src="' + esc(x.src) + '" alt="图库匹配图" ' + zoomAttr() + '>' : '<div class="meta">无图</div>') +
+      '<div class="meta">' + esc(x.sub || '') + '</div></div>';
+  }).join('');
 }
 
 async function loadSet() {
@@ -26,7 +53,12 @@ function render(data) {
     : (r.candidates.length ? '扫描到：' + r.candidates.map(c => esc(c.sku)).join('、') : '请在商品详情页使用')) + '</small>';
 
   const specs = (data.specs || []).map(s => '<li>' + esc(s) + '</li>').join('');
-  const imgs = (data.images || []).slice(0, 4).map(u => '<img class="thumb" src="' + esc(u) + '" alt="">').join('');
+  const imgs = (data.images || []).slice(0, 6).map(u =>
+    '<a class="img-link" href="' + esc(u) + '" target="_blank" title="' + esc(u) + '">' +
+    '<img class="thumb" src="' + esc(u) + '" alt="商品图" loading="lazy" ' +
+    'onerror="this.style.display=\'none\';this.parentNode.textContent=\'图加载失败·点开\'" ' +
+    zoomAttr() +
+    '</a>').join('');
   $('product').innerHTML =
     '<h3>商品信息</h3>' +
     '<div class="name">' + esc(data.name || '未识别到名称') + '</div>' +
@@ -51,6 +83,8 @@ async function scan() {
     if (!out?.ok) throw new Error(out?.error || '页面未返回结果');
     render(out.data);
     $('status').textContent = '扫描完成 · ' + new Date(out.data.scannedAt).toLocaleString('zh-CN');
+    // 一键扫描里直接带上图库比对，结果回填到本面板，不抢前台焦点。
+    openGalleryCompare();
   } catch (e) {
     $('status').textContent = '扫描失败：' + (e?.message || e) + '（系统页面或商店页面可能不允许注入）';
   } finally {
@@ -59,7 +93,54 @@ async function scan() {
 }
 
 $('scan').onclick = scan;
-$('compare').onclick = () => chrome.tabs.create({ url: setInfo?.siteUrl || 'https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY' });
+$('lightbox').onclick = () => { $('lightbox').style.display = 'none'; $('lightbox-img').src = ''; };
+function galleryUrl() {
+  const base = setInfo?.siteUrl || 'https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY';
+  const u = new URL(base);
+  for (const img of (current?.images || []).slice(0, 8)) u.searchParams.append('img', img);
+  if (u.searchParams.has('img')) u.searchParams.set('autorun', '1');
+  return u.toString();
+}
+async function pollGallery(tabId, attempt = 0) {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (!tab) return;
+    const out = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        const cards = [...document.querySelectorAll('#results article.card')];
+        const items = cards.slice(0, 8).map(card => {
+          const im = card.querySelector('img');
+          return {
+            title: card.querySelector('h3')?.textContent?.trim() || '图库候选',
+            sub: card.querySelector('.body .sub')?.textContent?.trim().slice(0, 90) || '',
+            src: im ? new URL(im.currentSrc || im.src, location.href).href : ''
+          };
+        });
+        return { done: /查找完成|导入失败|失败/.test(document.querySelector('#query-status')?.textContent || ''), items };
+      }
+    });
+    const r = out?.[0]?.result;
+    if (r?.items?.length) { renderMatches(r.items.map((x, i) => ({ ...x, query: current?.images?.[i] || current?.images?.[0] }))); return; }
+    if (r?.done) { resetMatches('图库对比完成，未找到匹配图'); return; }
+  } catch { /* 页面尚未加载完，继续等 */ }
+  if (attempt < 60) setTimeout(() => pollGallery(tabId, attempt + 1), 2500);
+  else resetMatches('图库对比超时，可点“图片对比工具”重试');
+}
+async function openGalleryCompare() {
+  if (!current?.images?.length) { resetMatches('未扫描到商品图'); return; }
+  const url = galleryUrl();
+  resetMatches('正在后台与图库对比…');
+  try {
+    if (galleryTabId) await chrome.tabs.update(galleryTabId, { url, active: false });
+    else {
+      const tab = await chrome.tabs.create({ url, active: false });
+      galleryTabId = tab.id;
+    }
+    setTimeout(() => pollGallery(galleryTabId), 4000);
+  } catch (e) { resetMatches('打开图库失败：' + e.message); }
+}
+$('compare').onclick = openGalleryCompare;
 $('copy').onclick = async () => {
   if (!current) return;
   const text = [

@@ -53,20 +53,71 @@
 
   function getImages() {
     const urls = [];
+    // 同一张图的 srcset 会生成 D_xxx-O / D_xxx-F / D_xxx-V 等多个尺寸 URL，
+    // 必须用图片核心 ID 去重，否则面板里全是同一张图的不同分辨率。
+    const imageKey = u => {
+      const m = String(u).match(/\/D_([A-Z0-9_-]{6,})/i);
+      if (m) return 'D_' + m[1].split('-')[0];
+      return String(u).split(/[?#]/)[0];
+    };
+    const seen = new Set();
     const add = u => {
       if (!u) return;
       try {
         const abs = new URL(u, location.href).href;
-        if (/^https?:$/.test(new URL(abs).protocol) && !urls.includes(abs)) urls.push(abs);
+        if (!/^https?:$/.test(new URL(abs).protocol)) return;
+        const k = imageKey(abs);
+        if (seen.has(k)) return;
+        seen.add(k);
+        urls.push(abs);
       } catch { /* 忽略无效 URL */ }
     };
-    const p = findProduct();
-    if (Array.isArray(p.image)) p.image.forEach(x => add(typeof x === 'string' ? x : x?.url));
-    else if (p.image) add(typeof p.image === 'string' ? p.image : p.image.url);
-    add(meta('og:image'));
-    add(meta('twitter:image'));
-    for (const el of document.querySelectorAll('img[itemprop="image"],img[data-testid*="image"],img[class*="gallery"],img[class*="product-image"]')) add(el.src || el.dataset.src || el.getAttribute('data-original'));
-    return urls.filter(u => !/\.svg(\?|$)/i.test(u)).slice(0, 12);
+    // Mercado Libre 商品图库：中央大图 + 左侧竖排缩略图（含接线/背面图），
+    // 只在"图库容器"和"左侧竖排小图"里取；跳过视频格、促销横幅、相关推荐、店铺 logo。
+    const isVideo = el => {
+      const chain = [el, el?.parentElement, el?.parentElement?.parentElement].filter(Boolean);
+      return chain.some(x => {
+        const s = ((x.className || '') + ' ' + (x.getAttribute?.('data-testid') || '') + ' ' + (x.tagName || '')).toLowerCase();
+        // Mercado Libre 视频格 class 是 clip-wrapper / ui-pdp-gallery__clip，
+        // 只挡 video/play 会把它当商品图收进去。
+        return /video|play|trailer|multimedia|youtube|clip/.test(s) || x.tagName === 'VIDEO';
+      });
+    };
+    const gallerySelectors = [
+      '[class*="gallery"] img', '[class*="galeria"] img', '[class*="thumb"] img',
+      '[class*="miniatura"] img', '[data-testid*="gallery"] img',
+      '[class*="product-image"] img', 'figure img', 'picture img',
+      'img[itemprop="image"]', 'img[class*="gallery"]', 'img[class*="product-image"]'
+    ];
+    const picked = new Set();
+    for (const sel of gallerySelectors) {
+      for (const el of document.querySelectorAll(sel)) {
+        if (isVideo(el)) continue;
+        picked.add(el);
+        add(el.currentSrc || el.src || el.dataset.src || el.getAttribute('data-original'));
+        if (el.srcset) for (const part of el.srcset.split(',')) add(part.trim().split(/\s+/)[0]);
+      }
+    }
+    // 左侧竖排缩略图兜底（红框那两张接线/背面图 class 可能与 gallery 不同）：
+    // 位置在页面左侧 x<260、尺寸 30~110 的近方形小图，且不是视频。
+    for (const el of document.querySelectorAll('img')) {
+      if (picked.has(el) || isVideo(el)) continue;
+      const r = el.getBoundingClientRect?.();
+      if (!r) continue;
+      if (r.left < 260 && r.width >= 30 && r.width <= 110 && r.height >= 30 && r.height <= 110) {
+        picked.add(el);
+        add(el.currentSrc || el.src || el.dataset.src || el.getAttribute('data-original'));
+      }
+    }
+    // JSON-LD 兜底：仅当 DOM 一张都没抓到时用，避免同一张主图再被加一次。
+    if (!urls.length) {
+      const p = findProduct();
+      if (Array.isArray(p.image)) p.image.forEach(x => add(typeof x === 'string' ? x : x?.url));
+      else if (p.image) add(typeof p.image === 'string' ? p.image : p.image.url);
+      add(meta('og:image'));
+      add(meta('twitter:image'));
+    }
+    return urls.filter(u => !/\.svg(\?|$)/i.test(u) && !/(banner|advert|promo|topvie|logo)/i.test(u)).slice(0, 12);
   }
 
   function getSpecs() {

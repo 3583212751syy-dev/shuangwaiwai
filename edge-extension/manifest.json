@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "选品排重助手 · 网页一键扫描",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "扫描当前商品页的图片、名称、规格与 SKU，按自有 SKU 集合判定产品是否重复。",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
