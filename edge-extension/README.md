@@ -10,9 +10,10 @@
 
 ## 判定规则
 
-- 自有 SKU 集合内置 `sku-set.json`，共 696 条：
-  - 500 条内部 SKU：金山文档「选品定价表.xlsx」→「产品排重」G 列 +「通用品」G 列。
-  - 196 条美客多平台 ID：两张表「主管审核备注」列里的 `MLM...` 编号。
+- 自有 SKU 集合内置 `sku-set.json`，共 1832 条：
+  - 「产品排重」A 列「同行SKU」：1728 条（如 `MLM4405140516`、`MLM2011620355`）。
+  - 「通用品」G 列「同行SKU」：合并去重（如 `MLM1409046617`、`MLM2226332683`）。
+  - 两张表「主管审核备注」列补充，以及少量 Amazon ASIN。
 - 扫描页面时从 JSON-LD、meta 标签、URL、页面文本提取 `MLM\d+` 与内部 SKU。
 - 任一 SKU 命中集合 → 显示「产品重复（SKU 命中自有集合）」，并列出命中编号与来源行。
 - 未命中 → 显示「SKU 未命中，不判为重复」；扫描不到 SKU → 「未识别到 SKU，无法判定」。
@@ -34,7 +35,7 @@
 ## 重新生成 SKU 集合
 
 ```bash
-node tools-build-sku.mjs <产品排重G列.json> <通用品G列.json> <MLM_ID.json> sku-set.json
+node tools-build-sku.mjs <产品排重A列.json> <通用品G列.json> <MLM_ID.json> sku-set.json
 node -e "const fs=require('fs'),vm=require('vm');const c={module:{exports:{}},self:{}};vm.runInNewContext(fs.readFileSync('lib/sku.js','utf8'),c);global.SKUMatch=c.module.exports||c.self.SKUMatch;require('./test-extension.mjs')"
 ```
 
