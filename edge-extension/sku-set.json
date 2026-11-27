@@ -1,0 +1,8970 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-27T07:35:15.855Z",
+  "source": "金山文档 选品定价表.xlsx（与我共享）",
+  "sourceUrl": "https://www.kdocs.cn/l/ch0h8m4dZ6ho",
+  "note": "内部 SKU 来自「产品排重」与「通用品」G 列；MLM 平台 ID 来自两张表的主管审核备注列。",
+  "count": 696,
+  "items": [
+    {
+      "sku": "CJC-A1861A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 26
+        },
+        {
+          "sheet": "通用品",
+          "row": 26
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1878A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 41
+        },
+        {
+          "sheet": "通用品",
+          "row": 41
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1883A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 50
+        },
+        {
+          "sheet": "通用品",
+          "row": 50
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1924A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 95
+        },
+        {
+          "sheet": "通用品",
+          "row": 95
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1965A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 134
+        },
+        {
+          "sheet": "通用品",
+          "row": 134
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1982A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 158
+        },
+        {
+          "sheet": "通用品",
+          "row": 158
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A1996A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 181
+        },
+        {
+          "sheet": "通用品",
+          "row": 181
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2011A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 201
+        },
+        {
+          "sheet": "通用品",
+          "row": 201
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2061A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 267
+        },
+        {
+          "sheet": "通用品",
+          "row": 267
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2062A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 268
+        },
+        {
+          "sheet": "通用品",
+          "row": 268
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2074A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 283
+        },
+        {
+          "sheet": "通用品",
+          "row": 283
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2124A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 357
+        },
+        {
+          "sheet": "通用品",
+          "row": 357
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2131A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 373
+        },
+        {
+          "sheet": "通用品",
+          "row": 373
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2135A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 380
+        },
+        {
+          "sheet": "通用品",
+          "row": 380
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2187A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 457
+        },
+        {
+          "sheet": "通用品",
+          "row": 457
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2202A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 485
+        },
+        {
+          "sheet": "通用品",
+          "row": 485
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2205A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 489
+        },
+        {
+          "sheet": "通用品",
+          "row": 489
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2207A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 492
+        },
+        {
+          "sheet": "通用品",
+          "row": 492
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2233A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 533
+        },
+        {
+          "sheet": "通用品",
+          "row": 533
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2278A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 598
+        },
+        {
+          "sheet": "通用品",
+          "row": 598
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2296A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 621
+        },
+        {
+          "sheet": "通用品",
+          "row": 621
+        }
+      ]
+    },
+    {
+      "sku": "CJC-A2302A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 632
+        },
+        {
+          "sheet": "通用品",
+          "row": 632
+        }
+      ]
+    },
+    {
+      "sku": "CQF-A1899A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 71
+        },
+        {
+          "sheet": "通用品",
+          "row": 71
+        }
+      ]
+    },
+    {
+      "sku": "CQF-A2321A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 659
+        },
+        {
+          "sheet": "通用品",
+          "row": 659
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1868A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 31
+        },
+        {
+          "sheet": "通用品",
+          "row": 31
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1872A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 34
+        },
+        {
+          "sheet": "通用品",
+          "row": 34
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1893A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 61
+        },
+        {
+          "sheet": "通用品",
+          "row": 61
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1897A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 65
+        },
+        {
+          "sheet": "通用品",
+          "row": 65
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1981A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 156
+        },
+        {
+          "sheet": "通用品",
+          "row": 156
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1989A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 167
+        },
+        {
+          "sheet": "通用品",
+          "row": 167
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A1991A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 171
+        },
+        {
+          "sheet": "通用品",
+          "row": 171
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2003A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 188
+        },
+        {
+          "sheet": "通用品",
+          "row": 188
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2007A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 197
+        },
+        {
+          "sheet": "通用品",
+          "row": 197
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2017A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 212
+        },
+        {
+          "sheet": "通用品",
+          "row": 212
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2020A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 215
+        },
+        {
+          "sheet": "通用品",
+          "row": 215
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2035A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 235
+        },
+        {
+          "sheet": "通用品",
+          "row": 235
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2043A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 244
+        },
+        {
+          "sheet": "通用品",
+          "row": 244
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2051A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 255
+        },
+        {
+          "sheet": "通用品",
+          "row": 255
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2069A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 277
+        },
+        {
+          "sheet": "通用品",
+          "row": 277
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2078A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 288
+        },
+        {
+          "sheet": "通用品",
+          "row": 288
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2079A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 290
+        },
+        {
+          "sheet": "通用品",
+          "row": 290
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2088A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 303
+        },
+        {
+          "sheet": "通用品",
+          "row": 303
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2093A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 310
+        },
+        {
+          "sheet": "通用品",
+          "row": 310
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2159A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 413
+        },
+        {
+          "sheet": "通用品",
+          "row": 413
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2163A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 418
+        },
+        {
+          "sheet": "通用品",
+          "row": 418
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2170A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 428
+        },
+        {
+          "sheet": "通用品",
+          "row": 428
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2173A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 431
+        },
+        {
+          "sheet": "通用品",
+          "row": 431
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2176A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 435
+        },
+        {
+          "sheet": "通用品",
+          "row": 435
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2177A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 436
+        },
+        {
+          "sheet": "通用品",
+          "row": 436
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2178A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 439
+        },
+        {
+          "sheet": "通用品",
+          "row": 439
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2238A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 542
+        },
+        {
+          "sheet": "通用品",
+          "row": 542
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2259A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 571
+        },
+        {
+          "sheet": "通用品",
+          "row": 571
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2263A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 578
+        },
+        {
+          "sheet": "通用品",
+          "row": 578
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2284A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 607
+        },
+        {
+          "sheet": "通用品",
+          "row": 607
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2288A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 612
+        },
+        {
+          "sheet": "通用品",
+          "row": 612
+        }
+      ]
+    },
+    {
+      "sku": "HQQ-A2316A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 650
+        },
+        {
+          "sheet": "通用品",
+          "row": 650
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2095A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 313
+        },
+        {
+          "sheet": "通用品",
+          "row": 313
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2097A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 316
+        },
+        {
+          "sheet": "通用品",
+          "row": 316
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2099A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 319
+        },
+        {
+          "sheet": "通用品",
+          "row": 319
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2100A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 320
+        },
+        {
+          "sheet": "通用品",
+          "row": 320
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2106A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 327
+        },
+        {
+          "sheet": "通用品",
+          "row": 327
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2112A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 334
+        },
+        {
+          "sheet": "通用品",
+          "row": 334
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2116A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 343
+        },
+        {
+          "sheet": "通用品",
+          "row": 343
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2129A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 367
+        },
+        {
+          "sheet": "通用品",
+          "row": 367
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2132A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 374
+        },
+        {
+          "sheet": "通用品",
+          "row": 374
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2134A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 377
+        },
+        {
+          "sheet": "通用品",
+          "row": 377
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2142A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 385
+        },
+        {
+          "sheet": "通用品",
+          "row": 385
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2144A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 390
+        },
+        {
+          "sheet": "通用品",
+          "row": 390
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2146A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 392
+        },
+        {
+          "sheet": "通用品",
+          "row": 392
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2191A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 467
+        },
+        {
+          "sheet": "通用品",
+          "row": 467
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2196A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 473
+        },
+        {
+          "sheet": "通用品",
+          "row": 473
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2200A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 483
+        },
+        {
+          "sheet": "通用品",
+          "row": 483
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2217A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 511
+        },
+        {
+          "sheet": "通用品",
+          "row": 511
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2219A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 516
+        },
+        {
+          "sheet": "通用品",
+          "row": 516
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2222A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 521
+        },
+        {
+          "sheet": "通用品",
+          "row": 521
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2227A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 526
+        },
+        {
+          "sheet": "通用品",
+          "row": 526
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2228A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 528
+        },
+        {
+          "sheet": "通用品",
+          "row": 528
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2236A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 540
+        },
+        {
+          "sheet": "通用品",
+          "row": 540
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2237A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 541
+        },
+        {
+          "sheet": "通用品",
+          "row": 541
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2268A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 585
+        },
+        {
+          "sheet": "通用品",
+          "row": 585
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2281A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 602
+        },
+        {
+          "sheet": "通用品",
+          "row": 602
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2289A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 613
+        },
+        {
+          "sheet": "通用品",
+          "row": 613
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2306A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 636
+        },
+        {
+          "sheet": "通用品",
+          "row": 636
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2319A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 654
+        },
+        {
+          "sheet": "通用品",
+          "row": 654
+        }
+      ]
+    },
+    {
+      "sku": "HSJ-A2324A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 662
+        },
+        {
+          "sheet": "通用品",
+          "row": 662
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1838A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 5
+        },
+        {
+          "sheet": "通用品",
+          "row": 5
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1839A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 6
+        },
+        {
+          "sheet": "通用品",
+          "row": 6
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1840A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 7
+        },
+        {
+          "sheet": "通用品",
+          "row": 7
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1841A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 8
+        },
+        {
+          "sheet": "通用品",
+          "row": 8
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1842A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 9
+        },
+        {
+          "sheet": "通用品",
+          "row": 9
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1843A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 10
+        },
+        {
+          "sheet": "通用品",
+          "row": 10
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1844A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 11
+        },
+        {
+          "sheet": "通用品",
+          "row": 11
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1845A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 12
+        },
+        {
+          "sheet": "通用品",
+          "row": 12
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1846A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 13
+        },
+        {
+          "sheet": "通用品",
+          "row": 13
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1847A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 14
+        },
+        {
+          "sheet": "通用品",
+          "row": 14
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1848A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 15
+        },
+        {
+          "sheet": "通用品",
+          "row": 15
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1849A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 16
+        },
+        {
+          "sheet": "通用品",
+          "row": 16
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1852A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 17
+        },
+        {
+          "sheet": "通用品",
+          "row": 17
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1853A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 18
+        },
+        {
+          "sheet": "通用品",
+          "row": 18
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1854A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 19
+        },
+        {
+          "sheet": "通用品",
+          "row": 19
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1855A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 20
+        },
+        {
+          "sheet": "通用品",
+          "row": 20
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1857A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 22
+        },
+        {
+          "sheet": "通用品",
+          "row": 22
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1881A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 48
+        },
+        {
+          "sheet": "通用品",
+          "row": 48
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1882A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 49
+        },
+        {
+          "sheet": "通用品",
+          "row": 49
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1884A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 51
+        },
+        {
+          "sheet": "通用品",
+          "row": 51
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1887A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 54
+        },
+        {
+          "sheet": "通用品",
+          "row": 54
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1903A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 67
+        },
+        {
+          "sheet": "通用品",
+          "row": 67
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1904A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 69
+        },
+        {
+          "sheet": "通用品",
+          "row": 69
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1905A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 70
+        },
+        {
+          "sheet": "通用品",
+          "row": 70
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1920A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 91
+        },
+        {
+          "sheet": "通用品",
+          "row": 91
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1929A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 100
+        },
+        {
+          "sheet": "通用品",
+          "row": 100
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1944A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 114
+        },
+        {
+          "sheet": "通用品",
+          "row": 114
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1946A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 116
+        },
+        {
+          "sheet": "通用品",
+          "row": 116
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1955A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 124
+        },
+        {
+          "sheet": "通用品",
+          "row": 124
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1957A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 126
+        },
+        {
+          "sheet": "通用品",
+          "row": 126
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1963A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 132
+        },
+        {
+          "sheet": "通用品",
+          "row": 132
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1967A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 137
+        },
+        {
+          "sheet": "通用品",
+          "row": 137
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1975A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 148
+        },
+        {
+          "sheet": "通用品",
+          "row": 148
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1978A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 153
+        },
+        {
+          "sheet": "通用品",
+          "row": 153
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1979A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 154
+        },
+        {
+          "sheet": "通用品",
+          "row": 154
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A1998A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 183
+        },
+        {
+          "sheet": "通用品",
+          "row": 183
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2001A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 186
+        },
+        {
+          "sheet": "通用品",
+          "row": 186
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2004A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 189
+        },
+        {
+          "sheet": "通用品",
+          "row": 189
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2006A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 191
+        },
+        {
+          "sheet": "通用品",
+          "row": 191
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2015A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 209
+        },
+        {
+          "sheet": "通用品",
+          "row": 209
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2022A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 218
+        },
+        {
+          "sheet": "通用品",
+          "row": 218
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2028A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 164
+        },
+        {
+          "sheet": "通用品",
+          "row": 164
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2031A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 229
+        },
+        {
+          "sheet": "通用品",
+          "row": 229
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2047A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 249
+        },
+        {
+          "sheet": "通用品",
+          "row": 249
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2049A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 252
+        },
+        {
+          "sheet": "通用品",
+          "row": 252
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2052A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 257
+        },
+        {
+          "sheet": "通用品",
+          "row": 257
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2081A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 292
+        },
+        {
+          "sheet": "通用品",
+          "row": 292
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2084A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 298
+        },
+        {
+          "sheet": "通用品",
+          "row": 298
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2094A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 312
+        },
+        {
+          "sheet": "通用品",
+          "row": 312
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2098A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 318
+        },
+        {
+          "sheet": "通用品",
+          "row": 318
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2105A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 326
+        },
+        {
+          "sheet": "通用品",
+          "row": 326
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2111A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 333
+        },
+        {
+          "sheet": "通用品",
+          "row": 333
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2136A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 317
+        },
+        {
+          "sheet": "通用品",
+          "row": 317
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2155A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 406
+        },
+        {
+          "sheet": "通用品",
+          "row": 406
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2160A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 414
+        },
+        {
+          "sheet": "通用品",
+          "row": 414
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2166A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 421
+        },
+        {
+          "sheet": "通用品",
+          "row": 421
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2172A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 430
+        },
+        {
+          "sheet": "通用品",
+          "row": 430
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2174A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 432
+        },
+        {
+          "sheet": "通用品",
+          "row": 432
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2175A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 433
+        },
+        {
+          "sheet": "通用品",
+          "row": 433
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2179A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 440
+        },
+        {
+          "sheet": "通用品",
+          "row": 440
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2180A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 441
+        },
+        {
+          "sheet": "通用品",
+          "row": 441
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2183A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 453
+        },
+        {
+          "sheet": "通用品",
+          "row": 453
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2185A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 455
+        },
+        {
+          "sheet": "通用品",
+          "row": 455
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2192A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 468
+        },
+        {
+          "sheet": "通用品",
+          "row": 468
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2204A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 488
+        },
+        {
+          "sheet": "通用品",
+          "row": 488
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2214A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 507
+        },
+        {
+          "sheet": "通用品",
+          "row": 507
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2218A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 514
+        },
+        {
+          "sheet": "通用品",
+          "row": 514
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2224A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 523
+        },
+        {
+          "sheet": "通用品",
+          "row": 523
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2225A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 524
+        },
+        {
+          "sheet": "通用品",
+          "row": 524
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2232A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 532
+        },
+        {
+          "sheet": "通用品",
+          "row": 532
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2234A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 537
+        },
+        {
+          "sheet": "通用品",
+          "row": 537
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2246A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 556
+        },
+        {
+          "sheet": "通用品",
+          "row": 556
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2251A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 561
+        },
+        {
+          "sheet": "通用品",
+          "row": 561
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2254A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 565
+        },
+        {
+          "sheet": "通用品",
+          "row": 565
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2267A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 584
+        },
+        {
+          "sheet": "通用品",
+          "row": 584
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2273A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 591
+        },
+        {
+          "sheet": "通用品",
+          "row": 591
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2275A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 595
+        },
+        {
+          "sheet": "通用品",
+          "row": 595
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2283A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 606
+        },
+        {
+          "sheet": "通用品",
+          "row": 606
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2298A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 623
+        },
+        {
+          "sheet": "通用品",
+          "row": 623
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2311A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 643
+        },
+        {
+          "sheet": "通用品",
+          "row": 643
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2313A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 645
+        },
+        {
+          "sheet": "通用品",
+          "row": 645
+        }
+      ]
+    },
+    {
+      "sku": "LYZ-A2315A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 649
+        },
+        {
+          "sheet": "通用品",
+          "row": 649
+        }
+      ]
+    },
+    {
+      "sku": "MLM1311206870",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1409046617",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1422463342",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1452516130",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1475056763",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1517756019",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1570640042",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1571828296",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1630004069",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1631882137",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1673170399",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1723187133",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1743779556",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1865420521",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1869756006",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1899942112",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1912092039",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1924845284",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1934097785",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1978062525",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM1985260903",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2005411133",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2011620355",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2013383777",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2013620787",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2013909247",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2015640285",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2023289227",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2030378271",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2031643065",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2037538029",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2038658823",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2040106051",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2046003493",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2047908251",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2050707887",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2053390213",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2059270925",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2061452327",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2062291187",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2068398115",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2083941635",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2084068037",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2099683555",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2174502018",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2179975772",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2214501663",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2242172545",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2242172763",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2257970379",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2275615185",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM23011998",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2342027754",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2345662402",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2374103507",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2402335108",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2403965572",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM24045046",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM24381989",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2448438756",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2450817040",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2463415526",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2470582194",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2501488601",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2528860391",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2541417066",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2557814751",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2569156080",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2574470958",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2596381939",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2601123826",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2601435280",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2611951184",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2634000256",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2636652224",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2675341102",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2684393402",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2715782127",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM27175385",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2732084074",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2762076574",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2766634412",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2774751036",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2799023330",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2803820234",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2824835617",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2834648071",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2841779606",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2843989452",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2845807938",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2849650405",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2898054843",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2920140014",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2951512008",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2965950171",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2981906008",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2981919004",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2983764129",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2985534006",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2992357238",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM2997830692",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3000998229",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3006659023",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3023217825",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3038110206",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3043996034",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3055478038",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3055642478",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3055898585",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3058541200",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3089131012",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3103440454",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3106082734",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3111728809",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3126825156",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3137240795",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3137701327",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3138546746",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3151860436",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3154005963",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3174490389",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3178843586",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3198381391",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3212848941",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3260191255",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3280255918",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3321342668",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3352471943",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3360000505",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3389554875",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3404102159",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3459878048",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3461432782",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3538951161",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3569221392",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3606143133",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3652353654",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3684651673",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3790596438",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3796073432",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3799923422",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM38771601",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM3909988356",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4021242574",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4316685314",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4359308416",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4405140516",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4661919666",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4728520550",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4945267572",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM4987944302",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5213180984",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5220143342",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5266936444",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5305506478",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5311332662",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5326275194",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5335328886",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5376470026",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5427498396",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5441277048",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5507097072",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5570687030",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5580026768",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5587452500",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5600125104",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5619237226",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5659607936",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5670481362",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5707972370",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5716592222",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5727319782",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5761134764",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5784641868",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5810748806",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5836032478",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5850477606",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5880145844",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5895288882",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM5898192656",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6023780954",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6046760042",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6141113124",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6142308264",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6168984030",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM621650068",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6219629668",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6232559214",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6238074674",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM6324965736",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM690331498",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM765206653",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM838742197",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM896549559",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM944209726",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "MLM951874476",
+      "type": "mlm",
+      "sources": [
+        {
+          "sheet": "选品定价表/产品排重·主管审核备注",
+          "row": null
+        }
+      ]
+    },
+    {
+      "sku": "PFY-53-X2",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 677
+        },
+        {
+          "sheet": "通用品",
+          "row": 677
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1900A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 72
+        },
+        {
+          "sheet": "通用品",
+          "row": 72
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1902A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 73
+        },
+        {
+          "sheet": "通用品",
+          "row": 73
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1921A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 92
+        },
+        {
+          "sheet": "通用品",
+          "row": 92
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1923A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 94
+        },
+        {
+          "sheet": "通用品",
+          "row": 94
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1926A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 97
+        },
+        {
+          "sheet": "通用品",
+          "row": 97
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1933A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 103
+        },
+        {
+          "sheet": "通用品",
+          "row": 103
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1942A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 112
+        },
+        {
+          "sheet": "通用品",
+          "row": 112
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1961A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 130
+        },
+        {
+          "sheet": "通用品",
+          "row": 130
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1971A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 143
+        },
+        {
+          "sheet": "通用品",
+          "row": 143
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A1972A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 145
+        },
+        {
+          "sheet": "通用品",
+          "row": 145
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2014A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 206
+        },
+        {
+          "sheet": "通用品",
+          "row": 206
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2024A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 222
+        },
+        {
+          "sheet": "通用品",
+          "row": 222
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2025A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 223
+        },
+        {
+          "sheet": "通用品",
+          "row": 223
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2036A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 236
+        },
+        {
+          "sheet": "通用品",
+          "row": 236
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2037A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 238
+        },
+        {
+          "sheet": "通用品",
+          "row": 238
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2045A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 246
+        },
+        {
+          "sheet": "通用品",
+          "row": 246
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2046A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 247
+        },
+        {
+          "sheet": "通用品",
+          "row": 247
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2055A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 261
+        },
+        {
+          "sheet": "通用品",
+          "row": 261
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2056A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 262
+        },
+        {
+          "sheet": "通用品",
+          "row": 262
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2066A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 274
+        },
+        {
+          "sheet": "通用品",
+          "row": 274
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2076A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 285
+        },
+        {
+          "sheet": "通用品",
+          "row": 285
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2077A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 286
+        },
+        {
+          "sheet": "通用品",
+          "row": 286
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2086A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 300
+        },
+        {
+          "sheet": "通用品",
+          "row": 300
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2096A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 315
+        },
+        {
+          "sheet": "通用品",
+          "row": 315
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2108A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 330
+        },
+        {
+          "sheet": "通用品",
+          "row": 330
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2110A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 332
+        },
+        {
+          "sheet": "通用品",
+          "row": 332
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2119A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 348
+        },
+        {
+          "sheet": "通用品",
+          "row": 348
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2120A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 349
+        },
+        {
+          "sheet": "通用品",
+          "row": 349
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2143A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 386
+        },
+        {
+          "sheet": "通用品",
+          "row": 386
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2148A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 397
+        },
+        {
+          "sheet": "通用品",
+          "row": 397
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2158A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 412
+        },
+        {
+          "sheet": "通用品",
+          "row": 412
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2167A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 422
+        },
+        {
+          "sheet": "通用品",
+          "row": 422
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2181A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 447
+        },
+        {
+          "sheet": "通用品",
+          "row": 447
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2182A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 448
+        },
+        {
+          "sheet": "通用品",
+          "row": 448
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2190A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 462
+        },
+        {
+          "sheet": "通用品",
+          "row": 462
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2215A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 508
+        },
+        {
+          "sheet": "通用品",
+          "row": 508
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2216A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 509
+        },
+        {
+          "sheet": "通用品",
+          "row": 509
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2221A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 518
+        },
+        {
+          "sheet": "通用品",
+          "row": 518
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2241A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 548
+        },
+        {
+          "sheet": "通用品",
+          "row": 548
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2247A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 557
+        },
+        {
+          "sheet": "通用品",
+          "row": 557
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2248A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 558
+        },
+        {
+          "sheet": "通用品",
+          "row": 558
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2249A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 559
+        },
+        {
+          "sheet": "通用品",
+          "row": 559
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2260A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 572
+        },
+        {
+          "sheet": "通用品",
+          "row": 572
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2269A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 586
+        },
+        {
+          "sheet": "通用品",
+          "row": 586
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2270A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 587
+        },
+        {
+          "sheet": "通用品",
+          "row": 587
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2279A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 599
+        },
+        {
+          "sheet": "通用品",
+          "row": 599
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2292A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 617
+        },
+        {
+          "sheet": "通用品",
+          "row": 617
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2293A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 618
+        },
+        {
+          "sheet": "通用品",
+          "row": 618
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2310A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 642
+        },
+        {
+          "sheet": "通用品",
+          "row": 642
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2322A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 660
+        },
+        {
+          "sheet": "通用品",
+          "row": 660
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2330A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 668
+        },
+        {
+          "sheet": "通用品",
+          "row": 668
+        }
+      ]
+    },
+    {
+      "sku": "SYY-A2331A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 669
+        },
+        {
+          "sheet": "通用品",
+          "row": 669
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1886A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 53
+        },
+        {
+          "sheet": "通用品",
+          "row": 53
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1890A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 58
+        },
+        {
+          "sheet": "通用品",
+          "row": 58
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1891A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 59
+        },
+        {
+          "sheet": "通用品",
+          "row": 59
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1930A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 101
+        },
+        {
+          "sheet": "通用品",
+          "row": 101
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1931A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 102
+        },
+        {
+          "sheet": "通用品",
+          "row": 102
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1935A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 104
+        },
+        {
+          "sheet": "通用品",
+          "row": 104
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1936A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 105
+        },
+        {
+          "sheet": "通用品",
+          "row": 105
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1959A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 128
+        },
+        {
+          "sheet": "通用品",
+          "row": 128
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1960A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 129
+        },
+        {
+          "sheet": "通用品",
+          "row": 129
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1968A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 138
+        },
+        {
+          "sheet": "通用品",
+          "row": 138
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1969A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 139
+        },
+        {
+          "sheet": "通用品",
+          "row": 139
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A1974A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 147
+        },
+        {
+          "sheet": "通用品",
+          "row": 147
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2008A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 198
+        },
+        {
+          "sheet": "通用品",
+          "row": 198
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2009A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 199
+        },
+        {
+          "sheet": "通用品",
+          "row": 199
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2012A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 202
+        },
+        {
+          "sheet": "通用品",
+          "row": 202
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2013A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 205
+        },
+        {
+          "sheet": "通用品",
+          "row": 205
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2044A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 245
+        },
+        {
+          "sheet": "通用品",
+          "row": 245
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2063A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 269
+        },
+        {
+          "sheet": "通用品",
+          "row": 269
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2115A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 342
+        },
+        {
+          "sheet": "通用品",
+          "row": 342
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2117A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 344
+        },
+        {
+          "sheet": "通用品",
+          "row": 344
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2118A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 347
+        },
+        {
+          "sheet": "通用品",
+          "row": 347
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2138A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 381
+        },
+        {
+          "sheet": "通用品",
+          "row": 381
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2139A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 382
+        },
+        {
+          "sheet": "通用品",
+          "row": 382
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2140A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 383
+        },
+        {
+          "sheet": "通用品",
+          "row": 383
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2141A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 384
+        },
+        {
+          "sheet": "通用品",
+          "row": 384
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2149A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 399
+        },
+        {
+          "sheet": "通用品",
+          "row": 399
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2198A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 476
+        },
+        {
+          "sheet": "通用品",
+          "row": 476
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2201A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 484
+        },
+        {
+          "sheet": "通用品",
+          "row": 484
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2203A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 486
+        },
+        {
+          "sheet": "通用品",
+          "row": 486
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2256A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 567
+        },
+        {
+          "sheet": "通用品",
+          "row": 567
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2258A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 570
+        },
+        {
+          "sheet": "通用品",
+          "row": 570
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2286A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 610
+        },
+        {
+          "sheet": "通用品",
+          "row": 610
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2307A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 637
+        },
+        {
+          "sheet": "通用品",
+          "row": 637
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2308A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 639
+        },
+        {
+          "sheet": "通用品",
+          "row": 639
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2318A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 652
+        },
+        {
+          "sheet": "通用品",
+          "row": 652
+        }
+      ]
+    },
+    {
+      "sku": "TYP-A2320A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 658
+        },
+        {
+          "sheet": "通用品",
+          "row": 658
+        }
+      ]
+    },
+    {
+      "sku": "WH-A1871A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 33
+        },
+        {
+          "sheet": "通用品",
+          "row": 33
+        }
+      ]
+    },
+    {
+      "sku": "WH-A1885A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 52
+        },
+        {
+          "sheet": "通用品",
+          "row": 52
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1809A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 43
+        },
+        {
+          "sheet": "通用品",
+          "row": 43
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1829A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 44
+        },
+        {
+          "sheet": "通用品",
+          "row": 44
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1832A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 45
+        },
+        {
+          "sheet": "通用品",
+          "row": 45
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1833A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 46
+        },
+        {
+          "sheet": "通用品",
+          "row": 46
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1888A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 56
+        },
+        {
+          "sheet": "通用品",
+          "row": 56
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1889A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 57
+        },
+        {
+          "sheet": "通用品",
+          "row": 57
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1895A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 63
+        },
+        {
+          "sheet": "通用品",
+          "row": 63
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1907A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 75
+        },
+        {
+          "sheet": "通用品",
+          "row": 75
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1908A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 76
+        },
+        {
+          "sheet": "通用品",
+          "row": 76
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1909A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 77
+        },
+        {
+          "sheet": "通用品",
+          "row": 77
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1910A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 78
+        },
+        {
+          "sheet": "通用品",
+          "row": 78
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1911A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 79
+        },
+        {
+          "sheet": "通用品",
+          "row": 79
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1919A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 90
+        },
+        {
+          "sheet": "通用品",
+          "row": 90
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1947A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 117
+        },
+        {
+          "sheet": "通用品",
+          "row": 117
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1948A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 118
+        },
+        {
+          "sheet": "通用品",
+          "row": 118
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1962A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 131
+        },
+        {
+          "sheet": "通用品",
+          "row": 131
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1973A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 146
+        },
+        {
+          "sheet": "通用品",
+          "row": 146
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1985A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 161
+        },
+        {
+          "sheet": "通用品",
+          "row": 161
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1986A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 162
+        },
+        {
+          "sheet": "通用品",
+          "row": 162
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1993A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 173
+        },
+        {
+          "sheet": "通用品",
+          "row": 173
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1994A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 174
+        },
+        {
+          "sheet": "通用品",
+          "row": 174
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A1995A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 180
+        },
+        {
+          "sheet": "通用品",
+          "row": 180
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2019A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 214
+        },
+        {
+          "sheet": "通用品",
+          "row": 214
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2027A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 226
+        },
+        {
+          "sheet": "通用品",
+          "row": 226
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2038A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 239
+        },
+        {
+          "sheet": "通用品",
+          "row": 239
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2064A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 270
+        },
+        {
+          "sheet": "通用品",
+          "row": 270
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2071A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 279
+        },
+        {
+          "sheet": "通用品",
+          "row": 279
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2072A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 280
+        },
+        {
+          "sheet": "通用品",
+          "row": 280
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2082A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 293
+        },
+        {
+          "sheet": "通用品",
+          "row": 293
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2083A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 296
+        },
+        {
+          "sheet": "通用品",
+          "row": 296
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2090A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 306
+        },
+        {
+          "sheet": "通用品",
+          "row": 306
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2091A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 307
+        },
+        {
+          "sheet": "通用品",
+          "row": 307
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2101A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 322
+        },
+        {
+          "sheet": "通用品",
+          "row": 322
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2102A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 323
+        },
+        {
+          "sheet": "通用品",
+          "row": 323
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2107A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 329
+        },
+        {
+          "sheet": "通用品",
+          "row": 329
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2114A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 340
+        },
+        {
+          "sheet": "通用品",
+          "row": 340
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2130A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 369
+        },
+        {
+          "sheet": "通用品",
+          "row": 369
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2145A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 391
+        },
+        {
+          "sheet": "通用品",
+          "row": 391
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2154A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 405
+        },
+        {
+          "sheet": "通用品",
+          "row": 405
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2157A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 409
+        },
+        {
+          "sheet": "通用品",
+          "row": 409
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2161A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 415
+        },
+        {
+          "sheet": "通用品",
+          "row": 415
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2184A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 454
+        },
+        {
+          "sheet": "通用品",
+          "row": 454
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2188A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 458
+        },
+        {
+          "sheet": "通用品",
+          "row": 458
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2194A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 470
+        },
+        {
+          "sheet": "通用品",
+          "row": 470
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2195A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 471
+        },
+        {
+          "sheet": "通用品",
+          "row": 471
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2210A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 497
+        },
+        {
+          "sheet": "通用品",
+          "row": 497
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2220A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 517
+        },
+        {
+          "sheet": "通用品",
+          "row": 517
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2223A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 522
+        },
+        {
+          "sheet": "通用品",
+          "row": 522
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2244A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 554
+        },
+        {
+          "sheet": "通用品",
+          "row": 554
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2245A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 555
+        },
+        {
+          "sheet": "通用品",
+          "row": 555
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2261A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 575
+        },
+        {
+          "sheet": "通用品",
+          "row": 575
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2276A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 596
+        },
+        {
+          "sheet": "通用品",
+          "row": 596
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2285A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 608
+        },
+        {
+          "sheet": "通用品",
+          "row": 608
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2295A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 620
+        },
+        {
+          "sheet": "通用品",
+          "row": 620
+        }
+      ]
+    },
+    {
+      "sku": "WQZ-A2312A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 644
+        },
+        {
+          "sheet": "通用品",
+          "row": 644
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A1856A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 21
+        },
+        {
+          "sheet": "通用品",
+          "row": 21
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A1875A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 37
+        },
+        {
+          "sheet": "通用品",
+          "row": 37
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A1877A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 39
+        },
+        {
+          "sheet": "通用品",
+          "row": 39
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A1952A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 121
+        },
+        {
+          "sheet": "通用品",
+          "row": 121
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A1953A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 122
+        },
+        {
+          "sheet": "通用品",
+          "row": 122
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2010A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 200
+        },
+        {
+          "sheet": "通用品",
+          "row": 200
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2041A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 242
+        },
+        {
+          "sheet": "通用品",
+          "row": 242
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2089A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 305
+        },
+        {
+          "sheet": "通用品",
+          "row": 305
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2121A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 352
+        },
+        {
+          "sheet": "通用品",
+          "row": 352
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2125A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 361
+        },
+        {
+          "sheet": "通用品",
+          "row": 361
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2128A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 366
+        },
+        {
+          "sheet": "通用品",
+          "row": 366
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2147A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 395
+        },
+        {
+          "sheet": "通用品",
+          "row": 395
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2153A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 404
+        },
+        {
+          "sheet": "通用品",
+          "row": 404
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2197A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 475
+        },
+        {
+          "sheet": "通用品",
+          "row": 475
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2240A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 545
+        },
+        {
+          "sheet": "通用品",
+          "row": 545
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2255A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 566
+        },
+        {
+          "sheet": "通用品",
+          "row": 566
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2290A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 615
+        },
+        {
+          "sheet": "通用品",
+          "row": 615
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2299A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 624
+        },
+        {
+          "sheet": "通用品",
+          "row": 624
+        }
+      ]
+    },
+    {
+      "sku": "WYJ-A2327A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 665
+        },
+        {
+          "sheet": "通用品",
+          "row": 665
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1862A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 27
+        },
+        {
+          "sheet": "通用品",
+          "row": 27
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1876A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 38
+        },
+        {
+          "sheet": "通用品",
+          "row": 38
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1879A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 42
+        },
+        {
+          "sheet": "通用品",
+          "row": 42
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1880A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 47
+        },
+        {
+          "sheet": "通用品",
+          "row": 47
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1892A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 60
+        },
+        {
+          "sheet": "通用品",
+          "row": 60
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1913A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 82
+        },
+        {
+          "sheet": "通用品",
+          "row": 82
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1927A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 98
+        },
+        {
+          "sheet": "通用品",
+          "row": 98
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1939A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 108
+        },
+        {
+          "sheet": "通用品",
+          "row": 108
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1940A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 109
+        },
+        {
+          "sheet": "通用品",
+          "row": 109
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1941A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 111
+        },
+        {
+          "sheet": "通用品",
+          "row": 111
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1984A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 160
+        },
+        {
+          "sheet": "通用品",
+          "row": 160
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1988A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 166
+        },
+        {
+          "sheet": "通用品",
+          "row": 166
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A1990A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 168
+        },
+        {
+          "sheet": "通用品",
+          "row": 168
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2032A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 230
+        },
+        {
+          "sheet": "通用品",
+          "row": 230
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2034A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 234
+        },
+        {
+          "sheet": "通用品",
+          "row": 234
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2039A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 240
+        },
+        {
+          "sheet": "通用品",
+          "row": 240
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2053A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 258
+        },
+        {
+          "sheet": "通用品",
+          "row": 258
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2092A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 309
+        },
+        {
+          "sheet": "通用品",
+          "row": 309
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2104A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 325
+        },
+        {
+          "sheet": "通用品",
+          "row": 325
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2113A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 338
+        },
+        {
+          "sheet": "通用品",
+          "row": 338
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2122A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 353
+        },
+        {
+          "sheet": "通用品",
+          "row": 353
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2133A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 376
+        },
+        {
+          "sheet": "通用品",
+          "row": 376
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2208A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 495
+        },
+        {
+          "sheet": "通用品",
+          "row": 495
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2226A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 525
+        },
+        {
+          "sheet": "通用品",
+          "row": 525
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2229A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 529
+        },
+        {
+          "sheet": "通用品",
+          "row": 529
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2242A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 552
+        },
+        {
+          "sheet": "通用品",
+          "row": 552
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2252A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 563
+        },
+        {
+          "sheet": "通用品",
+          "row": 563
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2282A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 604
+        },
+        {
+          "sheet": "通用品",
+          "row": 604
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2287A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 611
+        },
+        {
+          "sheet": "通用品",
+          "row": 611
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2291A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 616
+        },
+        {
+          "sheet": "通用品",
+          "row": 616
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2294A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 619
+        },
+        {
+          "sheet": "通用品",
+          "row": 619
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2300A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 625
+        },
+        {
+          "sheet": "通用品",
+          "row": 625
+        }
+      ]
+    },
+    {
+      "sku": "XTT-A2334A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 672
+        },
+        {
+          "sheet": "通用品",
+          "row": 672
+        }
+      ]
+    },
+    {
+      "sku": "XZR-M5048M",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 445
+        },
+        {
+          "sheet": "通用品",
+          "row": 445
+        }
+      ]
+    },
+    {
+      "sku": "XZR-M5079M",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 443
+        },
+        {
+          "sheet": "通用品",
+          "row": 443
+        }
+      ]
+    },
+    {
+      "sku": "XZR-M5085M",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 444
+        },
+        {
+          "sheet": "通用品",
+          "row": 444
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1836A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 3
+        },
+        {
+          "sheet": "通用品",
+          "row": 3
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1869A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 32
+        },
+        {
+          "sheet": "通用品",
+          "row": 32
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1874A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 36
+        },
+        {
+          "sheet": "通用品",
+          "row": 36
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1898A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 66
+        },
+        {
+          "sheet": "通用品",
+          "row": 66
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1906A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 74
+        },
+        {
+          "sheet": "通用品",
+          "row": 74
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1915A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 84
+        },
+        {
+          "sheet": "通用品",
+          "row": 84
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1928A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 99
+        },
+        {
+          "sheet": "通用品",
+          "row": 99
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1938A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 107
+        },
+        {
+          "sheet": "通用品",
+          "row": 107
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1945A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 115
+        },
+        {
+          "sheet": "通用品",
+          "row": 115
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1950A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 119
+        },
+        {
+          "sheet": "通用品",
+          "row": 119
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1954A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 123
+        },
+        {
+          "sheet": "通用品",
+          "row": 123
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1977A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 150
+        },
+        {
+          "sheet": "通用品",
+          "row": 150
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1987A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 165
+        },
+        {
+          "sheet": "通用品",
+          "row": 165
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A1999A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 184
+        },
+        {
+          "sheet": "通用品",
+          "row": 184
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2002A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 187
+        },
+        {
+          "sheet": "通用品",
+          "row": 187
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2005A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 190
+        },
+        {
+          "sheet": "通用品",
+          "row": 190
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2018A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 213
+        },
+        {
+          "sheet": "通用品",
+          "row": 213
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2021A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 217
+        },
+        {
+          "sheet": "通用品",
+          "row": 217
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2033A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 233
+        },
+        {
+          "sheet": "通用品",
+          "row": 233
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2042A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 243
+        },
+        {
+          "sheet": "通用品",
+          "row": 243
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2059A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 265
+        },
+        {
+          "sheet": "通用品",
+          "row": 265
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2060A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 266
+        },
+        {
+          "sheet": "通用品",
+          "row": 266
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2065A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 271
+        },
+        {
+          "sheet": "通用品",
+          "row": 271
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2068A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 276
+        },
+        {
+          "sheet": "通用品",
+          "row": 276
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2075A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 284
+        },
+        {
+          "sheet": "通用品",
+          "row": 284
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2123A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 356
+        },
+        {
+          "sheet": "通用品",
+          "row": 356
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2152A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 403
+        },
+        {
+          "sheet": "通用品",
+          "row": 403
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2156A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 408
+        },
+        {
+          "sheet": "通用品",
+          "row": 408
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2168A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 425
+        },
+        {
+          "sheet": "通用品",
+          "row": 425
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2171A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 429
+        },
+        {
+          "sheet": "通用品",
+          "row": 429
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2186A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 456
+        },
+        {
+          "sheet": "通用品",
+          "row": 456
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2189A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 459
+        },
+        {
+          "sheet": "通用品",
+          "row": 459
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2193A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 469
+        },
+        {
+          "sheet": "通用品",
+          "row": 469
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2211A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 499
+        },
+        {
+          "sheet": "通用品",
+          "row": 499
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2212A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 502
+        },
+        {
+          "sheet": "通用品",
+          "row": 502
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2230A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 530
+        },
+        {
+          "sheet": "通用品",
+          "row": 530
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2262A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 577
+        },
+        {
+          "sheet": "通用品",
+          "row": 577
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2265A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 581
+        },
+        {
+          "sheet": "通用品",
+          "row": 581
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2305A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 635
+        },
+        {
+          "sheet": "通用品",
+          "row": 635
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2309A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 640
+        },
+        {
+          "sheet": "通用品",
+          "row": 640
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2323A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 661
+        },
+        {
+          "sheet": "通用品",
+          "row": 661
+        }
+      ]
+    },
+    {
+      "sku": "ZLP-A2325A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 663
+        },
+        {
+          "sheet": "通用品",
+          "row": 663
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1858A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 23
+        },
+        {
+          "sheet": "通用品",
+          "row": 23
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1860A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 25
+        },
+        {
+          "sheet": "通用品",
+          "row": 25
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1863A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 28
+        },
+        {
+          "sheet": "通用品",
+          "row": 28
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1864A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 29
+        },
+        {
+          "sheet": "通用品",
+          "row": 29
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1865A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 30
+        },
+        {
+          "sheet": "通用品",
+          "row": 30
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1896A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 64
+        },
+        {
+          "sheet": "通用品",
+          "row": 64
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1912A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 81
+        },
+        {
+          "sheet": "通用品",
+          "row": 81
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1914A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 83
+        },
+        {
+          "sheet": "通用品",
+          "row": 83
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1917A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 86
+        },
+        {
+          "sheet": "通用品",
+          "row": 86
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1918A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 87
+        },
+        {
+          "sheet": "通用品",
+          "row": 87
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1937A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 106
+        },
+        {
+          "sheet": "通用品",
+          "row": 106
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1943A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 113
+        },
+        {
+          "sheet": "通用品",
+          "row": 113
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1956A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 125
+        },
+        {
+          "sheet": "通用品",
+          "row": 125
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1970A-Negro",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 140
+        },
+        {
+          "sheet": "通用品",
+          "row": 140
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1970A-Plata",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 141
+        },
+        {
+          "sheet": "通用品",
+          "row": 141
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1970A-Rosa",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 142
+        },
+        {
+          "sheet": "通用品",
+          "row": 142
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1976A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 149
+        },
+        {
+          "sheet": "通用品",
+          "row": 149
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1980A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 155
+        },
+        {
+          "sheet": "通用品",
+          "row": 155
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A1983A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 159
+        },
+        {
+          "sheet": "通用品",
+          "row": 159
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2023A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 219
+        },
+        {
+          "sheet": "通用品",
+          "row": 219
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2026A-Blanco",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 224
+        },
+        {
+          "sheet": "通用品",
+          "row": 224
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2026A-Negro",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 225
+        },
+        {
+          "sheet": "通用品",
+          "row": 225
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2029A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 227
+        },
+        {
+          "sheet": "通用品",
+          "row": 227
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2040A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 241
+        },
+        {
+          "sheet": "通用品",
+          "row": 241
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2048A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 251
+        },
+        {
+          "sheet": "通用品",
+          "row": 251
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2050A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 253
+        },
+        {
+          "sheet": "通用品",
+          "row": 253
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2058A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 264
+        },
+        {
+          "sheet": "通用品",
+          "row": 264
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2067A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 275
+        },
+        {
+          "sheet": "通用品",
+          "row": 275
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2080A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 291
+        },
+        {
+          "sheet": "通用品",
+          "row": 291
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2150A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 400
+        },
+        {
+          "sheet": "通用品",
+          "row": 400
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2151A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 401
+        },
+        {
+          "sheet": "通用品",
+          "row": 401
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2162A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 417
+        },
+        {
+          "sheet": "通用品",
+          "row": 417
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2169A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 426
+        },
+        {
+          "sheet": "通用品",
+          "row": 426
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2199A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 482
+        },
+        {
+          "sheet": "通用品",
+          "row": 482
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2206A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 491
+        },
+        {
+          "sheet": "通用品",
+          "row": 491
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2231A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 531
+        },
+        {
+          "sheet": "通用品",
+          "row": 531
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2239A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 544
+        },
+        {
+          "sheet": "通用品",
+          "row": 544
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2253A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 564
+        },
+        {
+          "sheet": "通用品",
+          "row": 564
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2266A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 582
+        },
+        {
+          "sheet": "通用品",
+          "row": 582
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2274A-L",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 592
+        },
+        {
+          "sheet": "通用品",
+          "row": 592
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2274A-S",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 593
+        },
+        {
+          "sheet": "通用品",
+          "row": 593
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2277A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 597
+        },
+        {
+          "sheet": "通用品",
+          "row": 597
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2280A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 601
+        },
+        {
+          "sheet": "通用品",
+          "row": 601
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2317A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 651
+        },
+        {
+          "sheet": "通用品",
+          "row": 651
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2326A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 664
+        },
+        {
+          "sheet": "通用品",
+          "row": 664
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2328A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 666
+        },
+        {
+          "sheet": "通用品",
+          "row": 666
+        }
+      ]
+    },
+    {
+      "sku": "ZW-A2329A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 667
+        },
+        {
+          "sheet": "通用品",
+          "row": 667
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1837A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 4
+        },
+        {
+          "sheet": "通用品",
+          "row": 4
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1859A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 24
+        },
+        {
+          "sheet": "通用品",
+          "row": 24
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1894A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 62
+        },
+        {
+          "sheet": "通用品",
+          "row": 62
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1916A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 85
+        },
+        {
+          "sheet": "通用品",
+          "row": 85
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1922A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 93
+        },
+        {
+          "sheet": "通用品",
+          "row": 93
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1925A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 96
+        },
+        {
+          "sheet": "通用品",
+          "row": 96
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1951A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 120
+        },
+        {
+          "sheet": "通用品",
+          "row": 120
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1958A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 127
+        },
+        {
+          "sheet": "通用品",
+          "row": 127
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1964A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 133
+        },
+        {
+          "sheet": "通用品",
+          "row": 133
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1966A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 135
+        },
+        {
+          "sheet": "通用品",
+          "row": 135
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1992A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 172
+        },
+        {
+          "sheet": "通用品",
+          "row": 172
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A1997A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 182
+        },
+        {
+          "sheet": "通用品",
+          "row": 182
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2000A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 185
+        },
+        {
+          "sheet": "通用品",
+          "row": 185
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2016A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 211
+        },
+        {
+          "sheet": "通用品",
+          "row": 211
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2030A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 228
+        },
+        {
+          "sheet": "通用品",
+          "row": 228
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2054A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 259
+        },
+        {
+          "sheet": "通用品",
+          "row": 259
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2057A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 263
+        },
+        {
+          "sheet": "通用品",
+          "row": 263
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2070A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 278
+        },
+        {
+          "sheet": "通用品",
+          "row": 278
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2073A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 282
+        },
+        {
+          "sheet": "通用品",
+          "row": 282
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2085A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 299
+        },
+        {
+          "sheet": "通用品",
+          "row": 299
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2103A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 324
+        },
+        {
+          "sheet": "通用品",
+          "row": 324
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2109A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 331
+        },
+        {
+          "sheet": "通用品",
+          "row": 331
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2126A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 363
+        },
+        {
+          "sheet": "通用品",
+          "row": 363
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2127A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 365
+        },
+        {
+          "sheet": "通用品",
+          "row": 365
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2137A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 379
+        },
+        {
+          "sheet": "通用品",
+          "row": 379
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2164A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 419
+        },
+        {
+          "sheet": "通用品",
+          "row": 419
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2165A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 420
+        },
+        {
+          "sheet": "通用品",
+          "row": 420
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2209A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 496
+        },
+        {
+          "sheet": "通用品",
+          "row": 496
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2213A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 503
+        },
+        {
+          "sheet": "通用品",
+          "row": 503
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2235A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 538
+        },
+        {
+          "sheet": "通用品",
+          "row": 538
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2243A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 553
+        },
+        {
+          "sheet": "通用品",
+          "row": 553
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2250A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 560
+        },
+        {
+          "sheet": "通用品",
+          "row": 560
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2257A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 568
+        },
+        {
+          "sheet": "通用品",
+          "row": 568
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2264A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 580
+        },
+        {
+          "sheet": "通用品",
+          "row": 580
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2271A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 589
+        },
+        {
+          "sheet": "通用品",
+          "row": 589
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2272A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 590
+        },
+        {
+          "sheet": "通用品",
+          "row": 590
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2297A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 622
+        },
+        {
+          "sheet": "通用品",
+          "row": 622
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2301A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 628
+        },
+        {
+          "sheet": "通用品",
+          "row": 628
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2303A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 633
+        },
+        {
+          "sheet": "通用品",
+          "row": 633
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2304A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 634
+        },
+        {
+          "sheet": "通用品",
+          "row": 634
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2314A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 646
+        },
+        {
+          "sheet": "通用品",
+          "row": 646
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2332A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 670
+        },
+        {
+          "sheet": "通用品",
+          "row": 670
+        }
+      ]
+    },
+    {
+      "sku": "ZX-A2333A",
+      "type": "internal",
+      "sources": [
+        {
+          "sheet": "产品排重",
+          "row": 671
+        },
+        {
+          "sheet": "通用品",
+          "row": 671
+        }
+      ]
+    }
+  ]
+}

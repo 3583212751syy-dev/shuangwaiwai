@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>SKU 集合设置</title>
+<style>
+body{margin:0;padding:24px;width:620px;font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:#1f2937;background:#f9fafb}
+h1{font-size:18px;margin:0 0 8px}
+textarea{width:100%;height:140px;font:13px/1.5 monospace;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+input{width:100%;padding:8px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+button{cursor:pointer;border:0;border-radius:6px;background:#2563eb;color:#fff;font-weight:600;padding:9px 16px;margin-top:10px}
+.meta{color:#6b7280;font-size:12px}
+#status{margin-top:8px;font-weight:600}
+</style>
+</head>
+<body>
+<h1>SKU 集合设置</h1>
+<p class="meta">内置集合来自金山文档「选品定价表.xlsx」（产品排重 G 列 + 通用品 G 列 + 主管审核备注里的 MLM 平台 ID）。这里可补充手动 SKU，每行一个，追加到内置集合。</p>
+<h3>手动追加 SKU</h3>
+<textarea id="skus" placeholder="ZLP-A1836A&#10;MLM2850659521"></textarea>
+<h3 style="margin-top:16px">图片对比工具地址</h3>
+<input id="site" value="https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY">
+<button id="save">保存</button>
+<div id="status"></div>
+<script>
+const $=id=>document.getElementById(id);
+chrome.storage.local.get({customSKUs:[],siteUrl:'https://product-image-match.app.workbuddy.host/?sharecode=MTCP4KDYCY'},cfg=>{
+  $('skus').value=(cfg.customSKUs||[]).join('\n');$('site').value=cfg.siteUrl||'';
+});
+$('save').onclick=()=>{
+  const list=$('skus').value.split(/[\r\n,;]+/).map(s=>s.trim()).filter(Boolean);
+  chrome.storage.local.set({customSKUs:list,siteUrl:$('site').value.trim()},()=>{$('status').textContent='已保存 '+list.length+' 条手动 SKU';});
+};
+</script>
+</body>
+</html>

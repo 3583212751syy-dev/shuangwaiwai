@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>选品排重助手</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;width:420px;font:13px/1.5 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:#1f2937;background:#f9fafb}
+header{padding:12px 14px;background:#111827;color:#fff;display:flex;justify-content:space-between;align-items:center}
+header b{font-size:15px}
+header a{color:#93c5fd;font-size:12px;text-decoration:none}
+main{padding:12px 14px}
+button{cursor:pointer;border:0;border-radius:6px;padding:8px 12px;font-size:13px}
+.primary{background:#2563eb;color:#fff;width:100%;font-weight:600;font-size:14px;padding:10px}
+.primary:disabled{opacity:.6;cursor:default}
+.secondary{background:#e5e7eb;color:#111827}
+.row{display:flex;gap:8px;margin-top:8px}
+.row button{flex:1}
+#verdict{margin:12px 0;padding:10px;border-radius:8px;font-weight:600}
+#verdict.dup{background:#fee2e2;color:#991b1b}
+#verdict.safe{background:#dcfce7;color:#166534}
+#verdict.unknown{background:#fef3c7;color:#92400e}
+#verdict small{display:block;font-weight:400;margin-top:4px;opacity:.85}
+h3{font-size:13px;margin:12px 0 6px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
+.name{font-weight:600;font-size:14px;line-height:1.35}
+.meta{color:#6b7280;font-size:12px}
+.spec{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:8px;margin:6px 0;max-height:130px;overflow:auto}
+.spec li{margin:2px 0}
+img.thumb{width:64px;height:64px;object-fit:contain;background:#fff;border:1px solid #e5e7eb;border-radius:6px;margin:0 6px 6px 0}
+.hit{background:#fff;border:1px solid #fca5a5;border-radius:6px;padding:6px 8px;margin:4px 0}
+.cand{color:#4b5563;font-size:12px}
+footer{padding:8px 14px;color:#9ca3af;font-size:11px;border-top:1px solid #e5e7eb;margin-top:10px}
+</style>
+</head>
+<body>
+<header><b>选品排重助手</b><a href="options.html" target="_blank">SKU 集合设置</a></header>
+<main>
+  <button id="scan" class="primary">一键扫描当前网页</button>
+  <div id="status" class="meta" style="margin-top:8px"></div>
+  <div id="verdict" class="unknown">尚未扫描</div>
+  <div id="product"></div>
+  <div class="row">
+    <button id="compare" class="secondary">图片对比工具</button>
+    <button id="copy" class="secondary">复制扫描结果</button>
+  </div>
+</main>
+<footer id="footer"></footer>
+<script src="lib/sku.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>
