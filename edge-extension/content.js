@@ -53,10 +53,13 @@
 
   function getImages() {
     const urls = [];
-    // 同一张图的 D_NQ_NP_xxx / D_Q_NP_xxx / -O/-B/-F 是同一批尺寸，必须按数字 ID 去重。
+    // 同一张图的 D_NQ_NP_xxx / D_Q_NP_2X_xxx / -O/-F/-R 是同一批尺寸，必须按图片资产 ID 去重。
+    // 资产 ID 是 mlstatic URL 里 <数字>-MLx 那一段（如 974063-MLM110908396490_052026-F）；
+    // 旧正则 /D_(?:N?Q_)?NP_(\d+)/ 遇到 NP_2X_974063 会把 "2" 当 ID（key 变成 D_2），
+    // 既漏去重，又会把不同图片的 2X 变体互相误判为重复。
     const imageKey = u => {
-      const m = String(u).match(/\/D_(?:N?Q_)?NP_(\d+)/i);
-      if (m) return 'D_' + m[1];
+      const m = String(u).match(/(\d{4,8})-ML[A-Z]/i);
+      if (m) return 'ML_' + m[1];
       return String(u).split(/[?#]/)[0];
     };
     const seen = new Set();
